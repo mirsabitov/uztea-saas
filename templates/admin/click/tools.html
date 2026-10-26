@@ -1,0 +1,325 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .click-tools-grid {
+        display: grid;
+        gap: 16px;
+        margin-bottom: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .click-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 14px;
+    }
+    .click-card h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: #1f2937;
+    }
+    .click-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #111827;
+    }
+    .click-toolbar {
+        margin: 12px 0 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+    .click-toolbar code {
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 4px;
+        word-break: break-all;
+    }
+    .click-pre {
+        background: #0f172a;
+        color: #e5e7eb;
+        border-radius: 8px;
+        padding: 12px;
+        overflow: auto;
+        font-size: 12px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+        margin: 0;
+    }
+    .log-line {
+        display: block;
+    }
+    .log-info {
+        color: #86efac;
+    }
+    .log-warning {
+        color: #fcd34d;
+    }
+    .log-error {
+        color: #fca5a5;
+    }
+    .log-other {
+        color: #cbd5e1;
+    }
+    .click-muted {
+        color: #6b7280;
+        font-size: 12px;
+    }
+    .inline-form {
+        display: inline-block;
+        margin: 0 2px;
+    }
+    .mini-btn {
+        border: 0;
+        border-radius: 4px;
+        padding: 3px 8px;
+        color: #ffffff;
+        font-size: 11px;
+        cursor: pointer;
+    }
+    .btn-prepare {
+        background: #0284c7;
+    }
+    .btn-paid {
+        background: #16a34a;
+    }
+    .btn-failed {
+        background: #dc2626;
+    }
+    .create-order-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+    .create-order-form select,
+    .create-order-form input {
+        min-width: 220px;
+        padding: 6px 8px;
+    }
+    .create-btn {
+        background: #1d4ed8;
+        border: 0;
+        color: #fff;
+        border-radius: 4px;
+        padding: 7px 12px;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url 'admin:click_order_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; Click Tools &amp; Logs
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Click Tools &amp; Logs</h1>
+    <p class="click-muted">Click testlash va webhook loglarini tezkor kuzatish sahifasi.</p>
+
+    <div class="click-tools-grid">
+        <div class="click-card">
+            <h3>Jami orderlar</h3>
+            <div class="click-value">{{ total_orders }}</div>
+        </div>
+        <div class="click-card">
+            <h3>Pending</h3>
+            <div class="click-value">{{ status_counts.pending|default:0 }}</div>
+        </div>
+        <div class="click-card">
+            <h3>Processing</h3>
+            <div class="click-value">{{ status_counts.processing|default:0 }}</div>
+        </div>
+        <div class="click-card">
+            <h3>Paid</h3>
+            <div class="click-value">{{ status_counts.paid|default:0 }}</div>
+        </div>
+        <div class="click-card">
+            <h3>Failed</h3>
+            <div class="click-value">{{ status_counts.failed|default:0 }}</div>
+        </div>
+    </div>
+
+    <div class="module">
+        <h2>Test ma'lumotlari</h2>
+        <div class="click-toolbar">
+            <a class="button" href="{% url 'admin:click_order_changelist' %}">Order ro'yxati</a>
+            <a class="button" href="{% url 'admin:click_order_add' %}">Admin add order</a>
+            <a class="button" href="{% url 'admin:click_order_changelist' %}?status__exact=pending">Pending orderlar</a>
+            <span>Webhook URL: <code>{{ webhook_url }}</code></span>
+        </div>
+        <p class="click-muted">Log fayl: {{ log_file_path }}</p>
+    </div>
+
+    <div class="module">
+        <h2>Order Create</h2>
+        <form method="post" action="{{ create_order_url }}" class="create-order-form">
+            {% csrf_token %}
+            <select name="membership_id" required>
+                <option value="">Membership tanlang</option>
+                {% for membership in memberships %}
+                <option value="{{ membership.id }}">
+                    #{{ membership.id }} - {{ membership.full_name }} ({{ membership.membership_type }})
+                </option>
+                {% endfor %}
+            </select>
+            <input type="number" step="0.01" name="amount" placeholder="Amount (bo'sh qoldirilsa default narx)">
+            <button type="submit" class="create-btn">Create Order</button>
+        </form>
+        <p class="click-muted">Default narxlar: student=50000, teacher=100000, institutional=500000, partner=0.</p>
+    </div>
+
+    <div class="module">
+        <h2>Webhook test (cURL)</h2>
+        <pre class="click-pre">curl -X POST "{{ webhook_url }}" \
+  -d "click_trans_id=111111" \
+  -d "service_id=YOUR_SERVICE_ID" \
+  -d "merchant_trans_id=ORDER_ID" \
+  -d "amount=1000.00" \
+  -d "action=0" \
+  -d "error=0" \
+  -d "sign_time=TIMESTAMP" \
+  -d "sign_string=GENERATED_SIGN"</pre>
+    </div>
+
+    <div class="module">
+        <h2>Oxirgi 20 ta order</h2>
+        {% if orders %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Membership</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Click trans id</th>
+                    <th>Test tugmalari</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.membership.full_name|default:"-" }}</td>
+                    <td>{{ order.amount }}</td>
+                    <td id="order-status-{{ order.id }}">{{ order.status }}</td>
+                    <td>{{ order.click_trans_id|default:"-" }}</td>
+                    <td>
+                        <form method="post" action="{{ simulate_url }}" class="inline-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                            <input type="hidden" name="mode" value="prepare">
+                            <button type="submit" class="mini-btn btn-prepare">Prepare</button>
+                        </form>
+                        <form method="post" action="{{ simulate_url }}" class="inline-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                            <input type="hidden" name="mode" value="complete_paid">
+                            <button type="submit" class="mini-btn btn-paid">Complete Paid</button>
+                        </form>
+                        <form method="post" action="{{ simulate_url }}" class="inline-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                            <input type="hidden" name="mode" value="complete_failed">
+                            <button type="submit" class="mini-btn btn-failed">Complete Failed</button>
+                        </form>
+                    </td>
+                    <td>
+                        <a href="{% url 'membership_payment' order.id %}" target="_blank">To'lov sahifasi</a> |
+                        <a href="{% url 'admin:click_order_check' order.id %}">Check</a> |
+                        <a href="{% url 'admin:click_order_change' order.id %}">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Orderlar topilmadi.</p>
+        {% endif %}
+    </div>
+
+    <div class="module">
+        <h2>Real API Loglar (oxirgi {{ lines_limit }} qator)</h2>
+        <p class="click-muted">Faqat `[REAL_API]` loglari ko'rsatiladi. Auto refresh: har 2 soniyada. Oxirgi yangilanish: <span id="logs-updated-at">-</span></p>
+        {% if log_entries %}
+        <pre class="click-pre" id="log-output">{% for entry in log_entries %}<span class="log-line log-{{ entry.level }}">{{ entry.line }}</span>{% endfor %}</pre>
+        {% else %}
+        <pre class="click-pre" id="log-output"><span class="log-line log-other">Hozircha log yozuvlari yo'q yoki click_payments.log fayli topilmadi.</span></pre>
+        {% endif %}
+    </div>
+</div>
+<script>
+    (function () {
+        const logsApiUrl = "{{ logs_api_url }}?lines={{ lines_limit }}";
+        const logOutput = document.getElementById("log-output");
+        const logsUpdatedAt = document.getElementById("logs-updated-at");
+        const cardMap = {
+            total_orders: document.querySelector(".click-card:nth-child(1) .click-value"),
+            pending: document.querySelector(".click-card:nth-child(2) .click-value"),
+            processing: document.querySelector(".click-card:nth-child(3) .click-value"),
+            paid: document.querySelector(".click-card:nth-child(4) .click-value"),
+            failed: document.querySelector(".click-card:nth-child(5) .click-value")
+        };
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/\"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function renderLogs(entries) {
+            if (!entries || !entries.length) {
+                logOutput.innerHTML = '<span class="log-line log-other">Hozircha log yozuvlari yoq.</span>';
+                return;
+            }
+
+            const html = entries.map((entry) => {
+                const level = entry.level || "other";
+                const line = escapeHtml(entry.line || "");
+                return '<span class="log-line log-' + level + '">' + line + '</span>';
+            }).join("");
+
+            logOutput.innerHTML = html;
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+
+        function updateStats(data) {
+            const counts = data.status_counts || {};
+            if (cardMap.total_orders) cardMap.total_orders.textContent = data.total_orders || 0;
+            if (cardMap.pending) cardMap.pending.textContent = counts.pending || 0;
+            if (cardMap.processing) cardMap.processing.textContent = counts.processing || 0;
+            if (cardMap.paid) cardMap.paid.textContent = counts.paid || 0;
+            if (cardMap.failed) cardMap.failed.textContent = counts.failed || 0;
+        }
+
+        async function refreshLogs() {
+            try {
+                const response = await fetch(logsApiUrl, { credentials: "same-origin" });
+                if (!response.ok) return;
+                const data = await response.json();
+                renderLogs(data.entries || []);
+                updateStats(data);
+                logsUpdatedAt.textContent = new Date().toLocaleTimeString();
+            } catch (err) {
+                logsUpdatedAt.textContent = "error";
+            }
+        }
+
+        refreshLogs();
+        setInterval(refreshLogs, 2000);
+    })();
+</script>
+{% endblock %}

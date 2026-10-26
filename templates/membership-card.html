@@ -1,0 +1,538 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% include 'partials/google_analytics.html' %}
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UzTEA {{ membership.get_membership_type_display }} Card</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@500;600;700;800;900&family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    body{
+      min-height:100vh;
+      display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      padding:32px 16px;
+      background:linear-gradient(135deg,#dde3f5 0%,#c8d1ea 100%);
+      font-family:'Mulish',sans-serif;
+    }
+
+    .demo-note{
+      font-family:'Raleway',sans-serif;
+      font-size:11px;font-weight:800;letter-spacing:.12em;
+      text-transform:uppercase;color:#6366f1;margin-bottom:10px;
+    }
+
+    /* ── Card shell ── */
+    .card{
+      width:100%;max-width:430px;
+      border-radius:28px;overflow:hidden;
+      box-shadow:0 28px 64px rgba(8,18,55,.24),0 6px 18px rgba(8,18,55,.14);
+      background:#fff;
+      position:relative;
+    }
+
+    /* ══ 1 + 2. HEADER: logos + topshape bitta div ══ */
+    .card-header{
+      position:relative;
+      background:#fff;
+      padding:18px 0 0;
+      /* topshape.png (600x200) at 430px width ≈ 143px */
+      padding-bottom:115px;
+    }
+    /* Logos row */
+    .card-logos{
+      display:flex;align-items:center;justify-content:space-between;
+      padding-inline:35px;
+      position:relative;z-index:1;
+    }
+    .uztea-side{display:flex;align-items:center;gap:11px;}
+    .uztea-side img{height:52px;width:auto;object-fit:contain;}
+    .divider-v{width:1.5px;height:40px;background:#d4daf0;border-radius:2px;}
+    .org-text{font-size:11px;font-weight:700;color:#3a4a7a;line-height:1.5;max-width:115px;}
+
+    /* IATEFL */
+    .iatefl-side{text-align:right;line-height:1.15;}
+    .iatefl-badge-top{
+      display:inline-block;
+      border:1.8px solid #9ba8cc;border-radius:6px;
+      padding:2px 9px;
+      font-size:16px;font-weight:700;font-style:italic;
+      color:#2d3a7a;letter-spacing:-.2px;
+    }
+    .iatefl-badge-mid{
+      display:block;
+      font-family:'Raleway',sans-serif;
+      font-size:22px;font-weight:900;
+      background:linear-gradient(135deg,#c026d3,#7c3aed);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
+      letter-spacing:-.5px;
+    }
+    .iatefl-badge-sub{
+      font-size:7.5px;font-weight:700;
+      color:#7c3aed;letter-spacing:.01em;
+    }
+
+    /* topshape: absolute at bottom of card-header */
+    .topshape-wrap{
+      position:absolute;
+      bottom:0;left:0;right:0;
+      width:100%;
+      line-height:0;
+      z-index:0;
+    }
+    .topshape-wrap img{
+      width:100%;height:auto;
+      display:block;
+    }
+    /* header-text: absolute, centered over topshape */
+    .header-text{
+      position:absolute;
+      top:13px;left:0;right:0;
+      height:100%;
+      display:flex;flex-direction:column;
+      justify-content:center;align-items:center;
+      z-index:2;
+    }
+    .card-header h2{
+      font-family:'Raleway',sans-serif;
+      font-size:30px;font-weight:900;
+      color:#fff;letter-spacing:-.5px;line-height:1.1;
+    }
+    .member-row{
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      margin:8px 0 0;
+    }
+    .member-row::before,.member-row::after{
+      content:'';flex:1;max-width:65px;height:1px;
+      background:rgba(255,255,255,.35);
+    }
+    .member-row span{
+      font-family:'Raleway',sans-serif;
+      font-size:15px;font-weight:600;color:#a5b4fc;
+      letter-spacing:.06em;
+    }
+
+    /* ══ 3. BODY ══ */
+    .card-body{
+      background:#fff;
+      padding:18px 35px 20px;
+      position:relative;
+    }
+
+    /* Name + silhouette */
+    .name-wrap{
+      position:relative;
+      padding:10px 0 14px;
+      min-height:110px;
+      overflow:hidden;
+    }
+    .siluet{
+      position:absolute;
+      right:0;top:0;bottom:0;
+      height:100%;width:auto;
+      object-fit:contain;
+      object-position:right center;
+      opacity:0.7;
+      pointer-events:none;
+    }
+    .member-name{
+      font-family:'Raleway',sans-serif;
+      font-size:38px;font-weight:900;
+      color:#0d1a4d;line-height:1.08;
+      letter-spacing:-.8px;
+      position:relative;z-index:1;
+      max-width:60%;
+    }
+    .name-line{
+      width:48px;height:4px;
+      background:#6366f1;border-radius:2px;
+      margin-top:14px;
+    }
+    .card-id-badge{
+      display:inline-block;
+      margin-top:8px;
+      font-size:11px;font-weight:700;
+      color:#024890;
+      letter-spacing:.05em;
+      position:relative;z-index:1;
+    }
+
+    /* Phone + Email row */
+    .contact-row{
+      display:flex;
+      margin-top:0px;
+    }
+    .c-item{
+      flex:1;display:flex;align-items:center;gap:10px;
+      padding:10px 0;
+    }
+    .c-item+.c-item{
+      border-left:1.5px solid #d8dfef;
+      padding-left:20px;
+    }
+    .c-icon{
+      width:30px;height:30px;border-radius:50%;
+      background:#0d1a4d;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    }
+    .c-icon svg{color:#fff;}
+    .c-info .lbl{
+      font-size:12px;font-weight:600;
+      color:#8a94b8;
+      line-height:1;margin-bottom:4px;
+    }
+    .c-info .val{
+      font-size:11px;font-weight:600;color:#0d1a4d;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    /* Divider */
+    .h-divider{height:1.5px;background:#e4eaf8;margin:5px 0;}
+
+    /* Info list + QR */
+    .info-qr{display:flex;gap:16px;align-items:flex-start;}
+    .info-list{flex:1;display:flex;flex-direction:column;}
+    .i-item{
+      display:flex;align-items:center;gap:14px;
+      padding:10px 0;
+      border-bottom:1.5px solid #e4eaf8;
+    }
+    .i-item:last-child{border-bottom:none;}
+    .i-icon{
+      width:30px;height:30px;border-radius:50%;
+      background:#0d1a4d;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    }
+    .i-icon svg{color:#fff;}
+    .i-text .lbl{
+      font-size:10px;font-weight:600;color:#8a94b8;
+      letter-spacing:.02em;line-height:1;margin-bottom:2px;
+    }
+    .i-text .val{font-size:14px;font-weight:800;color:#0d1a4d;line-height:1.3;}
+
+    /* QR */
+    .qr-wrap{display:flex;align-items:center;justify-content:center;margin-top:30px;}
+    .qr-box{
+      border:2px solid #d0d8ef;border-radius:16px;
+      padding:10px;background:#fff;
+      box-shadow:0 4px 16px rgba(13,26,77,.08);
+    }
+    .qr-box img{
+      width:130px;height:130px;
+      display:block;border-radius:8px;
+    }
+
+    /* ══ 4. FOOTER ══ */
+    .card-footer{
+      /* bottomshape balandligi uchun joy */
+      padding-bottom:80px;
+      background:#fff;
+    }
+    /* bottomshape: card ga position absolute, pastda */
+    .bottomshape-wrap{
+      position:absolute;
+      bottom:0;left:0;right:0;
+      width:100%;
+      line-height:0;
+      z-index:1;
+    }
+    .bottomshape-wrap img{
+      width:100%;height:auto;display:block;
+    }
+    /* footer-text: bottomshape dark qismining markazida */
+    .footer-text{
+      position:absolute;
+      bottom:0;left:0;right:0;
+      height:80px;
+      padding-bottom:16px;
+      display:flex;flex-direction:column;
+      justify-content:center;align-items:center;
+      z-index:2;
+    }
+    .footer-shield{
+      width:40px;height:40px;
+      /* background:rgba(99,102,241,.22); */
+      border-radius:10px;
+      display:inline-flex;align-items:center;justify-content:center;
+      margin-bottom:6px;
+    }
+    .card-footer p{
+      font-family:'Raleway',sans-serif;
+      font-size:13px;font-weight:600;
+      color:rgba(255,255,255,.85);line-height:1.55;
+      text-align:center;
+    }
+
+    /* ── Actions ── */
+    .actions{
+      display:flex;gap:10px;margin-top:20px;
+      flex-wrap:wrap;justify-content:center;
+    }
+    .btn{
+      border:none;border-radius:10px;padding:10px 18px;
+      font:700 13px 'Mulish',sans-serif;cursor:pointer;
+      text-decoration:none;display:inline-block;
+    }
+    .btn-primary{background:#0d1a4d;color:#fff;}
+    .btn-outline{background:#fff;color:#0d1a4d;border:1.5px solid #cdd5ee;}
+
+    @media print{
+      body{background:#fff;padding:0;}
+      .actions{display:none;}
+      .card{box-shadow:none;}
+    }
+  </style>
+</head>
+<body>
+
+
+<article class="card">
+
+  <!-- 1+2. Header: logos + topshape (bottom absolute) + header-text -->
+  <div class="card-header">
+
+    <!-- Logos row (normal flow) -->
+    <div class="card-logos">
+      <div class="uztea-side">
+        <img src="{% if card_logo_url %}{{ card_logo_url }}{% else %}{% static 'images/logo.png' %}{% endif %}" alt="UzTEA"/>
+        <div class="divider-v"></div>
+        <div class="org-text">Uzbekistan Teachers of English Association</div>
+      </div>
+      <div class="iatefl-side">
+        <img src="{{ card_righticontop_url }}" alt="IATEFL Associate" style="height:91px;width:auto;object-fit:contain;"/>
+      </div>
+    </div>
+
+    <!-- topshape: normal flow (defines header height), text absolute on top -->
+    <div class="topshape-wrap">
+      <img src="{{ card_topshape_url }}" alt=""/>
+      <div class="header-text">
+        <h2>{{ membership.get_membership_type_display }}</h2>
+        <div class="member-row"><span>Member</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 3. Body -->
+  <div class="card-body">
+
+    <!-- Name + Samarqand silhouette -->
+    <div class="name-wrap">
+      <img class="siluet"
+           src="{{ card_siluet_url }}"
+           alt="" aria-hidden="true"/>
+      <div class="member-name">{{ membership.full_name }}</div>
+      <div class="name-line"></div>
+      <div class="card-id-badge">ID: {{ card_id }}</div>
+    </div>
+
+    <!-- Phone / Email -->
+    <div class="contact-row">
+      <div class="c-item">
+        <div class="c-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.19 18.9
+                     A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.63 3.4
+                     A2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72
+                     c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.82
+                     a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45
+                     c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+        </div>
+        <div class="c-info">
+          <div class="lbl">Phone</div>
+          <div class="val">{{ card_phone }}</div>
+        </div>
+      </div>
+
+      <div class="c-item">
+        <div class="c-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+        </div>
+        <div class="c-info">
+          <div class="lbl">Email</div>
+          <div class="val">{{ membership.email }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-divider"></div>
+
+    <!-- Info + QR -->
+    <div class="info-qr">
+      <div class="info-list">
+
+        <div class="i-item">
+          <div class="i-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10
+                       15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <div class="i-text">
+            <div class="lbl">Country</div>
+            <div class="val">{{ membership.country }}</div>
+          </div>
+        </div>
+
+        <div class="i-item">
+          <div class="i-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <div class="i-text">
+            <div class="lbl">City / Region</div>
+            <div class="val">{{ membership.region_city }}</div>
+          </div>
+        </div>
+
+        <div class="i-item">
+          <div class="i-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <div class="i-text">
+            <div class="lbl">Member Since</div>
+            <div class="val">{{ order.updated_at|date:"d F Y" }}</div>
+          </div>
+        </div>
+
+        <div class="i-item">
+          <div class="i-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div class="i-text">
+            <div class="lbl">Valid Until</div>
+            <div class="val">{{ card_valid_until|date:"d F Y" }}</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- QR code -->
+      <div class="qr-wrap">
+        <div class="qr-box">
+          <img src="{{ card_qr_url }}" alt="QR"/>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /card-body -->
+
+  <!-- 4. Footer: bottomshape image + text absolutely centered -->
+  <div class="card-footer">
+    <div class="bottomshape-wrap">
+      <img src="{{ card_bottomshape_url }}" alt=""/>
+      <div class="footer-text">
+        <div class="footer-shield">
+          <img src="{{ card_tickicon_url }}" alt="tick" style="width:40px;height:40px;object-fit:contain;"/>
+        </div>
+        <p>Empowering English Teachers<br>since the 1990s</p>
+      </div>
+    </div>
+  </div>
+
+</article>
+
+<div class="actions">
+  <button type="button" class="btn btn-primary" onclick="downloadCard(this)">⬇ Download Card</button>
+  <button type="button" class="btn btn-outline" onclick="window.print()">🖨 Print</button>
+  <a class="btn btn-outline" href="https://uztea.uz/">Home</a>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  async function downloadCard(btn){
+    const card = document.querySelector('.card');
+    const orig = btn ? btn.textContent : '';
+    if(btn){ btn.disabled=true; btn.textContent='Preparing…'; }
+    try{
+      const c = await html2canvas(card,{scale:3,useCORS:true,allowTaint:false,backgroundColor:'#fff',logging:false});
+      await new Promise(res=>{
+        c.toBlob(blob=>{
+          const a=document.createElement('a');
+          a.href=URL.createObjectURL(blob);
+          a.download='UzTEA-card-{{ card_id }}.png';
+          a.click();
+          setTimeout(()=>{URL.revokeObjectURL(a.href);res();},1000);
+        },'image/png',1);
+      });
+    }catch{ if(btn) alert('Please use Print instead.'); }
+    finally{ if(btn){ btn.disabled=false; btn.textContent=orig; } }
+  }
+
+  // Auto-download mode: open with ?download=1 to download immediately (used from admin)
+  (function(){
+    const p = new URLSearchParams(window.location.search);
+    if(p.get('download') === '1'){
+      window.addEventListener('load', async ()=>{
+        const actions = document.querySelector('.actions');
+        if(actions) actions.style.display='none';
+        // give fonts/images a moment, then download
+        await new Promise(r=>setTimeout(r,400));
+        await downloadCard(null);
+        // close the tab if it was opened by a script; otherwise show a note
+        document.title = 'Downloaded — UzTEA-{{ card_id }}';
+      });
+    }
+  })();
+</script>
+{% if redirect_on_status_navigation %}
+<script>
+  (function(){
+    const redirectUrl = '{{ status_redirect_url|escapejs }}';
+    const navEntries = performance.getEntriesByType ? performance.getEntriesByType('navigation') : [];
+    const navType = navEntries.length ? navEntries[0].type : '';
+    const legacyReload = performance.navigation && performance.navigation.type === 1;
+
+    if (navType === 'reload' || navType === 'back_forward' || legacyReload) {
+      window.location.replace(redirectUrl);
+      return;
+    }
+
+    history.replaceState({uzteaStatusPage: true}, '', window.location.href);
+    history.pushState({uzteaStatusGuard: true}, '', window.location.href);
+
+    window.addEventListener('popstate', function(){
+      window.location.replace(redirectUrl);
+    });
+
+    window.addEventListener('pageshow', function(event){
+      if (event.persisted) {
+        window.location.replace(redirectUrl);
+      }
+    });
+  })();
+</script>
+{% endif %}
+
+</body>
+</html>

@@ -1,0 +1,519 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% include 'partials/google_analytics.html' %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UzTEA {{ membership.get_membership_type_display }} Membership Card</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --navy-950: #060f33;
+        --navy-900: #0d1a4d;
+        --navy-800: #19317f;
+        --sky-500: #56bfff;
+        --sky-300: #91d2ff;
+        --sky-100: #e8f6ff;
+        --gold-300: #e8d7a9;
+        --neutral-900: #17213e;
+        --neutral-700: #4f5a7a;
+        --neutral-500: #7e88a6;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 14px;
+        font-family: "Plus Jakarta Sans", sans-serif;
+        line-height: 1.35;
+        color: var(--neutral-900);
+        background:
+          radial-gradient(1000px 500px at -10% 5%, #b9deff 0%, transparent 63%),
+          radial-gradient(900px 440px at 110% 100%, #c7e6ff 0%, transparent 60%),
+          linear-gradient(140deg, #f5fbff 0%, #e2f0ff 55%, #dbecff 100%);
+      }
+
+      .card {
+        width: 100%;
+        max-width: 410px;
+        background: #fff;
+        border-radius: 30px;
+        overflow: hidden;
+        border: 1px solid #d3e5ff;
+        box-shadow:
+          0 28px 54px rgba(14, 37, 98, 0.18),
+          0 8px 22px rgba(14, 37, 98, 0.12);
+        position: relative;
+        transition: transform 280ms ease, box-shadow 280ms ease;
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow:
+          0 34px 64px rgba(14, 37, 98, 0.22),
+          0 10px 26px rgba(14, 37, 98, 0.16);
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        top: -100px;
+        left: -120px;
+        width: 300px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(97, 182, 255, 0.24), transparent 70%);
+        pointer-events: none;
+      }
+
+      .brand {
+        padding: 18px 20px 12px;
+        position: relative;
+      }
+
+      .logo-wrap {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .logo-mark {
+        width: 62px;
+        height: 62px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: #fff;
+        border: 1px solid #d6e7ff;
+        box-shadow: 0 8px 18px rgba(22, 46, 106, 0.16);
+      }
+
+      .logo-mark img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        border-radius: 14px;
+      }
+
+      .brand-meta {
+        display: grid;
+        gap: 6px;
+      }
+
+      .verified {
+        width: fit-content;
+        padding: 4px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--navy-900);
+        background: linear-gradient(130deg, rgba(232, 215, 169, 0.48), rgba(255, 255, 255, 0.92));
+        border: 1px solid rgba(228, 201, 137, 0.75);
+      }
+
+      .logo-sub {
+        margin: 0;
+        max-width: 248px;
+        font-size: 14px;
+        line-height: 1.35;
+        color: #3f4f79;
+      }
+
+      .wave {
+        height: 24px;
+        background:
+          radial-gradient(110% 180% at 0% 100%, rgba(90, 177, 255, 0.48), transparent 65%),
+          radial-gradient(94% 170% at 100% 0%, rgba(0, 121, 221, 0.26), transparent 58%),
+          linear-gradient(95deg, #f7fcff 0%, #ecf7ff 100%);
+      }
+
+      .membership {
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent),
+          linear-gradient(132deg, var(--navy-950), var(--navy-800));
+        color: #fff;
+        text-align: center;
+        padding: 12px 16px 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .membership h2 {
+        margin: 0 0 2px;
+        font-size: clamp(26px, 5.2vw, 30px);
+        line-height: 1.04;
+        letter-spacing: -0.4px;
+      }
+
+      .membership p {
+        margin: 0;
+        opacity: 0.93;
+        font-size: clamp(15px, 3.4vw, 18px);
+        font-weight: 500;
+        line-height: 1.2;
+        color: rgba(238, 247, 255, 0.96);
+      }
+
+      .profile {
+        padding: 14px 20px 12px;
+        display: grid;
+        grid-template-columns: 104px 1fr;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .team-photo {
+        width: 104px;
+        height: 104px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid #fff;
+        box-shadow:
+          0 10px 20px rgba(16, 42, 104, 0.2),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+        background:
+          radial-gradient(circle at 30% 30%, #d8edff 0%, #b4dbff 43%, #87c6ff 100%);
+        display: grid;
+        place-items: center;
+      }
+
+      .team-photo span {
+        font-family: "Sora", sans-serif;
+        font-size: 18px;
+        color: #10408f;
+        letter-spacing: 0.08em;
+      }
+
+      .org-name {
+        margin: 0;
+        font-size: clamp(20px, 4.2vw, 25px);
+        line-height: 1.14;
+        letter-spacing: -0.3px;
+        color: #101d45;
+      }
+
+      .org-id {
+        margin: 6px 0 5px;
+        color: var(--neutral-700);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .contact {
+        margin: 0;
+        color: var(--neutral-700);
+        font-size: 13px;
+        line-height: 1.45;
+        font-weight: 600;
+      }
+
+      .contact b {
+        color: var(--neutral-900);
+      }
+
+      .info-strip {
+        padding: 9px 20px;
+        background:
+          radial-gradient(130% 180% at 100% 100%, rgba(106, 193, 255, 0.36), transparent 64%),
+          linear-gradient(100deg, #f9fdff 0%, #eff8ff 100%);
+        border-top: 1px solid #e2efff;
+        border-bottom: 1px solid #e2efff;
+      }
+
+      .info-strip p {
+        margin: 4px 0;
+        font-size: clamp(17px, 4.6vw, 20px);
+        line-height: 1.32;
+        color: #1b2f64;
+      }
+
+      .bottom {
+        display: grid;
+        grid-template-columns: 1fr 150px;
+      }
+
+      .meta {
+        background: linear-gradient(180deg, #fbfdff 0%, #f2f8ff 100%);
+      }
+
+      .meta-head {
+        margin: 0;
+        padding: 10px 16px;
+        font-size: clamp(20px, 5.2vw, 24px);
+        color: #fff;
+        font-weight: 800;
+        border-top-right-radius: 30px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent),
+          linear-gradient(135deg, var(--navy-950), var(--navy-800));
+      }
+
+      .meta-row {
+        margin: 0;
+        padding: 10px 16px;
+        border-bottom: 1px solid #dce9ff;
+        font-size: clamp(14px, 4.4vw, 17px);
+        line-height: 1.35;
+        color: #2a3f71;
+      }
+
+      .meta-row:last-child {
+        border-bottom: 0;
+      }
+
+      .meta-row b {
+        color: var(--navy-900);
+      }
+
+      .qr {
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.7), transparent),
+          linear-gradient(150deg, #f4faff 0%, #edf6ff 100%);
+        border-left: 1px solid #e2ecff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 9px;
+      }
+
+      .qr img {
+        width: 112px;
+        height: 112px;
+        border-radius: 14px;
+        border: 6px solid #fff;
+        box-shadow: 0 10px 20px rgba(16, 44, 109, 0.2);
+        object-fit: cover;
+      }
+
+      .qr small {
+        font-size: 13px;
+        font-weight: 700;
+        color: #52638f;
+      }
+
+
+      .actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .demo-note {
+        margin: 0 0 10px;
+        text-align: center;
+        color: var(--navy-900);
+        font-weight: 800;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .actions a,
+      .actions button {
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font: 700 13px/1 "Plus Jakarta Sans", sans-serif;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .actions a {
+        background: var(--navy-900);
+        color: #fff;
+      }
+
+      .actions button {
+        background: #fff;
+        color: var(--navy-900);
+        border: 1px solid #cfe3ff;
+      }
+
+      .actions .primary-action {
+        background: var(--navy-900);
+        color: #fff;
+        border-color: var(--navy-900);
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 10px;
+        }
+
+        .card {
+          border-radius: 26px;
+        }
+
+        .brand,
+        .profile,
+        .info-strip {
+          padding-left: 14px;
+          padding-right: 14px;
+        }
+
+        .brand-meta {
+          gap: 4px;
+        }
+
+        .profile {
+          grid-template-columns: 86px 1fr;
+        }
+
+        .team-photo {
+          width: 86px;
+          height: 86px;
+        }
+
+        .bottom {
+          grid-template-columns: 1fr;
+        }
+
+        .meta-head {
+          border-top-right-radius: 0;
+        }
+
+        .qr {
+          border-left: 0;
+          border-top: 1px solid #e2ecff;
+          padding-bottom: 16px;
+        }
+      }
+
+      @media print {
+        @page {
+          margin: 12mm;
+        }
+
+        body {
+          background: #fff;
+          padding: 0;
+        }
+
+        .card {
+          box-shadow: none;
+          border: 1px solid #d7e8ff;
+        }
+
+        .actions {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      {% if is_demo_card %}
+      <p class="demo-note">Demo Preview</p>
+      {% endif %}
+      <article class="card">
+        <section class="brand">
+          <div class="logo-wrap">
+            <div class="logo-mark">
+              <img src="{% if card_logo_url %}{{ card_logo_url }}{% else %}{% static 'images/logo.png' %}{% endif %}" alt="UzTEA logo" />
+            </div>
+            <div class="brand-meta">
+              <span class="verified">Verified {{ membership.get_membership_type_display }}</span>
+              <p class="logo-sub">Uzbekistan Teachers of English Association</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="wave"></div>
+
+        <section class="membership">
+          <h2>{{ membership.get_membership_type_display }}</h2>
+          <p>Membership</p>
+        </section>
+
+        <section class="profile">
+          <div class="team-photo">
+            <span>{{ card_initials }}</span>
+          </div>
+          <div>
+            <h3 class="org-name">{{ membership.institution_name }}</h3>
+            <p class="org-id">ID: #{{ card_id }}</p>
+          </div>
+        </section>
+
+        <section class="info-strip">
+          <p><b>Phone:</b> {{ membership.phone_number }}</p>
+          <p><b>Email:</b> {{ membership.email }}</p>
+        </section>
+
+        <section class="bottom">
+          <div class="meta">
+            <p class="meta-head">ID: #{{ card_id }}</p>
+            <p class="meta-row">Country: <b>{{ membership.country }}</b></p>
+            <p class="meta-row">City/Region: <b>{{ membership.region_city }}</b></p>
+            <p class="meta-row">Paid: <b>{{ order.updated_at|date:"d F Y" }}</b></p>
+            <p class="meta-row">Validity: <b>{{ card_valid_until|date:"d F Y" }}</b></p>
+          </div>
+          <div class="qr">
+            <img src="{{ card_qr_url }}" alt="QR code for {{ card_member_url }}" />
+            <small>Expires: {{ card_valid_until|date:"d F Y" }}</small>
+          </div>
+        </section>
+      </article>
+
+      <div class="actions">
+        <button type="button" class="primary-action" onclick="downloadPassport(this)">Download Passport</button>
+        <button type="button" onclick="window.print()">Print Card</button>
+        <a href="{% url 'membership_form' %}">New Application</a>
+      </div>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+      async function downloadPassport(button) {
+        const card = document.querySelector(".card");
+        if (!card) return;
+
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = "Preparing...";
+
+        try {
+          const canvas = await html2canvas(card, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: "#ffffff",
+            logging: false,
+          });
+
+          canvas.toBlob((blob) => {
+            if (!blob) return;
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "UzTEA-{{ card_id }}-passport.png";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+          }, "image/png", 1);
+        } catch (err) {
+          alert("Could not generate image. Please use Print instead.");
+        } finally {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+    </script>
+  </body>
+</html>

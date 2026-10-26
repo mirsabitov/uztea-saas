@@ -1,0 +1,81 @@
+{% extends "admin/import_export/change_list_import_export.html" %}
+
+{% block content %}
+  {% if membership_payment_cards %}
+    <div class="membership-payment-summary">
+      {% for card in membership_payment_cards %}
+        <div class="membership-payment-card{% if card.is_total %} membership-payment-card--total{% endif %}">
+          <div class="membership-payment-card__label">{{ card.name }}</div>
+          <div class="membership-payment-card__amount">{{ card.total_display }} <span>UZS</span></div>
+          <div class="membership-payment-card__count">{{ card.payment_count }} successful payment{{ card.payment_count|pluralize }}</div>
+          {% if card.promocode_count %}
+            <div class="membership-payment-card__promo">Promocode: {{ card.promocode_count }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <style>
+    .membership-payment-summary {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 10px;
+      width: 100%;
+      max-width: 100%;
+      margin: 0 0 16px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .membership-payment-card {
+      flex: 1 1 0;
+      min-width: 165px;
+      padding: 12px 14px;
+      border: 1px solid #dbe3ef;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #0a376d 0%, #12549a 100%);
+      color: #fff;
+      box-shadow: 0 5px 16px rgba(10, 55, 109, .14);
+    }
+    .membership-payment-card__label {
+      min-height: 30px;
+      color: #d7e8fb;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .membership-payment-card__amount {
+      margin-top: 5px;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .membership-payment-card__amount span {
+      font-size: 10px;
+      font-weight: 700;
+      opacity: .8;
+    }
+    .membership-payment-card__count {
+      margin-top: 6px;
+      color: #bcd4ef;
+      font-size: 10px;
+    }
+    .membership-payment-card__promo {
+      margin-top: 3px;
+      color: #ffe09a;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .membership-payment-card--total {
+      background: linear-gradient(135deg, #6d3a05 0%, #b8750c 100%);
+      border-color: #dba64c;
+      box-shadow: 0 5px 16px rgba(126, 77, 8, .18);
+    }
+    .membership-payment-card--total .membership-payment-card__label,
+    .membership-payment-card--total .membership-payment-card__count {
+      color: #fff0c7;
+    }
+  </style>
+
+  {{ block.super }}
+{% endblock %}

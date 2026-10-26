@@ -1,0 +1,304 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secure Payment — ATMOS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static "atmos/css/payment.css" %}" />
+</head>
+<body>
+
+<!-- Toast container -->
+<div id="toast-container" aria-live="polite"></div>
+
+<div class="page-wrap">
+
+  <!-- Sandbox notice -->
+  <div class="sandbox-banner">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    SANDBOX MODE — Test card pre-filled &nbsp;·&nbsp; OTP: <strong>111111</strong>
+  </div>
+
+  <div class="card">
+
+    <!-- Header -->
+    <div class="card-header">
+      <div class="logo-mark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1>Secure Payment</h1>
+        <p>Powered by ATMOS</p>
+      </div>
+    </div>
+
+    <!-- ══ SCREEN: Payment form ══════════════════════════════ -->
+    <div id="screen-payment" class="screen active">
+
+      <!-- Bank card visual -->
+      <div class="bank-card" aria-hidden="true">
+        <!-- Chip -->
+        <div class="bc-chip"></div>
+        <!-- NFC/wifi icon -->
+        <div class="bc-wifi">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+               stroke="rgba(255,255,255,0.6)" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+            <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+            <line x1="12" y1="20" x2="12.01" y2="20"/>
+          </svg>
+        </div>
+        <!-- Card number -->
+        <div class="bc-number" id="bc-number">•••• •••• •••• ••••</div>
+        <!-- Footer -->
+        <div class="bc-footer">
+          <div>
+            <span class="bc-label">Expires</span>
+            <span class="bc-expiry" id="bc-expiry">••/••</span>
+          </div>
+          <div class="bc-brand">
+            <div class="bc-brand-circle"></div>
+            <div class="bc-brand-circle"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="card-body">
+
+        <!-- Amount -->
+        <div class="amount-display">
+          <span class="label">Amount to pay</span>
+          <div>
+            <span class="value" id="amount-display">5 000</span>
+            <span class="currency">UZS</span>
+          </div>
+        </div>
+
+        <!-- Card number -->
+        <div class="field-group">
+          <label for="card-number">Card Number</label>
+          <input
+            type="tel"
+            id="card-number"
+            inputmode="numeric"
+            maxlength="19"
+            placeholder="9860 •••• •••• ••••"
+            autocomplete="cc-number"
+            aria-label="Card number"
+          />
+          <span class="field-error" id="card-number-error"></span>
+        </div>
+
+        <!-- Expiry -->
+        <div class="field-group row">
+          <div>
+            <label for="expiry">Expiry Date</label>
+            <input
+              type="tel"
+              id="expiry"
+              inputmode="numeric"
+              maxlength="5"
+              placeholder="MM/YY"
+              autocomplete="cc-exp"
+              aria-label="Card expiry"
+            />
+            <span class="field-error" id="expiry-error"></span>
+          </div>
+          <div>
+            <label for="cvv-hint">CVV</label>
+            <input
+              type="tel"
+              id="cvv-hint"
+              maxlength="3"
+              placeholder="•••"
+              disabled
+              title="Not required for this payment method"
+              aria-label="CVV (not required)"
+            />
+          </div>
+        </div>
+
+        <!-- Pay button -->
+        <button class="btn-pay" id="btn-pay" type="button">
+          <span class="btn-text">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.2"
+                 stroke-linecap="round" stroke-linejoin="round"
+                 style="vertical-align:middle;margin-right:6px">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+            Pay Now
+          </span>
+          <div class="spinner"></div>
+        </button>
+
+      </div>
+    </div><!-- /screen-payment -->
+
+    <!-- ══ SCREEN: OTP ════════════════════════════════════════ -->
+    <div id="screen-otp" class="screen">
+      <div class="otp-wrap">
+
+        <div class="otp-icon">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none"
+               stroke="#5b6af0" stroke-width="2" stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5
+                     19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0
+                     0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7
+                     2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.91-.91a2
+                     2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73
+                     16.92z"/>
+          </svg>
+        </div>
+
+        <h2>Enter Verification Code</h2>
+        <p>
+          A 6-digit OTP has been sent to the phone number<br>
+          linked to your card. It expires in 3 minutes.
+        </p>
+        <div class="otp-sandbox-hint">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          Sandbox OTP: <strong>111111</strong>
+        </div>
+
+        <!-- OTP digit inputs -->
+        <div class="otp-inputs" role="group" aria-label="OTP digits">
+          <input class="otp-digit" type="tel" inputmode="numeric" maxlength="1" aria-label="Digit 1" />
+          <input class="otp-digit" type="tel" inputmode="numeric" maxlength="1" aria-label="Digit 2" />
+          <input class="otp-digit" type="tel" inputmode="numeric" maxlength="1" aria-label="Digit 3" />
+          <input class="otp-digit" type="tel" inputmode="numeric" maxlength="1" aria-label="Digit 4" />
+          <input class="otp-digit" type="tel" inputmode="numeric" maxlength="1" aria-label="Digit 5" />
+          <input class="otp-digit" type="tel" inputmode="numeric" maxlength="1" aria-label="Digit 6" />
+        </div>
+
+        <button class="btn-confirm" id="btn-confirm" type="button" disabled>
+          <span class="btn-text">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round"
+                 style="vertical-align:middle;margin-right:6px">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Verify &amp; Pay
+          </span>
+          <div class="spinner"></div>
+        </button>
+
+        <div class="otp-footer">
+          Didn't receive a code?&nbsp;
+          <button class="btn-resend" id="btn-resend" type="button" disabled>
+            Resend <span class="timer" id="resend-timer"></span>
+          </button>
+        </div>
+
+        <button class="btn-back" id="btn-back" type="button">← Back to payment</button>
+
+      </div>
+    </div><!-- /screen-otp -->
+
+    <!-- ══ SCREEN: Success ════════════════════════════════════ -->
+    <div id="screen-success" class="screen">
+      <div class="success-wrap">
+
+        <div class="success-icon">
+          <svg class="checkmark" viewBox="0 0 52 52">
+            <polyline points="14,26 22,34 38,18"/>
+          </svg>
+        </div>
+
+        <h2>Payment Successful!</h2>
+        <p>Your transaction has been processed securely.</p>
+
+        <div class="success-details">
+          <div class="detail-row">
+            <span class="dl">Amount</span>
+            <span class="dv" id="success-amount">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="dl">Status</span>
+            <span class="dv" style="color: var(--success)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round"
+                   style="vertical-align:middle;margin-right:3px">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Completed
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="dl">Transaction ID</span>
+            <div class="txn-id-wrap">
+              <span class="txn-id-text" id="success-txn-id">—</span>
+              <button class="btn-copy" id="btn-copy-txn" type="button" title="Copy transaction ID" aria-label="Copy transaction ID">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-new-payment" id="btn-new-payment" type="button">
+          Make Another Payment
+        </button>
+
+      </div>
+    </div><!-- /screen-success -->
+
+    <!-- Footer -->
+    <div class="card-footer">
+      <div class="secure-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Secured
+      </div>
+      <span style="color: var(--border); margin: 0 6px">|</span>
+      256-bit TLS encryption
+      <span style="color: var(--border); margin: 0 6px">|</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round"
+           style="color: var(--text-muted)">
+        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+        <line x1="1" y1="10" x2="23" y2="10"/>
+      </svg>
+      ATMOS
+    </div>
+
+  </div><!-- /card -->
+</div><!-- /page-wrap -->
+
+<script src="{% static "atmos/js/payment.js" %}"></script>
+</body>
+</html>

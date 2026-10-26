@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TESOL Conference 2026 - Registration and Payment</title>
+    <link rel="stylesheet" href="{% static 'conference.css' %}?v=20260923-webster">
+</head>
+<body>
+    <header class="conference-banner">
+        <a class="conference-logo" href="{% url 'conference_register' %}" aria-label="Webster University Tashkent conference registration"><img src="{% static 'images/webster-tashkent.png' %}" alt="Webster University Tashkent" width="255" height="165"></a>
+        <div class="conference-heading">
+            <p class="conference-edition">2026 Collaborative Fall Conference</p>
+            <h1>Shape What's Next: Advancing TESOL in Central Asia through Global Innovation</h1>
+            <p class="conference-venue">Webster University Tashkent &bull; 17 - 18 October 2026</p>
+        </div>
+    </header>
+    <main>
+        <div class="intro">
+            <h2 class="registration-title">Registration and Payment</h2>
+            <p>If you are registering from Uzbekistan, you can pay your conference participation fee through the UzTEA payment gateway.</p>
+            <p class="registration-intro">Please complete the registration form with your details, review your information, and proceed to payment. The <strong>participation fee is {{ price|floatformat:"0g" }} UZS per person</strong>. Your registration is complete once your payment has been successfully processed.</p>
+        </div>
+        <section class="form-card" aria-labelledby="form-title">
+        {% if submitted %}
+            <div class="success-mark" aria-hidden="true">{% if order.status == 'paid' %}✓{% else %}→{% endif %}</div>
+            <span class="section-kicker">TESOL CONFERENCE</span>
+            {% if order.status == 'paid' %}
+                <h2 id="form-title">Payment confirmed</h2>
+                <p class="description">Thank you! Your TESOL Conference registration and payment are confirmed.</p>
+            {% elif order.status == 'failed' %}
+                <h2 id="form-title">Payment cancelled</h2>
+                <p class="description">Your registration details are saved, but this payment is not confirmed. You can try again with Payme.</p>
+            {% elif order.status == 'processing' %}
+                <h2 id="form-title">Payment in progress</h2>
+                <p class="description">We are waiting for confirmation from Payme. Check the status after completing your payment.</p>
+            {% else %}
+                <h2 id="form-title">Complete your registration</h2>
+                <p class="description">Your details are saved. Pay the conference fee with Payme to confirm your registration.</p>
+            {% endif %}
+            <div class="price-panel"><span>Conference fee <small>Payment via Payme</small></span><strong>{{ price|floatformat:"0g" }} UZS</strong></div>
+            {% if order.status != 'paid' %}
+                {% if order.status != 'processing' %}
+                <section class="visa-payment" aria-labelledby="visa-payment-title">
+                    <h3 id="visa-payment-title">Pay with a Visa card</h3>
+                    <p>For Visa card payments, complete your registration and payment on the TESOL Conferences website. The applicable fee and payment confirmation are provided there.</p>
+                    <a class="button button-outline" href="https://tesolconferences.org/webster2026/register" target="_blank" rel="noopener noreferrer">Continue with Visa <span class="new-tab-label">(opens a new tab)</span></a>
+                    <p class="payment-alternative">Or pay through the UzTEA gateway using Payme below.</p>
+                </section>
+                {% endif %}
+                {% if payme_url %}<a class="button" href="{{ payme_url }}" rel="noreferrer">Pay with Payme <span aria-hidden="true">→</span></a>
+                {% else %}<div class="notice">Online payment is temporarily unavailable. Your registration details are saved. Please check back later.</div>{% endif %}
+                <a class="status-link" href="{{ request.path }}">Check payment status</a>
+            {% endif %}
+        {% else %}
+            <div class="card-heading"><div><span class="section-kicker">LET’S GET TO KNOW YOU</span><h2 id="form-title">Personal details</h2></div><span class="step">01 <span>/ 01</span></span></div>
+            <p class="description">Please enter your details as you would like them to appear on your conference registration.</p>
+            <p class="required-note"><span>*</span> All fields are required</p>
+            <form method="post" action="{% url 'conference_register' %}">
+                {% csrf_token %}
+                {% if form.errors %}<div class="error-summary" role="alert">Please check the highlighted fields and submit again.{{ form.non_field_errors }}</div>{% endif %}
+                <div class="fields">
+                {% for field in form %}
+                    {% if field.name != 'accepted_terms' %}
+                    <div class="field {% if field.name == 'full_name' or field.name == 'organization' %}wide{% endif %} {% if field.errors %}has-error{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }} <span aria-hidden="true">*</span></label>
+                        {{ field }}
+                        {% if field.name == 'mobile_phone' %}<p class="field-help" id="phone-help">Include your country code.</p>{% endif %}
+                        {{ field.errors }}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                </div>
+                <div class="price-panel"><span>Conference fee <small>Payment via Payme</small></span><strong>{{ price|floatformat:"0g" }} UZS</strong></div>
+                <section class="payment-terms" aria-labelledby="payment-terms-title">
+                    <h3 id="payment-terms-title">Payment terms</h3>
+                    <p>Please review the following condition before proceeding: <strong>all registration fees are non-refundable.</strong></p>
+                    <p>By paying the participation fee, you acknowledge that it will not be refunded if you are unable to attend the conference.</p>
+                    <div class="terms-checkbox">
+                        {{ form.accepted_terms }}
+                        <label for="{{ form.accepted_terms.id_for_label }}"><strong>I accept the terms</strong> and understand that the registration fee is non-refundable.</label>
+                    </div>
+                    {{ form.accepted_terms.errors }}
+                </section>
+                <div class="form-footer payment-footer"><button class="button" type="submit">Complete registration and pay {{ price|floatformat:"0g" }} UZS</button></div>
+            </form>
+        {% endif %}
+        </section>
+        <footer class="page-footer">TESOL CONFERENCE <span aria-hidden="true">·</span> Bringing educators together.</footer>
+    </main>
+</body>
+</html>

@@ -1,0 +1,231 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {{ media }}
+    <style>
+        .email-template-preview.is-simple::before { display: none !important; }
+        .email-template-preview.is-simple .email-preview-header { display: flex !important; }
+    </style>
+{% endblock %}
+
+{% block content_title %}Compose custom email{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'admin:index' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{{ changelist_url }}">{{ recipient_label|default:"Memberships" }}</a></li>
+    <li class="breadcrumb-item active">Compose email</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="col-12">
+    <div class="card custom-email-composer">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h3 class="card-title mb-0">New email</h3>
+            <span class="badge badge-primary">{{ recipient_count }} recipient{{ recipient_count|pluralize }}</span>
+        </div>
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <div class="card-body">
+                {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+
+                <div class="form-group">
+                    <label for="{{ form.sender.id_for_label }}">Sender</label>
+                    {{ form.sender }}
+                    <small class="form-text text-muted">Choose which corporate email account will send this message.</small>
+                    {{ form.sender.errors }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.template.id_for_label }}">Template</label>
+                    {{ form.template }}
+                    {{ form.template.errors }}
+                </div>
+
+                <div class="email-template-preview" id="email-template-preview">
+                    <img class="matched-expo-preview-banner" src="{% url 'matchedexpo_email_header' %}" alt="MatchED Expo Uzbekistan" style="display:none;width:100%;height:auto;">
+                    <div class="email-preview-header">
+                        <div class="email-preview-brand">
+                            <img class="uztea-preview-logo" src="{% url 'uztea_email_logo' %}" alt="UzTEA" style="display:block;width:105px;max-width:100%;height:auto;">
+                            <strong style="display:none;">UzTEA</strong>
+                            <small>UZBEKISTAN TEACHERS<br>OF ENGLISH ASSOCIATION</small>
+                        </div>
+                        <div class="email-preview-tagline">
+                            <strong>Connecting English language educators</strong>
+                            <span>Inspiring professional growth across Uzbekistan</span>
+                        </div>
+                    </div>
+                    <div class="email-preview-greeting" style="background:#fff;color:#001f4d;font-size:18px;font-weight:700;padding:24px 30px 5px;text-align:center;">Dear &#123;&#123;recipient_name&#125;&#125;,</div>
+                    <div class="email-preview-content">Your editable message will appear here.</div>
+                    <div class="email-preview-footer" style="background:#001b3d !important;">
+                        <strong>Stay connected with UzTEA</strong>
+                        <span>News, events, professional opportunities and community updates</span>
+                        <div class="email-preview-socials">
+                            <b>TG</b><b>IG</b><b>YT</b><b>IN</b><b>FB</b>
+                        </div>
+                        <small>info@uztea.uz &nbsp; | &nbsp; www.uztea.uz</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Recipients</label>
+                    <div class="recipient-box">
+                        {% for membership in recipients %}
+                            <span class="recipient-chip">{{ membership.full_name }} &lt;{{ membership.email }}&gt;</span>
+                        {% empty %}
+                            <span class="text-danger">No recipient has a valid email address.</span>
+                        {% endfor %}
+                        {% if recipient_count > 100 %}<span class="recipient-chip">+{{ recipient_count|add:"-100" }} more</span>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.subject.id_for_label }}">Subject</label>
+                    {{ form.subject }}
+                    {{ form.subject.errors }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.body.id_for_label }}">Message</label>
+                    {{ form.body }}
+                    {{ form.body.errors }}
+                </div>
+
+                <div class="form-group mb-0">
+                    <label for="{{ form.attachments.id_for_label }}">Attachments</label>
+                    {{ form.attachments }}
+                    <small class="form-text text-muted">Any file type is allowed. Maximum size: 5 MB per file.</small>
+                    <div class="text-danger mt-2" id="attachment-size-error" hidden></div>
+                    <div class="selected-attachment-list" id="selected-attachment-list" aria-live="polite"></div>
+                    {{ form.attachments.errors }}
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <a href="{{ changelist_url }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-success" {% if not recipient_count %}disabled{% endif %}>
+                    <i class="fas fa-paper-plane mr-1"></i> Send to {{ recipient_count }} recipient{{ recipient_count|pluralize }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+{{ block.super }}
+<script>
+(function () {
+    var selector = document.getElementById('id_email_template');
+    var preview = document.getElementById('email-template-preview');
+
+    function updatePreview() {
+        var value = selector.value;
+        var isMatchedExpo = value === 'matched_expo';
+        var isSimple = value === 'uztea_simple';
+        preview.hidden = value === 'custom';
+        preview.classList.toggle('is-simple', value === 'uztea_simple');
+        preview.classList.toggle('is-matched-expo', isMatchedExpo);
+        var matchedBanner = preview.querySelector('.matched-expo-preview-banner');
+        var regularHeader = preview.querySelector('.email-preview-header');
+        matchedBanner.style.display = isMatchedExpo ? 'block' : 'none';
+        regularHeader.style.setProperty('display', isMatchedExpo ? 'none' : 'flex', 'important');
+        regularHeader.style.setProperty('background-color', '#001f4d', 'important');
+
+        var brandName = preview.querySelector('.email-preview-brand strong');
+        var brandDetails = preview.querySelector('.email-preview-brand small');
+        var taglineTitle = preview.querySelector('.email-preview-tagline strong');
+        var taglineText = preview.querySelector('.email-preview-tagline span');
+        var footerTitle = preview.querySelector('.email-preview-footer > strong');
+        var footerText = preview.querySelector('.email-preview-footer > span');
+        var footerContact = preview.querySelector('.email-preview-footer small');
+        var footer = preview.querySelector('.email-preview-footer');
+        var footerSocials = preview.querySelector('.email-preview-socials');
+
+        brandName.textContent = isMatchedExpo ? 'MatchED' : 'UzTEA';
+        brandDetails.innerHTML = isMatchedExpo ? 'EXPO<br>UZBEKISTAN' : 'UZBEKISTAN TEACHERS<br>OF ENGLISH ASSOCIATION';
+        taglineTitle.textContent = isMatchedExpo ? 'Connecting education and opportunity' : 'Connecting English language educators';
+        taglineText.textContent = isMatchedExpo ? 'International education exhibition in Uzbekistan' : 'Inspiring professional growth across Uzbekistan';
+        footerTitle.textContent = isMatchedExpo ? 'Stay connected with MatchED Expo' : 'Stay connected with UzTEA';
+        footerText.textContent = isMatchedExpo ? 'Education, institutions, opportunities and exhibition updates' : 'News, events, professional opportunities and community updates';
+        footerContact.textContent = isMatchedExpo ? 'info@matchedexpo.com | www.matchedexpo.com' : 'info@uztea.uz | www.uztea.uz';
+        footer.style.display = isSimple ? 'block' : '';
+        footer.style.padding = isSimple ? '16px 24px' : '';
+        footerText.style.display = isSimple ? 'none' : '';
+        footerSocials.style.display = isSimple ? 'none' : '';
+        footer.style.setProperty(
+            'background-color',
+            isMatchedExpo ? '#001b3d' : '#001f4d',
+            'important'
+        );
+    }
+
+    if (selector && preview) {
+        selector.addEventListener('change', updatePreview);
+        updatePreview();
+    }
+
+    var attachmentInput = document.getElementById('{{ form.attachments.id_for_label }}');
+    var attachmentList = document.getElementById('selected-attachment-list');
+    var attachmentSizeError = document.getElementById('attachment-size-error');
+    if (!attachmentInput || !attachmentList || typeof DataTransfer === 'undefined') return;
+
+    var selectedFiles = [];
+
+    function formatSize(bytes) {
+        if (bytes < 1024 * 1024) return Math.ceil(bytes / 1024) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function syncInputFiles() {
+        var transfer = new DataTransfer();
+        selectedFiles.forEach(function (file) { transfer.items.add(file); });
+        attachmentInput.files = transfer.files;
+    }
+
+    function renderSelectedFiles() {
+        attachmentList.innerHTML = '';
+        selectedFiles.forEach(function (file, index) {
+            var row = document.createElement('div');
+            row.className = 'selected-attachment';
+
+            var name = document.createElement('span');
+            name.className = 'selected-attachment-name';
+            name.textContent = file.name + ' (' + formatSize(file.size) + ')';
+
+            var remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'btn btn-sm btn-outline-danger selected-attachment-remove';
+            remove.textContent = 'Remove';
+            remove.setAttribute('aria-label', 'Remove ' + file.name);
+            remove.addEventListener('click', function () {
+                selectedFiles.splice(index, 1);
+                syncInputFiles();
+                renderSelectedFiles();
+            });
+
+            row.appendChild(name);
+            row.appendChild(remove);
+            attachmentList.appendChild(row);
+        });
+    }
+
+    attachmentInput.addEventListener('change', function () {
+        var maxFileSize = 5 * 1024 * 1024;
+        var newFiles = Array.from(attachmentInput.files);
+        var oversizedFiles = newFiles.filter(function (file) { return file.size > maxFileSize; });
+        selectedFiles = selectedFiles.concat(
+            newFiles.filter(function (file) { return file.size <= maxFileSize; })
+        );
+        attachmentSizeError.hidden = oversizedFiles.length === 0;
+        attachmentSizeError.textContent = oversizedFiles.length
+            ? 'These files exceed 5 MB and were not added: ' + oversizedFiles.map(function (file) { return file.name; }).join(', ')
+            : '';
+        syncInputFiles();
+        renderSelectedFiles();
+    });
+}());
+</script>
+{% endblock %}

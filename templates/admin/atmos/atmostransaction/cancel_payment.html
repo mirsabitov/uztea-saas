@@ -1,0 +1,46 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Home</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+  &rsaquo; <a href="{% url 'admin:atmos_atmostransaction_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; <a href="{{ change_url }}">{{ transaction.transaction_id }}</a>
+  &rsaquo; Cancel payment
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <p>
+    This will call ATMOS <strong>/merchant/pay/reverse</strong> and return the paid amount to the card.
+  </p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <fieldset class="module aligned">
+      <div class="form-row">
+        <label>Transaction ID:</label>
+        <div class="readonly">{{ transaction.transaction_id }}</div>
+      </div>
+      <div class="form-row">
+        <label>Account:</label>
+        <div class="readonly">{{ transaction.account }}</div>
+      </div>
+      <div class="form-row">
+        <label>Amount:</label>
+        <div class="readonly">{{ transaction.amount_uzs|floatformat:2 }} UZS</div>
+      </div>
+      <div class="form-row">
+        <label for="id_reason">Reason:</label>
+        <textarea id="id_reason" name="reason" rows="3" style="width: min(560px, 100%);">{{ default_reason }}</textarea>
+      </div>
+    </fieldset>
+
+    <div class="submit-row">
+      <input type="submit" value="Cancel payment" class="deletelink">
+      <a href="{{ change_url }}" class="button cancel-link">Back</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

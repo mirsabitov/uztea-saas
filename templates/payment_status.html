@@ -1,0 +1,125 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'partials/google_analytics.html' %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Status | UzTEA</title>
+    {% if order.status == 'pending' or order.status == 'processing' %}
+    <meta http-equiv="refresh" content="5">
+    {% endif %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-dark: #1E2845;
+            --primary-light: #4A6CF7;
+            --success-color: #10B981;
+            --error-color: #EF4444;
+            --bg-color: #F4F7FE;
+            --card-bg: #FFFFFF;
+            --text-main: #334155;
+            --text-muted: #64748B;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .status-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(30, 40, 69, 0.05);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .status-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .status-success { color: var(--success-color); }
+        .status-error { color: var(--error-color); }
+
+        h1 {
+            font-size: 24px;
+            color: var(--primary-dark);
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--primary-light);
+            color: white;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="status-card">
+    {% if order.status == 'paid' %}
+        <div class="status-icon status-success">✓</div>
+        <h1>Payment Successful!</h1>
+        <p>Thank you, {{ membership.full_name }}. Your membership application has been successfully processed.</p>
+        <div style="margin-bottom: 20px; font-size: 14px; color: var(--text-muted);">
+            Transaction ID: <strong>{{ order.click_trans_id }}</strong><br>
+            Amount Paid: <strong>{{ order.amount }} UZS</strong>
+        </div>
+        <a href="/" class="btn">Return to Home</a>
+    {% elif order.status == 'pending' or order.status == 'processing' %}
+        <div class="status-icon">⌛</div>
+        <h1>Payment Verification</h1>
+        <p>Your payment is being verified. This page will refresh automatically and show your membership card after Click confirms the payment.</p>
+        <div style="margin-bottom: 20px; font-size: 14px; color: var(--text-muted);">
+            Order ID: <strong>#{{ order.id }}</strong><br>
+            Amount: <strong>{{ order.amount }} UZS</strong>
+        </div>
+        <a href="{% url 'payment_status' order.pk %}" class="btn">Refresh Status</a>
+    {% else %}
+        <div class="status-icon status-error">✕</div>
+        <h1>Payment Failed</h1>
+        <p>We encountered an issue with your payment for Order #{{ order.id }}.</p>
+        <p>Reason: {{ order.get_status_display }}</p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <a href="{% url 'membership_payment' order.pk %}" class="btn">Try Again</a>
+            <a href="/" class="btn btn-outline">Home</a>
+        </div>
+    {% endif %}
+</div>
+
+</body>
+</html>

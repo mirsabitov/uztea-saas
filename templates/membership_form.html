@@ -1,0 +1,2742 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'partials/google_analytics.html' %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UzTEA Membership Form</title>
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/logo.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&family=Mulish:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-dark: #1E2845;
+            --primary-light: #4A6CF7; /* Slightly more vibrant blue for wizard */
+            --primary-light-hover: #3A5CE5;
+            --bg-color: #F4F7FE;
+            --card-bg: #FFFFFF;
+            --text-main: #334155;
+            --text-muted: #64748B;
+            --border-color: #E2E8F0;
+            --focus-ring: rgba(74, 108, 247, 0.25);
+            --danger-color: #ef4444; 
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Raleway', sans-serif;
+        }
+
+        p, span, label, input, textarea, select, button {
+            font-family: 'Mulish', sans-serif;
+        }
+
+        body {
+            font-family: 'Mulish', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            padding: 40px 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(30, 40, 69, 0.05);
+            position: relative;
+        }
+
+        .header-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header-logo img {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .header-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1e2a4a;
+            margin: 6px 0 0;
+            letter-spacing: -0.3px;
+        }
+
+        /* ------------------ WIZARD PROGRESS BAR ------------------ */
+        .wizard-header {
+            margin-bottom: 40px;
+        }
+
+        .progress-steps {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 28px;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 22px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background-color: #E2E8F0;
+            z-index: 0;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 22px;
+            left: 10%;
+            height: 2px;
+            background-color: var(--primary-light);
+            z-index: 1;
+            width: 0%;
+            transition: width 0.4s ease-in-out;
+        }
+
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #E2E8F0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: #94A3B8;
+        }
+
+        .step-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .step-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #94A3B8;
+            text-align: center;
+            line-height: 1.3;
+            transition: color 0.3s;
+        }
+
+        .step-item.active .step-icon {
+            background: var(--primary-light);
+            border-color: var(--primary-light);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(74, 108, 247, 0.35);
+        }
+
+        .step-item.active .step-label {
+            color: var(--primary-light);
+            font-weight: 600;
+        }
+
+        .step-item.done .step-icon {
+            background: #e8edff;
+            border-color: var(--primary-light);
+            color: var(--primary-light);
+        }
+
+        .step-item.done .step-label {
+            color: var(--primary-light);
+        }
+
+        .step-indicator {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .step-icon { width: 36px; height: 36px; }
+            .step-icon svg { width: 16px; height: 16px; }
+            .step-label { font-size: 10px; }
+            .progress-steps::before { top: 18px; }
+            .progress-line { top: 18px; }
+        }
+
+        /* ------------------ FORM & STEPS ------------------ */
+        .wizard-step {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .wizard-step.active {
+            display: block;
+        }
+
+        .wizard-step h3 {
+            font-size: 22px;
+            color: var(--primary-dark);
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .form-grid p {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .form-grid p:has(textarea),
+        .form-grid p:has(input[type="checkbox"]),
+        .form-grid p:has(ul) {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .container { padding: 30px 20px; }
+            .progress-labels span { font-size: 11px; }
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Error Styles */
+        .errorlist {
+            color: var(--danger-color);
+            list-style: none;
+            padding: 0;
+            margin: 5px 0 0 0;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .error-summary {
+            background-color: #FFF1F2;
+            border: 1px solid #FDA4AF;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            color: #9F1239;
+            font-size: 14px;
+        }
+
+        .pay-note {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #eef3fe;
+            border: 1px solid #c7d6fb;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: #2c3a63;
+            font-size: 13.5px;
+            line-height: 1.45;
+        }
+        .pay-note svg { color: #4F7CFF; flex-shrink: 0; }
+        .pay-note strong { color: #1f2f5e; font-weight: 700; }
+
+        .error-summary ul {
+            margin: 10px 0 0 20px;
+            padding: 0;
+        }
+
+        .error-summary li {
+            margin-bottom: 5px;
+        }
+
+        /* ------------------ UI ELEMENTS ------------------ */
+        label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--primary-dark);
+            display: inline-block;
+        }
+        
+        .required-asterisk {
+            color: var(--danger-color);
+            margin-left: 3px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="email"], input[type="date"],
+        input[type="number"], input[type="password"], input[type="tel"],
+        input[type="url"], select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-family: 'Mulish', sans-serif;
+            color: var(--text-main);
+            background-color: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        input::placeholder, textarea::placeholder { color: #94A3B8; }
+        
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748B'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        textarea { resize: vertical; min-height: 100px; }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px var(--focus-ring);
+        }
+
+        /* Radio buttons and Checkboxes styling like Image 2 */
+        form ul { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0; 
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        /* Simple Field Item without Box */
+        .field-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+            transition: none;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        .field-item:hover {
+            box-shadow: none;
+            border: none;
+        }
+
+        .membership-type-field {
+            grid-column: 1 / -1;
+        }
+
+        .membership-type-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .membership-type-card {
+            min-height: 175px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 14px;
+            background: #FFFFFF;
+            padding: 20px 18px 18px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .membership-type-card:hover {
+            border-color: #C7D2FE;
+            box-shadow: 0 10px 26px rgba(30, 40, 69, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .membership-type-card input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .membership-type-card:has(input:focus-visible) {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px var(--focus-ring);
+        }
+
+        .membership-type-card:has(input:checked) {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.22), 0 12px 28px rgba(74, 108, 247, 0.14);
+        }
+
+        .membership-type-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .membership-type-name {
+            color: var(--primary-dark);
+            font-size: 18px;
+            font-weight: 800;
+            line-height: 1.22;
+            letter-spacing: 0;
+        }
+
+        .membership-type-badge {
+            flex: 0 0 auto;
+            border-radius: 999px;
+            background: #EEF2FF;
+            color: var(--primary-light);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1;
+            padding: 8px 10px;
+        }
+
+        .membership-type-card:has(input:checked) .membership-type-badge {
+            background: var(--primary-light);
+            color: #FFFFFF;
+        }
+
+        .membership-type-price {
+            color: var(--primary-dark);
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: 0;
+            margin-top: 26px;
+        }
+        .membership-type-seats {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 600;
+            width: fit-content;
+        }
+        .membership-type-seats svg { color: #6366f1; flex-shrink: 0; }
+        .membership-type-card:has(input:checked) .membership-type-seats {
+            background: #ede9fe;
+            color: #4f46e5;
+        }
+
+        @media (max-width: 900px) {
+            .membership-type-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 560px) {
+            .membership-type-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .membership-type-card {
+                min-height: 124px;
+            }
+        }
+
+        /* ------------------ UI ELEMENTS ------------------ */
+        label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--primary-dark);
+            display: inline-block;
+        }
+        
+        .required-asterisk {
+            color: var(--danger-color);
+            margin-left: 3px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="email"], input[type="date"],
+        input[type="number"], input[type="password"], input[type="tel"],
+        input[type="url"], select, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 15px;
+            font-family: 'Mulish', sans-serif;
+            color: var(--text-main);
+            background-color: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        input::placeholder, textarea::placeholder { color: #94A3B8; }
+        
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748B'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 14px;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        .indent-field {
+            margin-left: 20px;
+            padding-left: 15px;
+            border-left: 3px solid #F1F5F9;
+        }
+
+        @media (max-width: 768px) {
+            .indent-field { margin-left: 10px; }
+        }
+
+        input[type="file"].file-input-custom {
+            padding: 8px;
+            background-color: #F8FAFC;
+            border: 1px dashed var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        input[type="file"].file-input-custom::file-selector-button {
+            background-color: #FFFFFF;
+            color: var(--text-main);
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .payment-method-field {
+            grid-column: 1 / -1;
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .payment-card {
+            min-height: 78px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: #FFFFFF;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .payment-card-button {
+            width: 100%;
+            cursor: pointer;
+            font-family: inherit;
+            text-align: left;
+        }
+
+        .payment-card-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(74, 108, 247, 0.14), 0 0 0 3px var(--focus-ring);
+        }
+
+        .demo-card-button {
+            border-color: #D6E4FF;
+            background: #FBFDFF;
+        }
+
+        .demo-card-button span {
+            background: #E8F2FF;
+            color: var(--primary-light);
+        }
+
+        .payment-card strong {
+            color: var(--primary-dark);
+            font-size: 15px;
+            line-height: 1.2;
+        }
+
+        .payment-card span {
+            align-self: flex-start;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1;
+            padding: 5px 8px;
+            text-transform: uppercase;
+        }
+
+        .payment-card.active {
+            border-color: var(--primary-light);
+            background: #F8FAFF;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        .payment-card.active span {
+            background: var(--primary-light);
+            color: #FFFFFF;
+        }
+
+        .payment-card.disabled {
+            opacity: 0.55;
+            background: #F8FAFC;
+        }
+
+        .payment-card.disabled span {
+            background: #E2E8F0;
+            color: var(--text-muted);
+        }
+
+        /* ── Payment method selector (clean) ── */
+        .pm-selectors {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .pm-card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-height: 80px;
+            padding: 18px 18px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 16px;
+            background: #fff;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            transition: border-color .2s, box-shadow .2s, transform .2s;
+        }
+        .pm-card:hover {
+            border-color: #c7d2fe;
+            box-shadow: 0 10px 24px rgba(74,108,247,.10);
+            transform: translateY(-1px);
+        }
+        .pm-card.active {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        .pm-card.active.pm-atmos { background: #f7f9ff; }
+        .pm-card.active.pm-payme {
+            border-color: #00AAFF;
+            box-shadow: 0 0 0 3px rgba(0,170,255,.18);
+            background: #f3fbff;
+        }
+        .pm-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .pm-icon.atmos { background: #eef2ff; color: #0d1a4d; }
+        .pm-icon.payme { background: #e6f7ff; }
+        .pm-icon img { height: 28px; width: auto; display: block; }
+        .pm-text { flex: 1; min-width: 0; }
+        .pm-name {
+            font-size: 16px; font-weight: 800;
+            color: var(--primary-dark); line-height: 1.15;
+        }
+        .pm-name.payme { color: #00AAFF; }
+        .pm-sub {
+            font-size: 11.5px; color: #64748b; font-weight: 600;
+            margin-top: 3px; letter-spacing: .03em; text-transform: uppercase;
+        }
+        .pm-badge {
+            position: absolute; top: 12px; right: 14px;
+            font-size: 9.5px; font-weight: 800; letter-spacing: .08em;
+            text-transform: uppercase; color: #94a3b8;
+            background: #f1f5f9; padding: 3px 9px; border-radius: 20px;
+        }
+        .pm-card.active.pm-atmos .pm-badge { background: var(--primary-light); color: #fff; }
+        .pm-card.active.pm-payme .pm-badge { background: #00AAFF; color: #fff; }
+        .pm-check {
+            position: absolute; bottom: 14px; right: 14px;
+            width: 20px; height: 20px; border-radius: 50%;
+            display: none; align-items: center; justify-content: center;
+            color: #fff;
+        }
+        .pm-card.active .pm-check { display: flex; }
+        .pm-card.active.pm-atmos .pm-check { background: var(--primary-light); }
+        .pm-card.active.pm-payme .pm-check { background: #00AAFF; }
+
+        @media (max-width: 768px) {
+            .payment-methods {
+                grid-template-columns: 1fr 1fr;
+            }
+            .pm-selectors { grid-template-columns: 1fr; }
+        }
+
+        .helptext { font-size: 12px; color: var(--text-muted); margin-top: -4px; }
+        .errorlist { color: var(--danger-color); font-size: 13px; list-style-type: none; padding: 0; margin-top: -4px; }
+        .inline-error { color: var(--danger-color); font-size: 12px; margin-top: -4px; display: none; }
+
+        /* ------------------ BUTTONS ------------------ */
+        .wizard-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn {
+            background: var(--primary-light);
+            color: #FFFFFF;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(74, 108, 247, 0.2);
+        }
+
+        .btn:hover {
+            background: var(--primary-light-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: #FFFFFF;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: #F8FAFC;
+            color: var(--text-main);
+            transform: translateY(0);
+        }
+        
+        #btn-submit { display: none; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Payment Step ── */
+        #pay-loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .pay-panel { animation: fadeIn 0.3s ease; }
+
+        /* ── Atmos Bank Card Visual ── */
+        .atmos-bank-card {
+            background: linear-gradient(135deg, #1E2845 0%, #3a4fa3 60%, #4A6CF7 100%);
+            border-radius: 18px;
+            padding: 24px 26px 20px;
+            color: #fff;
+            margin: 0 auto 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(74, 108, 247, 0.35);
+            min-height: 155px;
+            max-width: 360px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+
+        .atmos-bank-card::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+        }
+
+        .atmos-bank-card::after {
+            content: '';
+            position: absolute;
+            bottom: -30px; left: 30px;
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .abc-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .abc-chip {
+            width: 36px; height: 27px;
+            background: linear-gradient(135deg, #e8c97e 0%, #c9a227 100%);
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .abc-chip::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px; height: 1px;
+            background: rgba(0,0,0,0.25);
+            box-shadow: 0 -5px 0 rgba(0,0,0,0.12), 0 5px 0 rgba(0,0,0,0.12);
+        }
+
+        .abc-brand {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        .abc-brand-circles {
+            display: flex;
+        }
+
+        .abc-brand-circles span {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .abc-brand-circles span:first-child {
+            background: #eb001b;
+            margin-right: -8px;
+        }
+
+        .abc-brand-circles span:last-child {
+            background: #f79e1b;
+            opacity: 0.9;
+        }
+
+        .abc-number {
+            font-size: 19px;
+            letter-spacing: 3px;
+            font-weight: 500;
+            margin: 12px 0 8px;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .abc-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .abc-expiry-label {
+            font-size: 9px;
+            letter-spacing: 0.5px;
+            opacity: 0.65;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .abc-expiry-val {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .abc-atmos-logo {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            opacity: 0.85;
+            text-transform: uppercase;
+        }
+
+        /* ── Atmos Amount Box ── */
+        .atmos-amount-box {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+            border: 1px solid #d0d9ff;
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .atmos-amount-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .atmos-amount-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .atmos-amount-value span {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+
+        /* ── Atmos form inputs ── */
+        .atmos-form-section { margin-bottom: 6px; }
+
+        .atmos-field {
+            margin-bottom: 16px;
+        }
+
+        .atmos-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 7px;
+        }
+
+        .atmos-field input {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            padding: 13px 16px;
+            font-size: 15px;
+            font-family: 'Mulish', sans-serif;
+            color: var(--primary-dark);
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        .atmos-field input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        .atmos-field input::placeholder {
+            color: #b0b8cc;
+        }
+
+        .atmos-two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .atmos-send-otp-wrap {
+            display: flex;
+            justify-content: center;
+            margin-top: 4px;
+        }
+
+        .atmos-send-otp-btn {
+            background: linear-gradient(135deg, #4A6CF7 0%, #3a5ce8 100%);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 14px 40px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 18px rgba(74, 108, 247, 0.3);
+        }
+
+        .atmos-send-otp-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(74, 108, 247, 0.4);
+        }
+
+        .atmos-send-otp-btn:disabled {
+            opacity: 0.65;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        /* ── OTP Screen ── */
+        .atmos-otp-wrap {
+            text-align: center;
+            padding: 8px 0;
+        }
+
+        .atmos-otp-icon {
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+
+        .atmos-otp-wrap h4 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin: 0 0 6px;
+        }
+
+        .atmos-otp-wrap p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin: 0 0 20px;
+            line-height: 1.6;
+        }
+
+        .atmos-otp-digits {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .atmos-otp-digits input {
+            width: 44px; height: 52px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--primary-dark);
+            background: #fff;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: 'Mulish', sans-serif;
+        }
+
+        .atmos-otp-digits input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        .atmos-otp-digits input.filled {
+            border-color: var(--primary-light);
+            background: #f8faff;
+        }
+
+        .atmos-confirm-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
+            margin-bottom: 12px;
+        }
+
+        .atmos-confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+        }
+
+        .atmos-confirm-btn:disabled {
+            opacity: 0.55;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .atmos-resend-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .atmos-resend-btn {
+            background: none;
+            border: none;
+            color: var(--primary-light);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 0;
+            font-family: inherit;
+        }
+
+        .atmos-resend-btn:disabled {
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .atmos-back-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            cursor: pointer;
+            padding: 8px 0 0;
+            font-family: inherit;
+            width: 100%;
+            text-align: center;
+        }
+
+        .atmos-back-btn:hover { color: var(--primary-dark); }
+
+        /* ── Secure badge ── */
+        .atmos-secure-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 16px;
+        }
+
+        .otp-back-hint {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        /* ── Card type badge ── */
+        .uni-card-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            transition: all 0.2s;
+        }
+        .uni-card-badge.uzcard  { background:#e8f5e9; color:#2e7d32; }
+        .uni-card-badge.humo    { background:#fff3e0; color:#e65100; }
+        .uni-card-badge.visa    { background:#e8eaf6; color:#1a237e; }
+        .uni-card-badge.mc      { background:#fce4ec; color:#880e4f; }
+
+        /* ── Consent Cards ── */
+        /* ── Members summary chip (Step 3) ── */
+        .members-summary {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 14px;
+            padding: 12px 16px;
+            background: #f0f4ff;
+            border: 1.5px solid #d4ddfb;
+            border-radius: 12px;
+        }
+        .members-summary-icon {
+            width: 34px; height: 34px;
+            border-radius: 9px;
+            background: #6366f1; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .members-summary-text {
+            flex: 1;
+            font-size: 13.5px; font-weight: 600; color: #334155;
+        }
+        .members-summary-btn {
+            border: 1.5px solid #6366f1;
+            background: #fff; color: #6366f1;
+            font-weight: 700; font-size: 13px;
+            padding: 8px 18px; border-radius: 9px;
+            cursor: pointer; font-family: inherit;
+            transition: background 0.2s, color 0.2s;
+        }
+        .members-summary-btn:hover { background: #6366f1; color: #fff; }
+        .members-summary.incomplete {
+            background: #fff7ed;
+            border-color: #fed7aa;
+        }
+        .members-summary.incomplete .members-summary-icon { background: #f59e0b; }
+        .members-summary.incomplete .members-summary-text { color: #b45309; }
+        .members-summary.incomplete .members-summary-btn {
+            border-color: #f59e0b; color: #b45309;
+        }
+        .members-summary.incomplete .members-summary-btn:hover {
+            background: #f59e0b; color: #fff;
+        }
+
+        /* ── Members modal ── */
+        .members-modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(15,23,42,0.55);
+            z-index: 1000;
+            align-items: center; justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.2s ease;
+        }
+        .members-modal-overlay.open { display: flex; }
+        .members-modal {
+            background: #fff;
+            border-radius: 18px;
+            width: 100%; max-width: 540px;
+            max-height: 90vh;
+            display: flex; flex-direction: column;
+            box-shadow: 0 24px 60px rgba(15,23,42,0.3);
+            animation: modalPop 0.22s ease;
+        }
+        @keyframes modalPop {
+            from { transform: translateY(12px) scale(0.98); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .members-modal-head {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: 14px; padding: 22px 24px 16px;
+            border-bottom: 1px solid #eef1f6;
+        }
+        .members-modal-head-left {
+            display: flex; align-items: center; gap: 14px;
+        }
+        .members-modal-close {
+            border: none; background: #f1f5f9; color: #64748b;
+            width: 34px; height: 34px; border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; flex-shrink: 0; transition: background 0.2s;
+        }
+        .members-modal-close:hover { background: #e2e8f0; }
+        .members-modal-body {
+            padding: 18px 24px;
+            overflow-y: auto;
+            display: flex; flex-direction: column; gap: 14px;
+        }
+        .members-modal-foot {
+            padding: 16px 24px 22px;
+            border-top: 1px solid #eef1f6;
+            display: flex; justify-content: flex-end;
+        }
+        .members-modal-foot .btn { min-width: 150px; }
+
+        /* ── Institutional additional members ── */
+        .members-block {
+            margin: 8px 0 20px;
+            padding: 20px;
+            background: #f8faff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 14px;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .members-block-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 4px;
+        }
+        .members-block-icon {
+            flex-shrink: 0;
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            background: #ede9fe;
+            color: #6366f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .members-block-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .members-block-sub {
+            font-size: 12.5px;
+            color: #64748b;
+            margin-top: 2px;
+            line-height: 1.45;
+        }
+        .member-card {
+            position: relative;
+            background: #fff;
+            border: 1.5px solid #e6ebf5;
+            border-radius: 12px;
+            padding: 16px 16px 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .member-card:hover {
+            border-color: #c7cffa;
+            box-shadow: 0 2px 10px rgba(99,102,241,0.07);
+        }
+        .member-card-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #6366f1;
+            background: #ede9fe;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+        }
+        .member-card-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .member-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+        .member-field input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 9px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #fff;
+        }
+        .member-field input:focus {
+            border-color: #6366f1;
+        }
+        .member-field-error {
+            display: none;
+            color: var(--danger-color);
+            font-size: 11.5px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .member-field.invalid input { border-color: var(--danger-color); }
+        .member-field.invalid .member-field-error { display: block; }
+        .members-modal-error {
+            margin: 0 24px;
+            padding: 11px 14px;
+            background: #fef2f2;
+            border: 1.5px solid #fecaca;
+            border-radius: 10px;
+            color: #b91c1c;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        @media (max-width: 560px) {
+            .member-card-fields { grid-template-columns: 1fr; }
+        }
+
+        .consent-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .consent-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #f8faff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 18px 20px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        .consent-card:hover {
+            border-color: #6366f1;
+            background: #f0f0ff;
+            box-shadow: 0 2px 12px rgba(99,102,241,0.08);
+        }
+        .consent-card-icon {
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #ede9fe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6366f1;
+        }
+        .consent-card-text {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+            line-height: 1.4;
+        }
+        .consent-link {
+            color: #4A6CF7;
+            font-weight: 700;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .consent-link:hover {
+            color: #2d4fd6;
+        }
+        .consent-toggle {
+            position: relative;
+            flex-shrink: 0;
+            width: 48px;
+            height: 26px;
+        }
+        .consent-toggle input[type="checkbox"] {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+        .consent-toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: #cbd5e1;
+            border-radius: 999px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        .consent-toggle-slider::after {
+            content: '';
+            position: absolute;
+            left: 3px;
+            top: 3px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+            transition: transform 0.2s;
+        }
+        .consent-toggle input:checked + .consent-toggle-slider {
+            background: #6366f1;
+        }
+        .consent-toggle input:checked + .consent-toggle-slider::after {
+            transform: translateX(22px);
+        }
+        .consent-card:has(input:checked) {
+            border-color: #6366f1;
+            background: #f0f0ff;
+        }
+        .consent-card:has(input:checked) .consent-card-icon {
+            background: #6366f1;
+            color: #fff;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-logo">
+        <img src="{% static 'images/logo.png' %}" alt="UzTEA Logo">
+        <h1 class="header-title">Membership Form</h1>
+    </div>
+
+    <div class="wizard-header">
+        <div class="progress-steps" id="progress-steps">
+            <div class="progress-line" id="progress-line"></div>
+
+            <div class="step-item active" id="step-nav-1">
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                </div>
+                <span class="step-label">Personal<br>Info</span>
+            </div>
+
+            <div class="step-item" id="step-nav-2">
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                </div>
+                <span class="step-label">Professional<br>Details</span>
+            </div>
+
+            <div class="step-item" id="step-nav-3">
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </div>
+                <span class="step-label">Interests &<br>Engagement</span>
+            </div>
+
+            <div class="step-item" id="step-nav-4">
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+                <span class="step-label">Preferences<br>& Consents</span>
+            </div>
+
+            <div class="step-item" id="step-nav-5">
+                <div class="step-icon">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                </div>
+                <span class="step-label">Payment</span>
+            </div>
+        </div>
+        <div class="step-indicator" id="step-indicator">Step 1 of 5</div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="wizard-form">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+        <div class="error-summary">
+            <strong>Please correct the following errors:</strong>
+            <ul>
+                {% for field in form %}
+                    {% if field.errors %}
+                        <li>{{ field.label }}: {{ field.errors.0|striptags }}</li>
+                    {% endif %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <!-- STEP 1: Personal Information -->
+        <div class="wizard-step active" id="step-1">
+            <h3>Personal Information</h3>
+            <div class="form-grid">
+            {% for field in form %}
+                {% if '|'|add:field.name|add:'|' in '|full_name|gender|date_of_birth|nationality|phone_number|email|country|region_city|address|' %}
+                    <p class="field-item">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                        {{ field }}
+                        {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+                        {% if field.errors %}<span class="errorlist">{{ field.errors.0 }}</span>{% endif %}
+                        <span class="inline-error" id="err-{{ field.name }}">This field is required.</span>
+                    </p>
+                {% endif %}
+            {% endfor %}
+            </div>
+        </div>
+
+        <!-- STEP 2: Professional Details -->
+        <div class="wizard-step" id="step-2">
+            <h3>Professional Background</h3>
+            <div class="form-grid">
+            {% for field in form %}
+                {% if '|'|add:field.name|add:'|' in '|position|institution_name|institution_type|experience|subjects|levels|' %}
+                    <p class="field-item">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                        {{ field }}
+                        {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+                        {% if field.errors %}<span class="errorlist">{{ field.errors.0 }}</span>{% endif %}
+                        <span class="inline-error" id="err-{{ field.name }}">This field is required.</span>
+                    </p>
+                {% endif %}
+            {% endfor %}
+            </div>
+        </div>
+
+        <!-- STEP 3: Interests & Engagement -->
+        <div class="wizard-step" id="step-3">
+            <h3>Interests & Engagement</h3>
+            <div class="form-grid">
+            {% for field in form %}
+                {% if '|'|add:field.name|add:'|' in '|membership_type|interests|join_sig|sig_areas|contribution|participated_before|participation_details|' %}
+                    {% if field.name == 'membership_type' %}
+                    <div class="field-item membership-type-field">
+                        <label>{{ field.label }}{% if field.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                        <div class="membership-type-grid">
+                            {% for card in form.membership_type_cards %}
+                            <label class="membership-type-card" for="id_membership_type_{{ forloop.counter0 }}">
+                                <input
+                                    type="radio"
+                                    name="{{ field.html_name }}"
+                                    id="id_membership_type_{{ forloop.counter0 }}"
+                                    value="{{ card.value }}"
+                                    {% if field.value == card.value %}checked{% endif %}
+                                    {% if field.field.required %}required{% endif %}
+                                >
+                                <span class="membership-type-top">
+                                    <span class="membership-type-name">{{ card.label }}</span>
+                                    <span class="membership-type-badge">{{ card.badge }}</span>
+                                </span>
+                                <span class="membership-type-price">{{ card.price }}</span>
+                                <span class="membership-type-seats">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    {{ card.seats_text }}
+                                </span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+                        {% if field.errors %}<span class="errorlist">{{ field.errors.0 }}</span>{% endif %}
+                        <span class="inline-error" id="err-{{ field.name }}">This field is required.</span>
+
+                        <!-- Institutional: members summary chip (shown when institutional selected) -->
+                        <div id="members-summary" class="members-summary" style="display:none">
+                            <span class="members-summary-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </span>
+                            <span class="members-summary-text" id="members-summary-text">Add details for 4 members</span>
+                            <button type="button" class="members-summary-btn" onclick="openMembersModal()">Edit</button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="field-item {% if field.name in 'interests,contribution' %}full-width{% endif %} {% if field.name == 'sig_areas' %}sig-area-field indent-field{% elif field.name == 'participation_details' %}participation-field indent-field{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="required-asterisk">*</span>{% endif %}</label>
+                        {{ field }}
+                        {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+                        {% if field.errors %}<span class="errorlist">{{ field.errors.0 }}</span>{% endif %}
+                        <span class="inline-error" id="err-{{ field.name }}">This field is required.</span>
+                    </p>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            </div>
+        </div>
+
+        <!-- STEP 4: Preferences & Consents -->
+        <div class="wizard-step" id="step-4">
+            <h3>Preferences & Consents</h3>
+
+            <div class="consent-cards">
+                {% for field in form %}
+                    {% if field.name in 'agree_terms,consent_data,agree_communication' %}
+                    <label class="consent-card" for="{{ field.id_for_label }}">
+                        <span class="consent-card-icon">
+                            {% if field.name == 'agree_terms' %}
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            {% elif field.name == 'consent_data' %}
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            {% else %}
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.63 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.82a16 16 0 0 0 6.29 6.29l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            {% endif %}
+                        </span>
+                        <span class="consent-card-text">
+                            {% if field.name == 'agree_terms' %}
+                                I have read and agree to the <a href="{% url 'membership_terms' %}" target="_blank" rel="noopener" class="consent-link" onclick="event.stopPropagation()">UzTEA Membership Terms &amp; Conditions</a>
+                            {% elif field.name == 'consent_data' %}
+                                I consent to the processing of my personal data in accordance with applicable data protection laws and the <a href="{% url 'privacy_policy' %}" target="_blank" rel="noopener" class="consent-link" onclick="event.stopPropagation()">Privacy Policy</a>
+                            {% else %}
+                                I agree to receive updates, announcements, and communications from UzTEA
+                            {% endif %}
+                            {% if field.field.required %} <span class="required-asterisk">*</span>{% endif %}
+                        </span>
+                        <span class="consent-toggle">
+                            {{ field }}
+                            <span class="consent-toggle-slider"></span>
+                        </span>
+                        <span class="inline-error" id="err-{{ field.name }}">This field is required.</span>
+                    </label>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- STEP 5: Payment -->
+        <div class="wizard-step" id="step-5">
+            <h3>Payment</h3>
+
+            <!-- Promocode -->
+            <div class="promo-wrap" id="promo-wrap" style="margin-bottom:20px;">
+                <label style="display:block;font-size:13px;font-weight:600;color:#334155;margin-bottom:6px;">Have a promocode?</label>
+                <div style="display:flex;gap:8px;">
+                    <input type="text" id="promo-input" placeholder="Enter promocode"
+                           style="flex:1;text-transform:uppercase;padding:12px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;">
+                    <button type="button" id="btn-apply-promo" onclick="applyPromocode()"
+                            style="background:#4A6CF7;color:#fff;border:none;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;">
+                        Apply
+                    </button>
+                </div>
+                <span class="inline-error" id="err-promo" style="display:none"></span>
+                <span id="promo-success" style="display:none;color:#16a34a;font-size:13px;font-weight:600;margin-top:6px;"></span>
+            </div>
+
+            <!-- Payment method selector -->
+            <div class="pm-selectors" style="margin-bottom:20px;">
+                <button type="button" class="pm-card pm-atmos" id="pm-atmos"
+                        onclick="selectPaymentMethod('atmos')">
+                    <span class="pm-badge">Card</span>
+                    <span class="pm-icon atmos">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                            <line x1="1" y1="10" x2="23" y2="10"/>
+                        </svg>
+                    </span>
+                    <span class="pm-text">
+                        <span class="pm-name">Atmos</span>
+                        <span class="pm-sub">UzCard / Humo</span>
+                    </span>
+                    <span class="pm-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                </button>
+
+                <button type="button" class="pm-card pm-payme" id="pm-payme"
+                        onclick="selectPaymentMethod('payme')">
+                    <span class="pm-badge">Online</span>
+                    <span class="pm-icon payme">
+                        <img src="data:image/png;base64,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" alt="Payme">
+                    </span>
+                    <span class="pm-text">
+                        <span class="pm-name payme">Payme</span>
+                        <span class="pm-sub">Any card / Wallet</span>
+                    </span>
+                    <span class="pm-check">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                </button>
+            </div>
+
+            <!-- Supported cards note -->
+            <div class="pay-note" id="atmos-pay-note">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span>Currently only <strong>UzCard</strong> and <strong>Humo</strong> cards are supported. Visa / Mastercard coming soon.</span>
+            </div>
+
+            <!-- Payme panel -->
+            <div id="payme-panel" style="display:none;text-align:center;padding:24px 0;">
+                <img src="data:image/png;base64,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" alt="Payme" style="height:40px;width:auto;margin-bottom:14px;">
+                <p style="font-size:16px;font-weight:700;color:#00AAFF;margin-bottom:6px;">Pay with Payme</p>
+                <p style="font-size:13px;color:#64748b;margin-bottom:20px;">You will be redirected to Payme secure checkout</p>
+                <button type="button" id="btn-pay-payme" onclick="payWithPayme()"
+                        style="background:#00AAFF;color:white;border:none;padding:14px 32px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;width:100%;max-width:320px;">
+                    Continue to Payme →
+                </button>
+            </div>
+
+            <!-- Error banner -->
+            <div id="pay-error" class="error-summary" style="display:none"></div>
+
+            <!-- Unified card form -->
+            <div id="unified-card-form" class="pay-panel" style="display:none">
+
+                <!-- Virtual bank card -->
+                <div class="atmos-bank-card" id="uni-bank-card">
+                    <div class="abc-top">
+                        <div class="abc-chip"></div>
+                        <div class="abc-brand" id="uni-card-brand">
+                            <div class="abc-brand-circles"><span></span><span></span></div>
+                        </div>
+                    </div>
+                    <div class="abc-number" id="abc-number">•••• •••• •••• ••••</div>
+                    <div class="abc-footer">
+                        <div>
+                            <div class="abc-expiry-label">Expires</div>
+                            <div class="abc-expiry-val" id="abc-expiry">••/••</div>
+                        </div>
+                        <div class="abc-atmos-logo" id="uni-card-label">ATMOS</div>
+                    </div>
+                </div>
+
+                <!-- Card type badge -->
+                <div id="uni-card-badge" class="uni-card-badge" style="display:none"></div>
+
+                <!-- Cardholder name (MPS only) -->
+                <div class="atmos-field" id="uni-name-field" style="display:none">
+                    <label>Cardholder Name <span class="required-asterisk">*</span></label>
+                    <input type="text" id="uni-card-name" placeholder="JOHN DOE" autocomplete="cc-name" style="text-transform:uppercase">
+                    <span class="inline-error" id="err-uni-name" style="display:none">Enter cardholder name.</span>
+                </div>
+
+                <div class="atmos-form-section">
+                    <!-- Card number -->
+                    <div class="atmos-field">
+                        <label>Card Number <span class="required-asterisk">*</span></label>
+                        <input type="tel" id="uni-card-number" placeholder="0000 0000 0000 0000"
+                               maxlength="19" inputmode="numeric" autocomplete="cc-number">
+                        <span class="inline-error" id="err-uni-card" style="display:none">Enter a valid 16-digit card number.</span>
+                    </div>
+
+                    <div class="atmos-two-col">
+                        <!-- Expiry -->
+                        <div class="atmos-field">
+                            <label>Expiry Date <span class="required-asterisk">*</span></label>
+                            <input type="tel" id="uni-expiry" placeholder="MM/YY"
+                                   maxlength="5" inputmode="numeric" autocomplete="cc-exp">
+                            <span class="inline-error" id="err-uni-expiry" style="display:none">Enter expiry as MM/YY.</span>
+                        </div>
+
+                        <!-- CVV (MPS only) -->
+                        <div class="atmos-field" id="uni-cvv-field">
+                            <label id="uni-cvv-label">CVV</label>
+                            <input type="tel" id="uni-cvc2" placeholder="•••" maxlength="4"
+                                   inputmode="numeric" autocomplete="cc-csc"
+                                   style="background:#f8fafc;color:#b0b8cc;" disabled>
+                            <span class="inline-error" id="err-uni-cvc2" style="display:none">Enter CVV.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action button -->
+                <div class="atmos-send-otp-wrap">
+                    <button type="button" class="atmos-send-otp-btn" id="btn-uni-pay" onclick="uniPay()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                            <line x1="1" y1="10" x2="23" y2="10"/>
+                        </svg>
+                        <span id="uni-btn-label">Send OTP</span>
+                    </button>
+                </div>
+
+                <div class="atmos-secure-row">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    Secured with 256-bit TLS · Powered by ATMOS
+                </div>
+            </div>
+
+            <!-- OTP screen (UzCard / Humo) -->
+            <div id="atmos-otp-form" style="display:none">
+                <div class="atmos-otp-wrap">
+                    <div class="atmos-otp-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                             stroke="#4A6CF7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07
+                                     A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67
+                                     A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72
+                                     c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91
+                                     a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45
+                                     c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16.92z"/>
+                        </svg>
+                    </div>
+                    <h4>Enter Verification Code</h4>
+                    <p>A 6-digit OTP has been sent to the phone number<br>linked to your card.</p>
+                    <div class="atmos-otp-digits" id="atmos-otp-digits">
+                        <input class="atmos-otp-digit" type="tel" inputmode="numeric" maxlength="1" aria-label="Digit 1">
+                        <input class="atmos-otp-digit" type="tel" inputmode="numeric" maxlength="1" aria-label="Digit 2">
+                        <input class="atmos-otp-digit" type="tel" inputmode="numeric" maxlength="1" aria-label="Digit 3">
+                        <input class="atmos-otp-digit" type="tel" inputmode="numeric" maxlength="1" aria-label="Digit 4">
+                        <input class="atmos-otp-digit" type="tel" inputmode="numeric" maxlength="1" aria-label="Digit 5">
+                        <input class="atmos-otp-digit" type="tel" inputmode="numeric" maxlength="1" aria-label="Digit 6">
+                    </div>
+                    <input type="hidden" id="atmos-otp-input">
+                    <span class="inline-error" id="err-atmos-otp" style="display:none">Please enter the 6-digit OTP.</span>
+                    <button type="button" class="atmos-confirm-btn" id="btn-confirm-otp" onclick="confirmAtmosOtp()" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Verify &amp; Pay
+                    </button>
+                    <div class="atmos-resend-row">
+                        Didn't receive a code?&nbsp;
+                        <button class="atmos-resend-btn" id="btn-resend-otp" type="button"
+                                onclick="resendAtmosOtp()" disabled>
+                            Resend <span id="resend-timer"></span>
+                        </button>
+                    </div>
+                    <button class="atmos-back-btn" id="btn-back-card" type="button"
+                            onclick="backToCardForm()">← Back to card details</button>
+                </div>
+            </div>
+
+            <!-- 3DS screen (Visa / Mastercard) -->
+            <div id="mps-3ds-screen" style="display:none;text-align:center;padding:40px 20px">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <h4 style="margin:16px 0 8px;font-family:'Raleway',sans-serif">3D Secure Verification</h4>
+                <p style="color:#64748b;font-size:14px">Your bank verification window has been opened.<br>Complete the process, then click below.</p>
+                <button type="button" class="atmos-send-otp-btn" style="margin-top:20px" onclick="mps3dsCompleted()">I've completed verification</button>
+                <button class="atmos-back-btn" style="margin-top:12px;display:block;text-align:center" type="button" onclick="backToCardForm()">← Back</button>
+            </div>
+
+        </div>
+
+        <div class="wizard-footer">
+            <button type="button" class="btn btn-outline" id="btn-prev" onclick="changeStep(-1)" style="visibility: hidden;">Previous</button>
+            <button type="button" class="btn" id="btn-next" onclick="changeStep(1)">Next</button>
+            <button type="submit" class="btn" id="btn-submit">Submit Application</button>
+        </div>
+
+        <!-- ── Institutional members modal ── -->
+        <div id="members-modal-overlay" class="members-modal-overlay" onclick="if(event.target===this)closeMembersModal()">
+            <div class="members-modal" role="dialog" aria-modal="true">
+                <div class="members-modal-head">
+                    <div class="members-modal-head-left">
+                        <span class="members-block-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </span>
+                        <div>
+                            <div class="members-block-title">Additional Members</div>
+                            <div class="members-block-sub">Provide the details of the four members included in this institutional membership.</div>
+                        </div>
+                    </div>
+                    <button type="button" class="members-modal-close" onclick="closeMembersModal()" aria-label="Close">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+
+                <div id="members-modal-error" class="members-modal-error" style="display:none">
+                    Please fill in the name and email for all four members.
+                </div>
+                <div class="members-modal-body">
+                    <div class="member-card">
+                        <div class="member-card-badge">Member 1 <span class="required-asterisk">*</span></div>
+                        <div class="member-card-fields">
+                            <div class="member-field">
+                                <label for="{{ form.member_2_name.id_for_label }}">Full Name</label>
+                                {{ form.member_2_name }}
+                                <span class="member-field-error">Required</span>
+                            </div>
+                            <div class="member-field">
+                                <label for="{{ form.member_2_email.id_for_label }}">Email</label>
+                                {{ form.member_2_email }}
+                                <span class="member-field-error">Required</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="member-card">
+                        <div class="member-card-badge">Member 2 <span class="required-asterisk">*</span></div>
+                        <div class="member-card-fields">
+                            <div class="member-field">
+                                <label for="{{ form.member_3_name.id_for_label }}">Full Name</label>
+                                {{ form.member_3_name }}
+                                <span class="member-field-error">Required</span>
+                            </div>
+                            <div class="member-field">
+                                <label for="{{ form.member_3_email.id_for_label }}">Email</label>
+                                {{ form.member_3_email }}
+                                <span class="member-field-error">Required</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="member-card">
+                        <div class="member-card-badge">Member 3 <span class="required-asterisk">*</span></div>
+                        <div class="member-card-fields">
+                            <div class="member-field">
+                                <label for="{{ form.member_4_name.id_for_label }}">Full Name</label>
+                                {{ form.member_4_name }}
+                                <span class="member-field-error">Required</span>
+                            </div>
+                            <div class="member-field">
+                                <label for="{{ form.member_4_email.id_for_label }}">Email</label>
+                                {{ form.member_4_email }}
+                                <span class="member-field-error">Required</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="member-card">
+                        <div class="member-card-badge">Member 4 <span class="required-asterisk">*</span></div>
+                        <div class="member-card-fields">
+                            <div class="member-field">
+                                <label for="{{ form.member_5_name.id_for_label }}">Full Name</label>
+                                {{ form.member_5_name }}
+                                <span class="member-field-error">Required</span>
+                            </div>
+                            <div class="member-field">
+                                <label for="{{ form.member_5_email.id_for_label }}">Email</label>
+                                {{ form.member_5_email }}
+                                <span class="member-field-error">Required</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="members-modal-foot">
+                    <button type="button" class="btn" onclick="saveMembersModal()">Save Members</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    let currentStep = 1;
+    const totalSteps = 5;
+
+    function changeStep(direction) {
+        // Validation before going Next
+        if (direction === 1 && !validateCurrentStep()) {
+            return;
+        }
+
+        // Institutional: require all 4 members before leaving Step 3
+        if (direction === 1 && currentStep === 3 &&
+            typeof window._membersComplete === 'function' && !window._membersComplete()) {
+            if (typeof window.openMembersModal === 'function') {
+                window.openMembersModal();
+                if (typeof window.saveMembersModal === 'function') {
+                    // trigger validation highlight + banner
+                    window.saveMembersModal();
+                }
+            }
+            return;
+        }
+
+        // Hide current step
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        
+        // Update Step count
+        currentStep += direction;
+
+        // Show new step
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+
+        // Update UI
+        updateWizardUI();
+    }
+
+    function updateWizardUI() {
+        // Progress line width
+        const line = document.getElementById('progress-line');
+        line.style.width = `${((currentStep - 1) / (totalSteps - 1)) * 80}%`;
+
+        // Step icons
+        for (let i = 1; i <= totalSteps; i++) {
+            const item = document.getElementById(`step-nav-${i}`);
+            if (!item) continue;
+            item.classList.remove('active', 'done');
+            if (i === currentStep) item.classList.add('active');
+            else if (i < currentStep) item.classList.add('done');
+        }
+
+        // Step text
+        document.getElementById('step-indicator').innerText = `Step ${currentStep} of ${totalSteps}`;
+
+        // Buttons
+        document.getElementById('btn-prev').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+
+        if (currentStep === totalSteps) {
+            // Payment step: hide nav buttons — payment has its own action buttons
+            document.getElementById('btn-next').style.display = 'none';
+            document.getElementById('btn-submit').style.display = 'none';
+        } else {
+            document.getElementById('btn-next').style.display = 'block';
+            document.getElementById('btn-submit').style.display = 'none';
+        }
+    }
+
+    function validateCurrentStep() {
+        let isValid = true;
+        const currentStepDiv = document.getElementById(`step-${currentStep}`);
+        
+        // Basic frontend validation for required fields
+        const requiredInputs = currentStepDiv.querySelectorAll('input[required], select[required], textarea[required]');
+        
+        requiredInputs.forEach(input => {
+            const fieldWrap = input.closest('.field-item, p, label');
+            const errorSpan = fieldWrap ? fieldWrap.querySelector('.inline-error') : null;
+            
+            if (!input.value.trim() && (input.type !== 'radio' && input.type !== 'checkbox')) {
+                isValid = false;
+                input.style.borderColor = 'var(--danger-color)';
+                if (errorSpan) errorSpan.style.display = 'block';
+            } else if ((input.type === 'radio' || input.type === 'checkbox') && !input.checked) {
+                // For radio groups, we need to check if ANY in the group is checked
+                const groupName = input.name;
+                const anyChecked = currentStepDiv.querySelector(`input[name="${groupName}"]:checked`);
+                if (!anyChecked) {
+                    isValid = false;
+                    if (errorSpan) errorSpan.style.display = 'block';
+                } else {
+                    if (errorSpan) errorSpan.style.display = 'none';
+                }
+            } else {
+                input.style.borderColor = 'var(--border-color)';
+                if (errorSpan) errorSpan.style.display = 'none';
+            }
+        });
+        
+        return isValid;
+    }
+
+    // Dynamic field logic for Institutional, SIG, and Participation fields
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- STEP NAVIGATION ON ERROR ---
+        // If there are errors, find the first step with an error and show it
+        const firstErrorStep = document.querySelector('.wizard-step:has(.errorlist)');
+        if (firstErrorStep) {
+            const errorStepId = firstErrorStep.id;
+            const stepNum = parseInt(errorStepId.split('-')[1]);
+            
+            // Hide default active step (Step 1)
+            document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+            
+            // Show the error step
+            currentStep = stepNum;
+            document.getElementById(errorStepId).classList.add('active');
+        } else if (window.location.search.includes('step=')) {
+           // Optional: handle step from URL if needed
+        }
+
+        function setupToggle(triggerName, targetClass, showValue) {
+            const triggers = document.querySelectorAll(`select[name="${triggerName}"], input[name="${triggerName}"]`);
+            if (!triggers.length) return;
+
+            function toggle() {
+                const targets = document.querySelectorAll(`.${targetClass}`);
+                const checked = document.querySelector(`input[name="${triggerName}"]:checked`);
+                const select = document.querySelector(`select[name="${triggerName}"]`);
+                const value = checked ? checked.value : (select ? select.value : '');
+                // Boolean True/False may come as strings 'True'/'False' from Select
+                const shouldShow = (value === showValue || value === String(showValue));
+                
+                targets.forEach(el => {
+                    el.style.display = shouldShow ? 'flex' : 'none';
+                    const inputs = el.querySelectorAll('input, select, textarea');
+                    inputs.forEach(i => {
+                        if (!shouldShow) i.removeAttribute('required');
+                        else if (i.hasAttribute('data-required')) i.setAttribute('required', 'required');
+                    });
+                });
+            }
+
+            triggers.forEach(trigger => trigger.addEventListener('change', toggle));
+            toggle(); // Run once on load
+        }
+
+        function setupMembersModal() {
+            const overlay = document.getElementById('members-modal-overlay');
+            const summary = document.getElementById('members-summary');
+            if (!overlay || !summary) return;
+
+            const radios = document.querySelectorAll('input[name="membership_type"]');
+            const memberFields = [
+                ['id_member_2_name', 'id_member_2_email'],
+                ['id_member_3_name', 'id_member_3_email'],
+                ['id_member_4_name', 'id_member_4_email'],
+                ['id_member_5_name', 'id_member_5_email'],
+            ];
+
+            function isInstitutional() {
+                const checked = document.querySelector('input[name="membership_type"]:checked');
+                return checked && checked.value === 'institutional';
+            }
+
+            function isEmail(v) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+            }
+
+            function validateMembers(mark) {
+                let allValid = true;
+                memberFields.forEach(([nameId, emailId]) => {
+                    [[nameId, false], [emailId, true]].forEach(([id, email]) => {
+                        const el = document.getElementById(id);
+                        if (!el) return;
+                        const wrap = el.closest('.member-field');
+                        const val = el.value.trim();
+                        const ok = email ? isEmail(val) : !!val;
+                        if (!ok) {
+                            allValid = false;
+                            if (mark && wrap) wrap.classList.add('invalid');
+                        } else if (wrap) {
+                            wrap.classList.remove('invalid');
+                        }
+                    });
+                });
+                return allValid;
+            }
+            // expose for step navigation
+            window._membersComplete = function () {
+                if (!isInstitutional()) return true;
+                return validateMembers(false);
+            };
+
+            function countFilled() {
+                let filled = 0;
+                memberFields.forEach(([nameId, emailId]) => {
+                    const n = document.getElementById(nameId);
+                    const e = document.getElementById(emailId);
+                    if (n && e && n.value.trim() && isEmail(e.value.trim())) filled++;
+                });
+                return filled;
+            }
+
+            function updateSummary() {
+                const filled = countFilled();
+                const txt = document.getElementById('members-summary-text');
+                const summaryEl = document.getElementById('members-summary');
+                if (txt) {
+                    txt.textContent = filled === 4
+                        ? 'All 4 members added'
+                        : `${filled} of 4 members added — required`;
+                }
+                if (summaryEl) summaryEl.classList.toggle('incomplete', filled !== 4);
+            }
+
+            window.openMembersModal = function () {
+                overlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            };
+            window.closeMembersModal = function () {
+                overlay.classList.remove('open');
+                document.body.style.overflow = '';
+                updateSummary();
+            };
+            window.saveMembersModal = function () {
+                const banner = document.getElementById('members-modal-error');
+                if (!validateMembers(true)) {
+                    if (banner) banner.style.display = 'block';
+                    return;
+                }
+                if (banner) banner.style.display = 'none';
+                window.closeMembersModal();
+            };
+
+            // Clear field error as user types
+            memberFields.flat().forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', () => {
+                    const wrap = el.closest('.member-field');
+                    if (wrap) wrap.classList.remove('invalid');
+                });
+            });
+
+            radios.forEach(r => r.addEventListener('change', () => {
+                if (isInstitutional()) {
+                    summary.style.display = 'flex';
+                    window.openMembersModal();   // auto-open on selecting institutional
+                } else {
+                    summary.style.display = 'none';
+                    overlay.classList.remove('open');
+                    document.body.style.overflow = '';
+                    // clear member inputs when switching away
+                    memberFields.flat().forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.value = '';
+                    });
+                }
+            }));
+
+            // ESC to close
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') window.closeMembersModal();
+            });
+
+            // Initial state on load
+            if (isInstitutional()) { summary.style.display = 'flex'; updateSummary(); }
+        }
+
+        setupToggle('membership_type', 'institutional-field', 'institutional');
+        setupToggle('join_sig', 'sig-area-field', true);
+        setupToggle('participated_before', 'participation-field', true);
+
+        // ── Institutional members modal ──
+        setupMembersModal();
+
+        // Unified card number formatting + auto-detect
+        document.getElementById('uni-card-number').addEventListener('input', e => {
+            let v = e.target.value.replace(/\D/g, '').slice(0, 16);
+            e.target.value = v.replace(/(.{4})/g, '$1 ').trim();
+            const display = v.padEnd(16, '•').replace(/(.{4})/g, '$1 ').trim();
+            document.getElementById('abc-number').textContent = display;
+            document.getElementById('err-uni-card').style.display = 'none';
+            _detectCardType(v);
+        });
+
+        // Unified expiry formatting
+        document.getElementById('uni-expiry').addEventListener('input', e => {
+            let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+            if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2);
+            e.target.value = v;
+            document.getElementById('abc-expiry').textContent = v || '••/••';
+            document.getElementById('err-uni-expiry').style.display = 'none';
+        });
+
+        // Initialize progress bar
+        updateWizardUI();
+    });
+
+    // ── Payment method selector ───────────────────────────────────
+    let _selectedPayMethod = null;
+
+    function selectPaymentMethod(method) {
+        _selectedPayMethod = method;
+
+        document.getElementById('pm-atmos').classList.toggle('active', method === 'atmos');
+        document.getElementById('pm-payme').classList.toggle('active', method === 'payme');
+
+        document.getElementById('unified-card-form').style.display  = method === 'atmos' ? '' : 'none';
+        document.getElementById('atmos-otp-form').style.display     = 'none';
+        document.getElementById('payme-panel').style.display        = method === 'payme' ? '' : 'none';
+        document.getElementById('atmos-pay-note').style.display     = method === 'atmos' ? '' : 'none';
+        document.getElementById('pay-error').style.display          = 'none';
+    }
+
+    async function applyPromocode() {
+        const input = document.getElementById('promo-input');
+        const code = input.value.trim();
+        const errEl = document.getElementById('err-promo');
+        const okEl = document.getElementById('promo-success');
+        const btn = document.getElementById('btn-apply-promo');
+        errEl.style.display = 'none';
+        okEl.style.display = 'none';
+
+        if (!code) {
+            errEl.textContent = 'Please enter a promocode.';
+            errEl.style.display = '';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Applying…';
+
+        try {
+            const orderData = await _createOrder();
+            if (!orderData.success) {
+                _showPayError(Object.values(orderData.errors || {}).flat().join(' ') || 'Please fix the form errors before applying a promocode.');
+                return;
+            }
+
+            const resp = await fetch('/payments/click/promo/apply/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: orderData.order_id, code }),
+            });
+            const data = await resp.json();
+
+            if (!data.success) {
+                errEl.textContent = data.error || 'Invalid promocode.';
+                errEl.style.display = '';
+                return;
+            }
+
+            if (data.paid) {
+                window.location.href = data.status_url;
+                return;
+            }
+
+            // Partial discount: update cached amount, let the user pay the rest.
+            _payOrderData.amount = data.amount;
+            _payOrderData.amount_tiyin = data.amount_tiyin;
+            okEl.textContent = `Promocode applied — ${data.discount_percent}% off. New amount: ${new Intl.NumberFormat('uz-UZ').format(data.amount)} UZS`;
+            okEl.style.display = '';
+            input.disabled = true;
+            btn.style.display = 'none';
+        } catch (e) {
+            errEl.textContent = 'Network error. Please try again.';
+            errEl.style.display = '';
+        } finally {
+            btn.disabled = false;
+            if (btn.style.display !== 'none') btn.textContent = 'Apply';
+        }
+    }
+
+    async function payWithPayme() {
+        const btn = document.getElementById('btn-pay-payme');
+        btn.disabled = true;
+        btn.textContent = 'Creating order…';
+        try {
+            const data = await _createOrder();
+            if (!data.success) {
+                btn.disabled = false;
+                btn.textContent = 'Continue to Payme →';
+                _showPayError(Object.values(data.errors || {}).flat().join(' ') || 'Please fix the form errors.');
+                return;
+            }
+            window.location.href = data.payme_url;
+        } catch (e) {
+            btn.disabled = false;
+            btn.textContent = 'Continue to Payme →';
+            _showPayError('Network error. Please try again.');
+        }
+    }
+
+    // ── Unified payment ──────────────────────────────────────────
+    let _payOrderData   = null;
+    let _atmosTxnId     = null;
+    let _mpsTransactionId = null;
+    let _resendTimer    = null;
+    let _cardType       = 'unknown'; // uzcard | humo | visa | mc | unknown
+
+    function _showPayError(msg) {
+        const el = document.getElementById('pay-error');
+        el.textContent = msg; el.style.display = '';
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    function _hidePayError() { document.getElementById('pay-error').style.display = 'none'; }
+
+    let _createOrderPromise = null;
+    async function _createOrder() {
+        // Already created — reuse the cached order
+        if (_payOrderData) return _payOrderData;
+        // A create request is already in flight — reuse it (prevents duplicate memberships)
+        if (_createOrderPromise) return _createOrderPromise;
+
+        _createOrderPromise = (async () => {
+            const form = document.getElementById('wizard-form');
+            const resp = await fetch(form.action || window.location.pathname, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(form),
+            });
+            const data = await resp.json();
+            if (data.success) {
+                _payOrderData = data;        // cache success permanently
+            } else {
+                _createOrderPromise = null;  // allow retry after a failure
+            }
+            return data;
+        })();
+
+        return _createOrderPromise;
+    }
+
+    // ── Card type detection ─────────────────────────────────────
+    function _detectCardType(digits) {
+        const d = digits.replace(/\D/g, '');
+        let type = 'unknown';
+        if (d.startsWith('8600') || d.startsWith('5614')) type = 'uzcard';
+        else if (d.startsWith('9860')) type = 'humo';
+        else if (d.startsWith('4')) type = 'visa';
+        else if (/^5[1-5]/.test(d) || /^2[2-7]/.test(d)) type = 'mc';
+
+        _cardType = type;
+
+        const badge    = document.getElementById('uni-card-badge');
+        const cvvField = document.getElementById('uni-cvv-field');
+        const cvvInput = document.getElementById('uni-cvc2');
+        const cvvLabel = document.getElementById('uni-cvv-label');
+        const nameField = document.getElementById('uni-name-field');
+        const btnLabel  = document.getElementById('uni-btn-label');
+        const cardLabel = document.getElementById('uni-card-label');
+
+        const BADGES = {
+            uzcard: { cls: 'uzcard', text: '✓ UzCard',     label: 'UZCARD' },
+            humo:   { cls: 'humo',   text: '✓ Humo',        label: 'HUMO'   },
+            visa:   { cls: 'visa',   text: '✓ Visa',        label: 'VISA'   },
+            mc:     { cls: 'mc',     text: '✓ Mastercard',  label: 'MC'     },
+        };
+
+        if (type === 'unknown' || d.length < 4) {
+            badge.style.display = 'none';
+            badge.className = 'uni-card-badge';
+            cvvField.style.display = '';
+            cvvInput.disabled = true;
+            cvvInput.style.cssText = 'background:#f8fafc;color:#b0b8cc;';
+            cvvLabel.innerHTML = 'CVV';
+            nameField.style.display = 'none';
+            btnLabel.textContent = 'Send OTP';
+            cardLabel.textContent = 'ATMOS';
+        } else {
+            const b = BADGES[type];
+            badge.style.display = '';
+            badge.className = `uni-card-badge ${b.cls}`;
+            badge.textContent = b.text;
+            cardLabel.textContent = b.label;
+
+            const isMps = type === 'visa' || type === 'mc';
+            cvvField.style.display = '';
+            cvvInput.disabled = !isMps;
+            cvvInput.style.cssText = isMps ? '' : 'background:#f8fafc;color:#b0b8cc;';
+            cvvLabel.innerHTML = isMps ? 'CVV <span class="required-asterisk">*</span>' : 'CVV';
+            nameField.style.display = isMps ? '' : 'none';
+            btnLabel.textContent = isMps ? 'Pay Now' : 'Send OTP';
+        }
+    }
+
+    // ── OTP digit inputs ─────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        const digits = document.querySelectorAll('.atmos-otp-digit');
+        digits.forEach((inp, i) => {
+            inp.addEventListener('input', e => {
+                const val = e.target.value.replace(/\D/g, '');
+                e.target.value = val.slice(-1);
+                e.target.classList.toggle('filled', !!e.target.value);
+                if (val && i < digits.length - 1) digits[i + 1].focus();
+                _syncOtpHidden();
+            });
+            inp.addEventListener('keydown', e => {
+                if (e.key === 'Backspace' && !inp.value && i > 0) {
+                    digits[i - 1].value = '';
+                    digits[i - 1].classList.remove('filled');
+                    digits[i - 1].focus();
+                    _syncOtpHidden();
+                }
+            });
+            inp.addEventListener('paste', e => {
+                const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+                e.preventDefault();
+                [...text.slice(0, 6)].forEach((ch, j) => {
+                    if (digits[j]) { digits[j].value = ch; digits[j].classList.add('filled'); }
+                });
+                _syncOtpHidden();
+                (digits[Math.min(text.length, 5)] || digits[5]).focus();
+            });
+        });
+    });
+
+    function _syncOtpHidden() {
+        const digits = document.querySelectorAll('.atmos-otp-digit');
+        const otp = [...digits].map(d => d.value).join('');
+        document.getElementById('atmos-otp-input').value = otp;
+        document.getElementById('btn-confirm-otp').disabled = otp.length < 6;
+    }
+
+    function _startResendTimer(seconds = 30) {
+        const btn = document.getElementById('btn-resend-otp');
+        const timer = document.getElementById('resend-timer');
+        btn.disabled = true;
+        let remaining = seconds;
+        timer.textContent = `(${remaining}s)`;
+        _resendTimer = setInterval(() => {
+            remaining--;
+            if (remaining <= 0) { clearInterval(_resendTimer); timer.textContent = ''; btn.disabled = false; }
+            else timer.textContent = `(${remaining}s)`;
+        }, 1000);
+    }
+
+    // ── Main pay button dispatcher ───────────────────────────────
+    async function uniPay() {
+        if (_cardType === 'visa' || _cardType === 'mc') await _payMps();
+        else await _payUzcard();
+    }
+
+    // ── UzCard / Humo (OTP) ──────────────────────────────────────
+    async function _payUzcard() {
+        _hidePayError();
+        const cardRaw   = document.getElementById('uni-card-number').value.replace(/\D/g, '');
+        const expiryRaw = document.getElementById('uni-expiry').value.replace('/', '');
+        let valid = true;
+
+        if (cardRaw.length !== 16) { document.getElementById('err-uni-card').style.display = ''; valid = false; }
+        const month = parseInt(expiryRaw.slice(0, 2), 10);
+        if (!/^\d{4}$/.test(expiryRaw) || month < 1 || month > 12) { document.getElementById('err-uni-expiry').style.display = ''; valid = false; }
+        if (!valid) return;
+
+        const btn = document.getElementById('btn-uni-pay');
+        btn.disabled = true;
+        document.getElementById('uni-btn-label').textContent = 'Sending…';
+
+        try {
+            const orderData = await _createOrder();
+            if (!orderData.success) { _showPayError('Please fix form errors before paying.'); return; }
+
+            const resp = await fetch('/payments/atmos/api/start/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: orderData.amount_tiyin,
+                    account: String(orderData.order_id),
+                    card_number: cardRaw,
+                    expiry: expiryRaw,
+                }),
+            });
+            const data = await resp.json();
+            if (!data.success) { _showPayError(data.error?.message || 'Failed to send OTP.'); return; }
+
+            _atmosTxnId = data.transaction_id;
+            document.getElementById('unified-card-form').style.display = 'none';
+            document.getElementById('atmos-otp-form').style.display = '';
+            document.querySelector('.atmos-otp-digit').focus();
+            document.getElementById('btn-prev').style.visibility = 'hidden';
+            _startResendTimer(30);
+        } catch { _showPayError('Network error. Please try again.'); }
+        finally {
+            btn.disabled = false;
+            document.getElementById('uni-btn-label').textContent = 'Send OTP';
+        }
+    }
+
+    // ── Visa / Mastercard (3DS) ──────────────────────────────────
+    async function _payMps() {
+        _hidePayError();
+        const name    = document.getElementById('uni-card-name').value.trim();
+        const cardRaw = document.getElementById('uni-card-number').value.replace(/\D/g, '');
+        const expiry  = document.getElementById('uni-expiry').value.replace('/', '');
+        const cvc2    = document.getElementById('uni-cvc2').value.trim();
+        let valid = true;
+
+        if (!name) { document.getElementById('err-uni-name').style.display = ''; valid = false; }
+        else document.getElementById('err-uni-name').style.display = 'none';
+        if (cardRaw.length !== 16) { document.getElementById('err-uni-card').style.display = ''; valid = false; }
+        const month = parseInt(expiry.slice(0, 2), 10);
+        if (!/^\d{4}$/.test(expiry) || month < 1 || month > 12) { document.getElementById('err-uni-expiry').style.display = ''; valid = false; }
+        if (!cvc2 || cvc2.length < 3) { document.getElementById('err-uni-cvc2').style.display = ''; valid = false; }
+        if (!valid) return;
+
+        const btn = document.getElementById('btn-uni-pay');
+        btn.disabled = true;
+        document.getElementById('uni-btn-label').textContent = 'Processing…';
+
+        try {
+            const orderData = await _createOrder();
+            if (!orderData.success) { _showPayError('Please fix form errors before paying.'); return; }
+
+            const resp = await fetch('/payments/atmos/mps/api/start/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: orderData.amount_tiyin,
+                    account: String(orderData.order_id),
+                    pan: cardRaw,
+                    expiry: expiry,
+                    cvc2: cvc2,
+                    card_name: name.toUpperCase(),
+                    invoice_id: String(orderData.order_id),
+                }),
+            });
+            const data = await resp.json();
+            if (!data.success) { _showPayError(data.error?.message || 'Payment failed.'); return; }
+
+            if (data.requires_3ds && data.redirect_uri) {
+                _mpsTransactionId = data.transaction_id;
+                window.open(data.redirect_uri, '_blank', 'width=600,height=700');
+                document.getElementById('unified-card-form').style.display = 'none';
+                document.getElementById('mps-3ds-screen').style.display = '';
+                return;
+            }
+            window.location.href = '/success/';
+        } catch { _showPayError('Network error. Please try again.'); }
+        finally {
+            btn.disabled = false;
+            document.getElementById('uni-btn-label').textContent = 'Pay Now';
+        }
+    }
+
+    function backToCardForm() {
+        document.getElementById('atmos-otp-form').style.display = 'none';
+        document.getElementById('mps-3ds-screen').style.display = 'none';
+        document.getElementById('unified-card-form').style.display = '';
+        document.querySelectorAll('.atmos-otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
+        document.getElementById('atmos-otp-input').value = '';
+        document.getElementById('btn-confirm-otp').disabled = true;
+        if (_resendTimer) clearInterval(_resendTimer);
+        document.getElementById('btn-prev').style.visibility = 'visible';
+    }
+
+    async function confirmAtmosOtp() {
+        const otp = document.getElementById('atmos-otp-input').value.trim();
+        if (otp.length < 6) { document.getElementById('err-atmos-otp').style.display = ''; return; }
+        document.getElementById('err-atmos-otp').style.display = 'none';
+        _hidePayError();
+
+        const btn = document.getElementById('btn-confirm-otp');
+        btn.disabled = true;
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Verifying…`;
+
+        try {
+            const resp = await fetch('/payments/atmos/api/confirm/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ transaction_id: _atmosTxnId, otp }),
+            });
+            const data = await resp.json();
+            if (!data.success) {
+                _showPayError(data.error?.message || 'Incorrect OTP.');
+                btn.disabled = false;
+                btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Verify &amp; Pay`;
+                return;
+            }
+            // Robust redirect: prefer cached status_url, else build from account
+            const target = (_payOrderData && _payOrderData.status_url)
+                || (data.account ? `/payments/click/status/${data.account}/` : null);
+            if (target) {
+                window.location.href = target;
+            } else {
+                _showPayError('Payment confirmed, but could not open your card. Please contact support.');
+            }
+        } catch {
+            _showPayError('Network error.');
+            btn.disabled = false;
+            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Verify &amp; Pay`;
+        }
+    }
+
+    async function resendAtmosOtp() {
+        if (!_atmosTxnId) return;
+        document.getElementById('btn-resend-otp').disabled = true;
+        try {
+            const resp = await fetch('/payments/atmos/api/retry-otp/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ transaction_id: _atmosTxnId }),
+            });
+            const data = await resp.json();
+            if (data.success) {
+                document.querySelectorAll('.atmos-otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
+                document.getElementById('atmos-otp-input').value = '';
+                document.getElementById('btn-confirm-otp').disabled = true;
+                document.querySelector('.atmos-otp-digit').focus();
+                _startResendTimer(30);
+            }
+        } catch {}
+    }
+
+    async function mps3dsCompleted() {
+        if (!_mpsTransactionId) return;
+        try {
+            const resp = await fetch('/payments/atmos/mps/api/apply/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ transaction_id: _mpsTransactionId }),
+            });
+            const data = await resp.json();
+            if (data.success) { window.location.href = '/success/'; }
+            else {
+                document.getElementById('mps-3ds-screen').style.display = 'none';
+                document.getElementById('unified-card-form').style.display = '';
+                _showPayError(data.error?.message || 'Payment verification failed.');
+            }
+        } catch { _showPayError('Network error.'); }
+    }
+</script>
+
+</body>
+</html>

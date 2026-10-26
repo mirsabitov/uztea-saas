@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>UzTEA 30th Anniversary Celebration | Registration</title>
+    <link rel="stylesheet" href="{% static 'anniversary.css' %}?v=compact-form">
+    <script src="{% static 'anniversary.js' %}" defer></script>
+</head>
+<body>
+<main>
+    <header class="compact-header">
+        <img src="{% static 'images/logo.png' %}" alt="UzTEA" width="60" height="44">
+        <div><h1>30th Anniversary Registration</h1>
+        <p>2 October 2026 · 09:30–12:30<br>Panarams Hotel Tashkent</p></div>
+    </header>
+    <div class="content-grid">
+        <section class="form-card" aria-labelledby="form-title">
+            {% if submitted %}
+                <div class="success-icon" aria-hidden="true">✓</div>
+                <p class="eyebrow">You're on the list</p>
+                <h2 id="form-title">Thank you for registering!</h2>
+                <p class="confirmation">We look forward to celebrating UzTEA’s 30th anniversary with you on 2 October at Panarams Hotel Tashkent. Registration opens at 09:30.</p>
+            {% else %}
+                <h2 id="form-title" class="sr-only">Registration details</h2>
+                <p class="required-note">Fields marked <span>*</span> are required.</p>
+                <form method="post" action="{% url 'anniversary_register' %}">
+                    {% csrf_token %}
+                    {% if form.errors %}<div class="error-summary" role="alert">Please check the fields below and submit again.{{ form.non_field_errors }}</div>{% endif %}
+                    <div class="personal-fields">
+                    {% for field in form %}
+                    {% if field.name == 'full_name' or field.name == 'phone_number' or field.name == 'email' %}
+                    <div class="field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }} <span aria-hidden="true">*</span></label>
+                        {{ field }}{{ field.errors }}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    </div>
+                    <fieldset class="membership-field">
+                        <legend>{{ form.membership_status.label }} <span aria-hidden="true">*</span></legend>
+                        {{ form.membership_status }}{{ form.membership_status.errors }}
+                        <p class="field-help">Not yet a member? <a href="{% url 'membership_form' %}" target="_blank" rel="noopener">Apply for UzTEA membership here<span class="sr-only"> (opens in a new tab)</span></a>.</p>
+                    </fieldset>
+                    <fieldset class="consent-fields">
+                        <legend>Consent</legend>
+                        {% for field in form %}
+                        {% if field.name == 'event_communication' or field.name == 'future_updates' or field.name == 'photos_videos' %}
+                        <div class="consent-item">
+                            <label for="{{ field.id_for_label }}">
+                                {{ field }}
+                                <span><strong>{% if field.name == 'event_communication' %}Event communication <span class="required">*</span>{% elif field.name == 'future_updates' %}Future updates <small>Optional</small>{% else %}Photos and videos <small>Optional</small>{% endif %}</strong>{{ field.label }}</span>
+                            </label>
+                            {{ field.errors }}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                    <button type="submit">Register for the celebration <span aria-hidden="true">→</span></button>
+                </form>
+            {% endif %}
+        </section>
+    </div>
+</main>
+
+</body>
+</html>
