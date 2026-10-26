@@ -1,0 +1,454 @@
+/* UzTEA admin — brand system derived from the public website. */
+:root {
+    --uztea-navy: #222e50;
+    --uztea-navy-dark: #17213e;
+    --uztea-blue: #6f9df5;
+    --uztea-blue-soft: #eaf1ff;
+    --uztea-bg: #f4f6f9;
+    --uztea-card: #ffffff;
+    --uztea-text: #17213e;
+    --uztea-muted: #71809c;
+    --uztea-border: #e3e8f1;
+    --uztea-radius: 2px;
+    --uztea-shadow: 0 10px 30px rgba(34, 46, 80, .08);
+}
+
+body,
+.wrapper {
+    background: var(--uztea-bg) !important;
+    color: var(--uztea-text);
+    font-family: "Nunito", "Segoe UI", sans-serif !important;
+}
+
+/* Top navigation */
+.main-header {
+    min-height: 68px;
+    background: rgba(255, 255, 255, .96) !important;
+    border-bottom: 1px solid var(--uztea-border) !important;
+    box-shadow: 0 4px 18px rgba(34, 46, 80, .04);
+}
+
+.main-header .nav-link {
+    color: var(--uztea-navy) !important;
+    border-radius: 10px;
+    margin: 9px 3px;
+    transition: background .2s ease, color .2s ease;
+}
+
+.main-header .nav-link:hover {
+    background: var(--uztea-blue-soft) !important;
+    color: var(--uztea-navy-dark) !important;
+}
+
+.navbar-search-block .form-control,
+.navbar .form-control-navbar {
+    background: #f7f9fc !important;
+    border: 1px solid var(--uztea-border) !important;
+    border-radius: 10px 0 0 10px !important;
+    color: var(--uztea-text) !important;
+}
+
+.navbar .btn-navbar {
+    background: #f7f9fc !important;
+    border: 1px solid var(--uztea-border) !important;
+    border-left: 0 !important;
+    border-radius: 0 10px 10px 0 !important;
+    color: var(--uztea-navy) !important;
+}
+
+/* Sidebar */
+.main-sidebar {
+    background: var(--uztea-navy) !important;
+    box-shadow: 8px 0 30px rgba(23, 33, 62, .14) !important;
+}
+
+.brand-link {
+    height: 68px !important;
+    min-height: 68px;
+    display: flex !important;
+    align-items: center;
+    overflow: hidden !important;
+    padding: 7px 16px !important;
+    background: var(--uztea-navy) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, .12) !important;
+    box-shadow: none !important;
+}
+
+.brand-link .brand-image {
+    float: none !important;
+    height: 50px !important;
+    max-height: 50px !important;
+    max-width: 62px !important;
+    width: 62px !important;
+    margin: 0 10px 0 0 !important;
+    opacity: 1 !important;
+    object-fit: contain;
+    object-position: center;
+    filter: brightness(0) invert(1);
+}
+
+.brand-link .brand-text {
+    color: #fff !important;
+    display: inline-block !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    letter-spacing: -.02em;
+    line-height: 1;
+}
+
+.sidebar { padding: 14px 10px 28px; }
+.user-panel {
+    border-bottom-color: rgba(255, 255, 255, .12) !important;
+    margin: 0 4px 14px !important;
+    padding: 8px 4px 18px !important;
+}
+.user-panel .info a { color: #fff !important; font-weight: 700; }
+.nav-sidebar .nav-header {
+    color: #9eabc5 !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: .11em;
+    padding: 18px 14px 7px !important;
+    text-transform: uppercase;
+}
+.nav-sidebar .nav-link {
+    color: #dce4f4 !important;
+    border-radius: 11px !important;
+    margin-bottom: 4px;
+    padding: 10px 13px !important;
+}
+.nav-sidebar .nav-link p { font-weight: 600; }
+.nav-sidebar .nav-icon { color: #aab8d4 !important; font-size: .95rem !important; }
+.nav-sidebar .nav-link:hover {
+    background: rgba(255, 255, 255, .10) !important;
+    color: #fff !important;
+}
+.nav-sidebar .nav-link.active {
+    background: var(--uztea-blue) !important;
+    color: #fff !important;
+    box-shadow: 0 8px 22px rgba(111, 157, 245, .27) !important;
+}
+.nav-sidebar .nav-link.active .nav-icon { color: #fff !important; }
+
+/* Page heading and breadcrumb */
+.content-wrapper { background: var(--uztea-bg) !important; }
+.content-header { padding: 24px 24px 12px !important; }
+.content-header h1 {
+    color: var(--uztea-navy) !important;
+    font-size: 25px !important;
+    font-weight: 800 !important;
+    letter-spacing: -.02em;
+}
+.breadcrumb {
+    background: transparent !important;
+    font-size: 13px;
+}
+.breadcrumb-item a { color: #507fcf !important; }
+.content { padding: 0 24px 28px !important; }
+
+/* Dashboard modules and generic cards */
+.card,
+.module {
+    background: var(--uztea-card) !important;
+    border: 1px solid var(--uztea-border) !important;
+    border-radius: var(--uztea-radius) !important;
+    box-shadow: var(--uztea-shadow) !important;
+    overflow: hidden;
+}
+.card-header,
+.module caption {
+    background: #fff !important;
+    border-bottom: 1px solid var(--uztea-border) !important;
+    color: var(--uztea-navy) !important;
+    padding: 16px 19px !important;
+}
+.card-title,
+.module caption { font-weight: 800 !important; }
+.card-body { padding: 19px !important; }
+.dashboard .card a,
+.card-body a { color: #356fc8; font-weight: 700; }
+
+/* Changelist: keep one clean surface instead of several nested frames. */
+#changelist {
+    background: var(--uztea-card) !important;
+    border: 1px solid var(--uztea-border) !important;
+    border-radius: 2px !important;
+    box-shadow: 0 7px 22px rgba(34, 46, 80, .06) !important;
+    overflow: hidden !important;
+}
+
+#changelist > .card-body,
+#changelist .card-body {
+    padding: 14px !important;
+}
+
+#changelist-form > .card,
+#changelist-form .card {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+#changelist-form > .card > .card-body,
+#changelist-form .card-body {
+    padding: 0 !important;
+}
+
+#changelist-form .results {
+    border: 0;
+    border-radius: 0;
+    margin: 0 !important;
+    overflow-x: auto;
+}
+
+#changelist-form .results .table {
+    margin-bottom: 0 !important;
+}
+
+#changelist-form .actions {
+    background: #f8faff;
+    border: 1px solid var(--uztea-border);
+    border-radius: 2px;
+    margin-bottom: 14px;
+    padding: 10px 12px !important;
+}
+
+/* Bootstrap rows use negative margins; neutralize them inside the list card. */
+#changelist > .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+#changelist > .row > .col-12 {
+    padding: 0 !important;
+}
+
+#changelist .change-list-actions {
+    border-bottom: 1px solid var(--uztea-border);
+    margin: 0 !important;
+    padding: 14px !important;
+}
+
+#changelist .change-list-actions > .col-12 {
+    padding: 0 !important;
+}
+
+#changelist > .row:last-child {
+    align-items: center;
+    border-top: 1px solid var(--uztea-border);
+    margin: 0 !important;
+    min-height: 54px;
+    padding: 14px 18px !important;
+}
+
+#changelist > .row:last-child .col-5,
+#changelist > .row:last-child .col-7 {
+    padding: 0 !important;
+}
+
+#changelist .dataTables_info {
+    line-height: 24px;
+    padding: 0 !important;
+}
+
+#changelist-form .paginator,
+#changelist-form .submit-row,
+#changelist .paginator,
+#changelist .card-footer {
+    margin-top: 16px !important;
+    padding: 10px 16px 16px !important;
+    min-height: 48px;
+}
+
+/* Jazzmin renders the result count in different paginator wrappers per model. */
+#changelist .paginator,
+#changelist-form .paginator,
+#changelist-form > p,
+#changelist .card-footer,
+#changelist-form .card-footer {
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    min-height: 48px !important;
+    padding: 14px 18px !important;
+    width: 100% !important;
+}
+
+/* Light / dark appearance switch */
+.uztea-theme-toggle {
+    align-items: center;
+    background: #f7f9fc;
+    border: 1px solid var(--uztea-border);
+    border-radius: 50%;
+    color: var(--uztea-navy);
+    cursor: pointer;
+    display: inline-flex;
+    height: 36px;
+    justify-content: center;
+    margin: 15px 8px 0;
+    transition: .2s ease;
+    width: 36px;
+}
+.uztea-theme-toggle:hover { background: var(--uztea-blue-soft); }
+
+body.dark-mode {
+    --uztea-bg: #0e1728;
+    --uztea-card: #17243a;
+    --uztea-text: #edf3ff;
+    --uztea-muted: #9cacbf;
+    --uztea-border: #2b3b55;
+    background: var(--uztea-bg) !important;
+    color: var(--uztea-text) !important;
+}
+body.dark-mode .wrapper,
+body.dark-mode .content-wrapper,
+body.dark-mode .content-header { background: var(--uztea-bg) !important; }
+body.dark-mode .main-header { background: #17243a !important; border-color: var(--uztea-border) !important; }
+body.dark-mode .main-header .nav-link,
+body.dark-mode .content-header h1,
+body.dark-mode label { color: #edf3ff !important; }
+body.dark-mode .card,
+body.dark-mode .module,
+body.dark-mode #changelist { background: var(--uztea-card) !important; border-color: var(--uztea-border) !important; }
+body.dark-mode .card-header,
+body.dark-mode .module caption { background: #17243a !important; border-color: var(--uztea-border) !important; color: #fff !important; }
+body.dark-mode .table { color: #e7eefb !important; }
+body.dark-mode .table thead th { background: #1c2b43 !important; border-color: var(--uztea-border) !important; color: #aebbd0 !important; }
+body.dark-mode .table td { background: #17243a !important; border-color: var(--uztea-border) !important; }
+body.dark-mode .table-hover tbody tr:hover td { background: #1d2e49 !important; }
+body.dark-mode #changelist-form .actions { background: #1c2b43; border-color: var(--uztea-border); }
+body.dark-mode .form-control,
+body.dark-mode .custom-select,
+body.dark-mode .select2-selection { background: #132036 !important; border-color: var(--uztea-border) !important; color: #eef4ff !important; }
+body.dark-mode .uztea-theme-toggle { background: #132036; border-color: var(--uztea-border); color: #f7d36a; }
+body.dark-mode .breadcrumb-item.active { color: #9cacbf !important; }
+body.dark-mode .btn-success {
+    background: #20c997 !important;
+    border-color: #20c997 !important;
+    color: #071c17 !important;
+}
+body.dark-mode .btn-info {
+    background: #4e9be8 !important;
+    border-color: #4e9be8 !important;
+    color: #071525 !important;
+}
+body.dark-mode .btn-primary,
+body.dark-mode .object-tools .addlink {
+    background: #6f9df5 !important;
+    border-color: #6f9df5 !important;
+    color: #0b1730 !important;
+}
+
+#changelist-form > div:not(.actions) {
+    max-width: 100%;
+}
+
+/* Tables */
+.table { color: var(--uztea-text) !important; }
+.table thead th {
+    background: #f7f9fd !important;
+    border-bottom: 1px solid var(--uztea-border) !important;
+    color: #64738f !important;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .055em;
+    padding: 13px 12px !important;
+    text-transform: uppercase;
+}
+.table td {
+    border-top: 1px solid #edf0f5 !important;
+    padding: 13px 12px !important;
+    vertical-align: middle !important;
+}
+.table-hover tbody tr:hover { background: #f7faff !important; }
+
+/* Forms */
+.form-control,
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+    border: 1px solid #dce3ee !important;
+    border-radius: 10px !important;
+    min-height: 41px;
+}
+.form-control:focus,
+.select2-container--focus .select2-selection {
+    border-color: var(--uztea-blue) !important;
+    box-shadow: 0 0 0 3px rgba(111, 157, 245, .16) !important;
+}
+label { color: var(--uztea-navy); font-weight: 700 !important; }
+.form-group .help-block,
+.helptext { color: var(--uztea-muted) !important; }
+
+/* Buttons and badges */
+.btn { border-radius: 2px !important; font-weight: 700 !important; }
+.btn-primary,
+.object-tools .addlink {
+    background: var(--uztea-navy) !important;
+    border-color: var(--uztea-navy) !important;
+    color: #fff !important;
+}
+.btn-primary:hover,
+.object-tools .addlink:hover {
+    background: var(--uztea-blue) !important;
+    border-color: var(--uztea-blue) !important;
+}
+.btn-success {
+    background: #18b98b !important;
+    border-color: #18b98b !important;
+    color: #fff !important;
+}
+.btn-success:hover {
+    background: #109c74 !important;
+    border-color: #109c74 !important;
+}
+.btn-info {
+    background: #2f7dcc !important;
+    border-color: #2f7dcc !important;
+    color: #fff !important;
+}
+.btn-info:hover {
+    background: #2568ac !important;
+    border-color: #2568ac !important;
+}
+.btn-secondary { background: #eef2f8 !important; border-color: #eef2f8 !important; color: var(--uztea-navy) !important; }
+.badge-primary,
+.bg-primary { background: var(--uztea-navy) !important; }
+.page-item.active .page-link {
+    background: var(--uztea-navy) !important;
+    border-color: var(--uztea-navy) !important;
+}
+.page-link { color: var(--uztea-navy) !important; }
+
+/* Recent actions timeline */
+.timeline > div > .timeline-item {
+    border: 1px solid var(--uztea-border) !important;
+    border-radius: 2px !important;
+    box-shadow: none !important;
+}
+.timeline > div > .fas,
+.timeline > div > .far { background: var(--uztea-blue) !important; }
+
+/* Login */
+.login-page {
+    background: linear-gradient(135deg, var(--uztea-navy-dark), var(--uztea-navy)) !important;
+}
+.login-box { width: 410px; }
+.login-logo img { max-width: 185px; height: auto; }
+.login-logo a { color: #fff !important; font-weight: 800; }
+.login-card-body {
+    border-radius: 22px !important;
+    box-shadow: 0 24px 65px rgba(7, 15, 36, .3) !important;
+    padding: 32px !important;
+}
+.login-box .card { border: 0 !important; border-radius: 22px !important; }
+.login-box-msg { color: var(--uztea-navy); font-size: 18px; font-weight: 800; }
+
+.main-footer {
+    display: none !important;
+}
+
+@media (max-width: 767.98px) {
+    .content-header { padding: 18px 14px 8px !important; }
+    .content { padding: 0 14px 20px !important; }
+    .login-box { width: calc(100% - 30px); }
+}
