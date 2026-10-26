@@ -1,0 +1,23 @@
+{% comment %}Horizontal bars. Context: chart (from dashboard.bar_list), title, subtitle, chart_id, link (optional).{% endcomment %}
+<figure class="card chart" aria-labelledby="{{ chart_id }}-title">
+  <figcaption class="chart-head">
+    <div>
+      <h2 class="card-title" id="{{ chart_id }}-title">{{ title }}</h2>
+      {% if subtitle %}<p class="chart-sub">{{ subtitle }}</p>{% endif %}
+    </div>
+    {% if link %}<a class="link-arrow chart-link" href="{{ link }}">View</a>{% endif %}
+  </figcaption>
+  {% if chart.is_empty %}
+    <p class="chart-empty">No records in this period.</p>
+  {% else %}
+  <ul class="hbars">
+    {% for r in chart.rows %}
+    <li class="hbar" tabindex="0" data-tip-title="{{ r.label }}" data-tip="{{ r.value }} · {{ r.share }}%{% if r.note %} · {{ r.note }}{% endif %}">
+      <span class="hbar-label">{{ r.label }}</span>
+      <span class="hbar-track" aria-hidden="true"><span class="hbar-fill" style="width:{{ r.pct }}%;background:{{ r.color }}"></span></span>
+      <span class="hbar-value">{{ r.value }} <small>{{ r.share }}%</small>{% if r.note %}<small class="hbar-note">{{ r.note }}</small>{% endif %}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</figure>

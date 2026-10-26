@@ -1,0 +1,46 @@
+{% comment %}Column chart. Context: chart (from dashboard.column_chart), title, subtitle, chart_id.{% endcomment %}
+<figure class="card chart" aria-labelledby="{{ chart_id }}-title">
+  <figcaption class="chart-head">
+    <div>
+      <h2 class="card-title" id="{{ chart_id }}-title">{{ title }}</h2>
+      {% if subtitle %}<p class="chart-sub">{{ subtitle }}</p>{% endif %}
+    </div>
+    {% if chart.series|length > 1 %}
+    <ul class="legend" aria-label="Legend">
+      {% for s in chart.series %}<li><span class="swatch" style="background:{{ s.color }}"></span>{{ s.label }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+  </figcaption>
+  {% if chart.is_empty %}
+    <p class="chart-empty">No records in this period.</p>
+  {% else %}
+  <div class="colchart" role="img" aria-label="{{ title }}. Values in the table below.">
+    <div class="colchart-axis" aria-hidden="true">
+      {% for t in chart.ticks %}<div class="tick" style="bottom:{{ t.pct }}%"><span>{{ t.label }}</span></div>{% endfor %}
+    </div>
+    <div class="colchart-plot">
+      {% for c in chart.columns %}
+      <div class="col" tabindex="0" data-tip-title="{{ c.full_label }}" data-tip="{{ c.total }}{% if c.tip %} — {{ c.tip }}{% endif %}">
+        <div class="col-stack">
+          {% for s in c.segments %}<span class="col-seg{% if s.is_top %} is-top{% endif %}" style="height:{{ s.pct }}%;background:{{ s.color }}"></span>{% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="colchart-x" aria-hidden="true">
+      {% for c in chart.columns %}<span>{% if c.show_label %}{{ c.label }}{% endif %}</span>{% endfor %}
+    </div>
+  </div>
+  <details class="chart-table">
+    <summary>Show table</summary>
+    <div class="table-scroll">
+      <table class="table">
+        <thead><tr><th scope="col">Period</th>{% if chart.series|length > 1 %}{% for s in chart.series %}<th scope="col">{{ s.label }}</th>{% endfor %}{% endif %}<th scope="col">Total</th></tr></thead>
+        <tbody>
+          {% for c in chart.columns %}<tr><td>{{ c.full_label }}</td>{% if chart.series|length > 1 %}{% for s in chart.series %}<td>{% for seg in c.segments %}{% if seg.label == s.label %}{{ seg.value }}{% endif %}{% endfor %}</td>{% endfor %}{% endif %}<td>{{ c.total }}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </details>
+  {% endif %}
+</figure>

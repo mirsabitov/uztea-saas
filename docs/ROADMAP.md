@@ -22,6 +22,12 @@ Done:
 - More tools: every admin section the user may open, plus public pages.
 - Payment status logic moved to `app/payment_status.py` (same rules as before) with tests.
 - Demo data command for local checks.
+- Home dashboard (live from the database): time range 30 days / 90 days / 12 months /
+  all time; tiles (members list, new applications, revenue, paid share) with change vs
+  the previous period; charts for applications over time, revenue by month
+  (membership vs TESOL, same paid rule as the admin), payment status, membership types,
+  event registrations, regions, positions, languages. Hover tooltips and a table view.
+  Revenue is shown only to users who can view orders.
 
 Marked "Next phase" (not built): membership status and validity, Active / Renewal due,
 card view, smart blocks, logic rules, saving / publishing forms, form settings, language
@@ -49,6 +55,9 @@ their verification and callbacks.
 ## Phase 7 — Home and remaining Settings
 
 ## Found during Phase 1 (not changed)
+- Payment status follows the admin rule "latest Atmos transaction, else the most recently
+  updated order", so a member who paid and later had a failed order shows as Failed.
+  Worth revisiting in Phase 2.
 - `/membership/<pk>/card/` is public and keyed by a sequential id, so anyone can open any
   member's card (name, contact details). Needs a token or login — to be decided.
 - Items from the CLAUDE.md backlog (CSRF middleware off, `ALLOWED_HOSTS`, JWT lifetime,

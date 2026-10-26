@@ -1,19 +1,73 @@
 {% extends "workspace/base.html" %}{% load workspace_tags %}
 {% block content %}
-<section class="page" aria-labelledby="page-title">
+{% with p=dash.period charts=dash.charts %}
+<section class="page dashboard" aria-labelledby="page-title">
   <div class="page-head">
     <div>
       <h1 id="page-title">Welcome, {{ request.user.first_name|default:request.user.get_username }}</h1>
-      <p class="page-sub">Build forms. Run events. Grow your community.</p>
+      <p class="page-sub">How UzTEA is doing · live from the database</p>
+    </div>
+    <div class="page-actions">
+      {% if add_person_url %}<a class="btn btn-outline" href="{{ add_person_url }}">{% icon 'plus' %}Add person</a>{% endif %}
+      <a class="btn btn-outline" href="{% url 'workspace:form_studio' %}?template=blank">{% icon 'file-text' %}Create form <span class="chip chip-next">Preview</span></a>
+      <a class="btn btn-outline" href="{% url 'workspace:form_studio' %}?template=event">{% icon 'calendar' %}Create event <span class="chip chip-next">Preview</span></a>
     </div>
   </div>
 
-  <div class="quick-actions">
-    {% if add_person_url %}
-    <a class="quick card" href="{{ add_person_url }}"><span class="quick-icon tone-blue">{% icon 'users' %}</span><span><strong>Add person</strong><small>New membership record</small></span></a>
+  <nav class="segmented" aria-label="Time range">
+    {% for key, label in dash.periods %}
+      <a class="seg{% if p.key == key %} is-active{% endif %}" href="?period={{ key }}"{% if p.key == key %} aria-current="true"{% endif %}>{{ label }}</a>
+    {% endfor %}
+    <span class="hint period-hint">{{ p.start_day|date:"d M Y" }} – {{ p.today|date:"d M Y" }}</span>
+  </nav>
+
+  {% if dash.tiles %}
+  <div class="tiles">
+    {% for t in dash.tiles %}
+    <div class="card tile">
+      <div class="tile-label">{% icon t.icon %}{{ t.label }}</div>
+      <div class="tile-value"{% if t.title %} title="{{ t.title }}"{% endif %}>{{ t.value }}</div>
+      <div class="tile-foot">
+        {% if t.delta %}
+          {% if t.delta.flat %}<span class="delta delta-flat">→ 0%</span>
+          {% elif t.delta.up %}<span class="delta delta-up">↑ {{ t.delta.pct }}</span>
+          {% else %}<span class="delta delta-down">↓ {{ t.delta.pct }}</span>{% endif %}
+          <span class="muted">{{ t.delta.vs }}</span>
+        {% else %}<span class="muted">{{ t.note }}</span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="chart-grid chart-grid-2">
+    {% if charts.applications %}
+      {% include "workspace/partials/column_chart.html" with chart=charts.applications title="New membership applications" subtitle="Members and Pending Payment lists, by application date" chart_id="ch-apps" %}
     {% endif %}
-    <a class="quick card" href="{% url 'workspace:form_studio' %}?template=blank"><span class="quick-icon tone-purple">{% icon 'file-text' %}</span><span><strong>Create form</strong><small>Form Studio preview</small></span><span class="chip chip-next">Preview</span></a>
-    <a class="quick card" href="{% url 'workspace:form_studio' %}?template=event"><span class="quick-icon tone-orange">{% icon 'calendar' %}</span><span><strong>Create event</strong><small>Event registration preview</small></span><span class="chip chip-next">Preview</span></a>
+    {% if charts.revenue %}
+      {% include "workspace/partials/column_chart.html" with chart=charts.revenue title="Revenue" subtitle="Paid orders (Click/Payme paid or Atmos success), by order date" chart_id="ch-rev" %}
+    {% endif %}
+  </div>
+
+  <div class="chart-grid chart-grid-3">
+    {% if charts.payment_status %}
+      {% include "workspace/partials/bar_chart.html" with chart=charts.payment_status title="Payment status of applications" subtitle="Applications in this period" chart_id="ch-pay" %}
+    {% endif %}
+    {% if charts.types %}
+      {% include "workspace/partials/bar_chart.html" with chart=charts.types title="Membership types" subtitle="Applications in this period" chart_id="ch-types" %}
+    {% endif %}
+    {% if charts.events %}
+      {% include "workspace/partials/bar_chart.html" with chart=charts.events title="Event registrations" subtitle="Registrations in this period" chart_id="ch-events" %}
+    {% endif %}
+    {% if charts.regions %}
+      {% include "workspace/partials/bar_chart.html" with chart=charts.regions title="Regions" subtitle="Top regions of applicants" chart_id="ch-regions" %}
+    {% endif %}
+    {% if charts.positions %}
+      {% include "workspace/partials/bar_chart.html" with chart=charts.positions title="Positions" subtitle="What applicants do" chart_id="ch-positions" %}
+    {% endif %}
+    {% if charts.languages %}
+      {% include "workspace/partials/bar_chart.html" with chart=charts.languages title="Preferred language" subtitle="For communication" chart_id="ch-lang" %}
+    {% endif %}
   </div>
 
   <div class="grid-main-side">
@@ -55,4 +109,6 @@
     </div>
   </div>
 </section>
+<div class="chart-tip" role="tooltip" hidden></div>
+{% endwith %}
 {% endblock %}

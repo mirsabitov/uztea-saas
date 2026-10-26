@@ -338,3 +338,34 @@
     render();
   }
 })();
+
+/* Chart tooltips: one shared element, shown on hover and keyboard focus. */
+(function () {
+  'use strict';
+  var tip = document.querySelector('.chart-tip');
+  if (!tip) return;
+  function show(el) {
+    tip.innerHTML = '';
+    var title = document.createElement('strong');
+    title.textContent = el.getAttribute('data-tip-title');
+    var body = document.createElement('span');
+    body.textContent = el.getAttribute('data-tip');
+    tip.appendChild(title);
+    tip.appendChild(body);
+    tip.hidden = false;
+    var r = el.getBoundingClientRect();
+    var left = Math.min(window.innerWidth - tip.offsetWidth - 8, Math.max(8, r.left + r.width / 2 - tip.offsetWidth / 2));
+    var top = r.top - tip.offsetHeight - 8;
+    if (top < 8) top = r.bottom + 8;
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  }
+  function hide() { tip.hidden = true; }
+  document.querySelectorAll('[data-tip]').forEach(function (el) {
+    el.addEventListener('mouseenter', function () { show(el); });
+    el.addEventListener('focus', function () { show(el); });
+    el.addEventListener('mouseleave', hide);
+    el.addEventListener('blur', hide);
+  });
+  window.addEventListener('scroll', hide, { passive: true });
+})();

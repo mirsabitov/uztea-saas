@@ -23,7 +23,7 @@ from atmos.models import AtmosTransaction
 from click.models import Order, PromoCode
 from payme.models import PaymeTransaction
 
-from . import people
+from . import dashboard, people
 from .access import admin_url, can, render_ws, workspace_view
 from .studio import FIELD_LIBRARY, SMART_BLOCKS, TEMPLATES as FORM_TEMPLATES
 
@@ -110,6 +110,9 @@ def home(request):
         'attention': attention,
         'add_person_url': admin_url('app_membership_add') if can(user, 'app.add_membership') else None,
         'legacy_events': _legacy_forms(user, kinds=('event',)),
+        'dash': dashboard.build(user, request.GET.get('period')),
+        'can_view_members': can(user, 'app.view_membership', 'app.view_pendingpayment'),
+        'can_view_orders': can(user, 'click.view_order'),
     }, 'home')
 
 

@@ -195,3 +195,74 @@ class DemoDataCommandTests(TestCase):
     def test_refuses_without_debug(self):
         with self.assertRaises(CommandError):
             call_command('workspace_demo_data')
+
+
+class DashboardTests(TestCase):
+    def setUp(self):
+        from datetime import timedelta
+        from django.utils import timezone
+
+        self.admin = User.objects.create_superuser('admin', 'admin@example.org', 'test-password')
+        now = timezone.now()
+        recent = make_membership(email='r@example.org', membership_type='teacher', region_city='tashkent')
+        old = make_membership(email='o@example.org', membership_type='student')
+        Membership.objects.filter(pk=old.pk).update(created_at=now - timedelta(days=200))
+        paid = Order.objects.create(membership=recent, amount=Decimal('150000'), status='paid')
+        atmos_order = Order.objects.create(membership=old, amount=Decimal('100000'), status='processing')
+        Order.objects.filter(pk=atmos_order.pk).update(created_at=now - timedelta(days=200))
+        AtmosTransaction.objects.create(transaction_id='d-1', account=str(atmos_order.pk), amount=10000000, status='SUCCESS')
+        Order.objects.create(membership=recent, amount=Decimal('999'), status='failed')
+        self.paid = paid
+
+    def get(self, user, period):
+        self.client.force_login(user)
+        return self.client.get(reverse('workspace:home'), {'period': period})
+
+    def tile(self, response, label):
+        return next(t for t in response.context['dash']['tiles'] if t['label'] == label)
+
+    def test_periods_filter_records(self):
+        short = self.get(self.admin, '30d')
+        self.assertEqual(self.tile(short, 'New applications')['value'], '1')
+        year = self.get(self.admin, '12m')
+        self.assertEqual(self.tile(year, 'New applications')['value'], '2')
+        bad = self.get(self.admin, 'forever')
+        self.assertEqual(bad.context['dash']['period']['key'], '12m')
+
+    def test_revenue_uses_admin_paid_rule(self):
+        # paid order + Atmos-success order count; the failed order does not.
+        year = self.get(self.admin, '12m')
+        self.assertEqual(self.tile(year, 'Revenue')['title'], '250 000 UZS')
+        short = self.get(self.admin, '30d')
+        self.assertEqual(self.tile(short, 'Revenue')['title'], '150 000 UZS')
+
+    def test_charts_have_real_counts(self):
+        charts = self.get(self.admin, '12m').context['dash']['charts']
+        types = {r['label']: r['value'] for r in charts['types']['rows']}
+        self.assertEqual(types, {'Individual Teacher': '1', 'Student / Early Career / Retired': '1'})
+        self.assertEqual(charts['regions']['rows'][0]['label'], 'Tashkent')
+        status = {r['label']: r['value'] for r in charts['payment_status']['rows']}
+        # Same rule as the admin column: the most recently updated order decides,
+        # so a later failed order shows as Failed even after an earlier payment.
+        self.assertEqual(status, {'Paid': '1', 'Failed': '1'})
+
+    def test_revenue_hidden_without_order_permission(self):
+        staff = User.objects.create_user('viewer', password='test-password', is_staff=True)
+        staff.user_permissions.add(Permission.objects.get(codename='view_membership'))
+        response = self.get(staff, '12m')
+        dash = response.context['dash']
+        self.assertNotIn('revenue', dash['charts'])
+        self.assertNotIn('Revenue', [t['label'] for t in dash['tiles']])
+        self.assertNotContains(response, 'UZS')
+
+    def test_staff_without_permissions_gets_no_charts(self):
+        staff = User.objects.create_user('plain', password='test-password', is_staff=True)
+        dash = self.get(staff, '12m').context['dash']
+        self.assertEqual(dash['charts'], {})
+        self.assertEqual(dash['tiles'], [])
+
+    def test_nice_ticks(self):
+        from workspace.dashboard import nice_ticks
+        self.assertEqual(nice_ticks(7), [0, 2, 4, 6, 8])
+        self.assertEqual(nice_ticks(0), [0, 1])
+        self.assertEqual(nice_ticks(950000)[-1], 1000000)
