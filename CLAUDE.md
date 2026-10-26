@@ -1,0 +1,76 @@
+# CLAUDE.md — UzTEA SaaS
+
+Back-office for UzTEA (Uzbekistan Teachers of English Association). The public site
+uztea.uz runs on Tilda and links into the forms served by this Django project.
+Owner: Mirjalol. Talk to him in Uzbek (Latin script) unless he writes in another language;
+code, comments, commit messages and identifiers stay in English.
+
+## Stack
+- Python, Django 5.2, DRF, SimpleJWT, drf-spectacular / drf-yasg
+- PostgreSQL (enabled when `POSTGRES_DB` is set), Redis cache at `redis://127.0.0.1:6379/1`
+- Jazzmin admin (custom CSS `static/uztea_admin_v20.css`, JS `static/uztea_admin.js`),
+  django-import-export, django-ckeditor
+- Playwright renders membership cards to PNG (`app/card_render.py`)
+- Dev machine is Windows; virtualenv at `.venv/` (`.venv/Scripts/python`)
+
+## Commands
+```bash
+make install-req      # pip install -r requirements.txt
+make mig              # makemigrations + migrate
+make admin            # createsuperuser
+make static           # collectstatic -> staticfiles/ (gitignored)
+.venv/Scripts/python manage.py runserver
+.venv/Scripts/python manage.py test            # all tests
+.venv/Scripts/python manage.py test app.test_conference payme.test_auth
+```
+On Unix use `make PYTHON=python3 PIP=pip3` or `.venv/bin/python`.
+
+## Layout
+| Path | What it is |
+|---|---|
+| `root/` | settings, urls, wsgi/asgi, swagger |
+| `app/` | core: `Membership` (+ proxy `PendingPayment`), `MembershipTypeConfig`, `Partner`, `TeacherBank`, `ConferenceRegistration` (TESOL), `AnniversaryRegistration` (30 years); pricing, notifications (Telegram + welcome email), card rendering, JWT/OTP auth API |
+| `click/` | `Order` (shared order model used by all payment providers), `PromoCode`, Click webhook, signature check, fiscal data submission, payment status pages |
+| `payme/` | Payme JSON-RPC merchant API, `PaymeConfig`, `PaymeTransaction`. Docs: `payme/DOCS.md`, `payme/TESOL.md` |
+| `atmos/` | Atmos card payments (OTP flow, MPS), `AtmosTransaction` |
+| `templates/` | public forms (`membership_form.html`, `conference_form.html`, `anniversary_form.html`), payment pages, membership cards, admin overrides |
+| `static/` | source static files; `staticfiles/` is generated |
+
+## Main routes
+- `/apply/` membership form → `/payments/click/pay/<order_pk>/` → `/payments/click/status/<order_pk>/`
+- `/tesol/` conference registration, `/tesol/payment/<uuid>/`
+- `/30years/` anniversary registration
+- `/membership/<pk>/card/`, `/card-preview/`
+- `/auth/api/...` register, login, token refresh, me, OTP send/verify
+- Payment callbacks: `/payments/click/webhook/`, `/payments/payme/webhook/`,
+  `/payments/atmos/api/callback/`
+- `/admin/` (includes custom email composer for memberships, Click tools & logs)
+
+## Rules
+- **Secrets only via `.env`** (template: `.env.example`). Never hardcode keys, never commit
+  `.env`, DB dumps, member exports, or `media/`.
+- **Payments are high-risk.** Any change to Click / Payme / Atmos code, `Order` status logic or
+  webhook handling needs tests and must keep signature/auth verification intact. Never point
+  production checkout (`PAYME_ENV=prod`) at a local or test database.
+- **Migrations:** never edit or delete applied migrations; add new ones. App migrations jump
+  0006 → 0009 on purpose (0009 depends on 0006). Run `makemigrations --check` before committing.
+- Member data is personal data (names, phones, emails): don't log it unnecessarily, don't
+  print it in tests output, use fake data in tests and fixtures.
+- Keep changes small and focused; one topic per branch/PR. Run the test suite before pushing.
+- Ask Mirjalol before: changing the DB schema of existing tables, touching production
+  settings/deploy, sending real emails/Telegram messages, or deleting files.
+
+## Known issues / backlog (from initial review, 2026-10-26)
+1. CSRF middleware is commented out in `root/settings.py` — re-enable and exempt only the
+   payment webhooks that need it.
+2. `ALLOWED_HOSTS` defaults to `['*', <old ngrok host>]`; `CORS_ALLOW_ALL_ORIGINS = True`.
+3. JWT access/refresh lifetime ~100 days; password validators disabled.
+4. Redis URL is hardcoded — move to env (`REDIS_URL`).
+5. `static/` has 21 unused `uztea_admin_v*.css` versions (only v20 is used).
+6. `django-ckeditor` (CKEditor 4) is unmaintained — plan replacement (e.g. django-ckeditor-5 / TinyMCE).
+7. `requirements.txt` lists `requests` twice; `makefile` package is unnecessary.
+8. Log file `click_payments.log` is written into the project root — move to a logs dir.
+
+## Future
+uztea.uz (currently Tilda) will later be rebuilt in Python as a replica and served
+alongside / integrated with this project.
