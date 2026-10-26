@@ -1,0 +1,82 @@
+{% extends "workspace/base.html" %}{% load static workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">Settings</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+  </div>
+
+  <div class="settings-grid">
+    <section class="card" aria-labelledby="s-org">
+      <h2 class="card-title" id="s-org">{% icon 'building' %}Organisation &amp; branding <span class="chip chip-next">Editing: next phase</span></h2>
+      <dl class="kv">
+        <div><dt>Name</dt><dd>Uzbekistan Teachers of English Association (UzTEA)</dd></div>
+        <div><dt>Website</dt><dd><a href="https://uztea.uz/" target="_blank" rel="noopener">uztea.uz</a></dd></div>
+      </dl>
+      <div class="logo-row" aria-label="Logo variants">
+        <figure><div class="logo-swatch">{# light #}<img src="{% static 'workspace/img/logo-navy.png' %}" alt="UzTEA logo, navy" width="480" height="331"></div><figcaption>Light backgrounds</figcaption></figure>
+        <figure><div class="logo-swatch logo-swatch-dark"><img src="{% static 'workspace/img/logo-white.png' %}" alt="UzTEA logo, white" width="480" height="331"></div><figcaption>Dark backgrounds</figcaption></figure>
+        <figure><div class="logo-swatch"><img src="{% static 'workspace/img/logo-blue.png' %}" alt="UzTEA logo, blue" width="480" height="331"></div><figcaption>Accents</figcaption></figure>
+      </div>
+    </section>
+
+    {% if membership_types is not None %}
+    <section class="card" aria-labelledby="s-types">
+      <div class="card-head">
+        <h2 class="card-title" id="s-types">{% icon 'tag' %}Membership types &amp; prices</h2>
+        {% if type_add_url %}<a class="btn btn-sm btn-outline" href="{{ type_add_url }}">{% icon 'plus' %}Add type</a>{% endif %}
+      </div>
+      {% if membership_types %}
+      <div class="table-scroll">
+        <table class="table">
+          <thead><tr><th scope="col">Name</th><th scope="col">Code</th><th scope="col">Price</th><th scope="col">Status</th><th scope="col" class="col-actions"><span class="sr-only">Edit</span></th></tr></thead>
+          <tbody>{% for t in membership_types %}
+            <tr><td>{{ t.name }}</td><td class="mono">{{ t.membership_type }}</td><td>{{ t.price|uzs }}</td>
+              <td><span class="status status-{% if t.is_active %}success{% else %}muted{% endif %}">{% if t.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+              <td class="col-actions">{% if can_change_types %}<a class="btn btn-sm btn-ghost" href="{% url 'admin:app_membershiptypeconfig_change' t.pk %}">{% icon 'pencil' %}Edit</a>{% endif %}</td></tr>
+          {% endfor %}</tbody>
+        </table>
+      </div>
+      {% else %}<p class="empty-inline muted">No membership types configured.</p>{% endif %}
+    </section>
+    {% endif %}
+
+    {% if users_url or groups_url %}
+    <section class="card" aria-labelledby="s-access">
+      <h2 class="card-title" id="s-access">{% icon 'lock' %}Users, groups &amp; permissions</h2>
+      <ul class="link-list">
+        {% if users_url %}<li><a href="{{ users_url }}"><span class="count-badge">{{ user_count }}</span><span>Users <small class="muted">({{ staff_count }} with workspace access)</small></span>{% icon 'chevron-right' %}</a></li>{% endif %}
+        {% if groups_url %}<li><a href="{{ groups_url }}"><span class="count-badge">{{ group_count }}</span><span>Groups &amp; roles</span>{% icon 'chevron-right' %}</a></li>{% endif %}
+      </ul>
+      <p class="muted">Permissions are managed per group in the classic admin. The workspace hides sections and actions a user is not allowed to use.</p>
+    </section>
+    {% endif %}
+
+    <section class="card" aria-labelledby="s-lang">
+      <h2 class="card-title" id="s-lang">{% icon 'globe' %}Languages <span class="chip chip-next">Next phase</span></h2>
+      <p class="muted">The workspace is in English. Members choose a preferred language for communication:</p>
+      <div class="chips">{% for code, name in languages %}<span class="chip">{{ name }}</span>{% endfor %}</div>
+    </section>
+
+    {% if integrations %}
+    <section class="card" aria-labelledby="s-int">
+      <h2 class="card-title" id="s-int">{% icon 'link' %}Integrations</h2>
+      <p class="muted">Configured through the server's <code>.env</code>. Values are never shown here.</p>
+      <ul class="integration-list">
+        {% for i in integrations %}
+        <li>{% icon i.icon %}<span><strong>{{ i.name }}</strong><small class="muted">{{ i.note }}</small></span>
+          <span class="status status-{% if i.ok %}success{% else %}muted{% endif %}">{% if i.ok %}Configured{% else %}Not configured{% endif %}</span></li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    <section class="card" aria-labelledby="s-tech">
+      <h2 class="card-title" id="s-tech">{% icon 'settings' %}Technical</h2>
+      <ul class="link-list">
+        <li><a href="{% url 'workspace:tools' %}"><span>All admin sections</span>{% icon 'chevron-right' %}</a></li>
+        {% if admin_index_url %}<li><a href="{{ admin_index_url }}"><span>Classic admin</span>{% icon 'external-link' %}</a></li>{% endif %}
+      </ul>
+    </section>
+  </div>
+</section>
+{% endblock %}

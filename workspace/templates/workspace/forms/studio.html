@@ -1,0 +1,96 @@
+{% extends "workspace/base.html" %}{% load static workspace_tags %}
+{% block content %}
+<section class="page studio" aria-labelledby="page-title" data-studio>
+  <div class="studio-head">
+    <div>
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="{% url 'workspace:forms' %}">Forms &amp; Events</a>{% icon 'chevron-right' %}<span aria-current="page">{{ template.form_title }}</span>
+      </nav>
+      <h1 id="page-title" data-studio-title>{{ template.form_title }}</h1>
+    </div>
+    <div class="page-actions">
+      <span class="chip chip-next" title="Nothing on this page is saved. Saving and publishing ship in the Form Studio phase.">{% icon 'alert' %}Sandbox · not saved</span>
+      <button type="button" class="btn btn-outline" data-studio-preview aria-pressed="false">{% icon 'eye' %}Preview</button>
+      <button type="button" class="btn btn-primary" disabled title="Publishing ships in the Form Studio phase">{% icon 'send' %}Publish form</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist" data-tabs>
+    <button type="button" role="tab" class="tab is-active" aria-selected="true" aria-controls="st-build" id="st-t-build">Build</button>
+    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="st-responses" id="st-t-responses" tabindex="-1">Responses</button>
+    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="st-share" id="st-t-share" tabindex="-1">Share</button>
+    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="st-settings" id="st-t-settings" tabindex="-1">Settings</button>
+  </div>
+
+  <div id="st-build" role="tabpanel" aria-labelledby="st-t-build" class="tabpanel">
+    <noscript><p class="note">Form Studio needs JavaScript.</p></noscript>
+    <div class="studio-grid">
+      <aside class="card studio-library" aria-label="Add a field">
+        <h2 class="card-title">Add a field</h2>
+        <div class="lib-list">
+          {% for key, label, ic in field_library %}<button type="button" class="lib-item" data-add-field="{{ key }}">{% icon ic %}{{ label }}</button>{% endfor %}
+        </div>
+        <h2 class="card-title">Smart blocks <span class="chip chip-next">Next phase</span></h2>
+        <div class="lib-list">
+          {% for key, label, ic in smart_blocks %}<button type="button" class="lib-item" disabled title="Needs membership and payment integration — later phase">{% icon ic %}{{ label }}</button>{% endfor %}
+        </div>
+      </aside>
+
+      <div class="studio-canvas card" aria-label="Form preview">
+        <div class="studio-hero">
+          <div>
+            <h2 data-hero-title>{{ template.hero_title }}</h2>
+            <p>{{ template.hero_text }}</p>
+          </div>
+          <img src="{% static 'workspace/img/logo-navy.png' %}" alt="UzTEA" width="480" height="331">
+        </div>
+        <ol class="studio-fields" data-studio-fields aria-live="polite"></ol>
+        <p class="empty-inline muted" data-studio-empty hidden>Add a field from the left to start building.</p>
+        <button type="button" class="btn btn-primary btn-block studio-submit" disabled>{{ template.submit }}</button>
+      </div>
+
+      <aside class="card studio-settings" aria-label="Field settings" data-studio-settings>
+        <h2 class="card-title">Field settings</h2>
+        <div data-settings-empty><p class="muted">Select a field to edit its label, choices and rules.</p></div>
+        <div data-settings-body hidden>
+          <label for="fs-label">Label</label>
+          <input id="fs-label" class="input" type="text" data-fs-label>
+          <div data-fs-placeholder-wrap>
+            <label for="fs-placeholder">Placeholder</label>
+            <input id="fs-placeholder" class="input" type="text" data-fs-placeholder>
+          </div>
+          <div data-fs-choices-wrap>
+            <span class="label">Choices</span>
+            <ul class="choice-list" data-fs-choices></ul>
+            <button type="button" class="btn btn-soft btn-sm btn-block" data-fs-add-choice>{% icon 'plus' %}Add option</button>
+          </div>
+          <label class="switch-row" for="fs-required"><span>Required</span>
+            <input id="fs-required" type="checkbox" class="switch" data-fs-required>
+          </label>
+          <span class="label">Logic <span class="chip chip-next">Next phase</span></span>
+          <div class="logic-box" data-fs-logic>{% icon 'git-branch' %}<span>No rules</span></div>
+          <div class="tip">{% icon 'lightbulb' %}<div><strong>No coding needed</strong><span>Simple show / hide rules based on answers come with the Form Studio phase.</span></div></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div id="st-responses" role="tabpanel" aria-labelledby="st-t-responses" class="tabpanel" data-tab-hidden>
+    <div class="card empty"><span class="empty-icon">{% icon 'list' %}</span><h2>Responses</h2><p>Saved forms collect submissions here. Existing registrations stay in their current lists — open them from Forms &amp; Events.</p><a class="btn btn-outline" href="{% url 'workspace:forms' %}">Back to Forms &amp; Events</a></div>
+  </div>
+  <div id="st-share" role="tabpanel" aria-labelledby="st-t-share" class="tabpanel" data-tab-hidden>
+    <div class="card empty"><span class="empty-icon">{% icon 'link' %}</span><h2>Share</h2><p>A public link and embed code are created when a form is published (Form Studio phase).</p></div>
+  </div>
+  <div id="st-settings" role="tabpanel" aria-labelledby="st-t-settings" class="tabpanel" data-tab-hidden>
+    <div class="card empty"><span class="empty-icon">{% icon 'settings' %}</span><h2>Form settings</h2><p>Free or paid registration, event date, place, capacity and deadline are designed in the Events and Payments phases.</p></div>
+  </div>
+
+  <ol class="stepper" aria-label="Form lifecycle">
+    <li class="is-current"><span>1</span>Build</li>
+    <li><span>2</span>Preview</li>
+    <li><span>3</span>Publish</li>
+    <li><span>4</span>Track responses</li>
+  </ol>
+</section>
+{{ template|json_script:"studio-template" }}
+{% endblock %}

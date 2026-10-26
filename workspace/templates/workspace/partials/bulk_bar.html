@@ -1,0 +1,17 @@
+{% load workspace_tags %}
+{% comment %}Bulk actions run in the existing admin changelist (same permission checks and confirmations).{% endcomment %}
+{% if bulk %}
+<form method="post" action="{{ bulk.url }}" class="bulk" id="bulk-form" data-bulk-form>
+  {% csrf_token %}
+  <input type="hidden" name="index" value="0">
+  <input type="hidden" name="select_across" value="0">
+  <label class="sr-only" for="bulk-action">Bulk action</label>
+  <select id="bulk-action" name="action" class="select select-sm" disabled data-bulk-select>
+    <option value="">Actions</option>
+    {% for key, label in bulk.actions %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+  </select>
+  <button type="submit" class="btn btn-sm btn-primary" disabled data-bulk-apply>Apply</button>
+  <span class="bulk-count" data-bulk-count aria-live="polite"></span>
+  <span class="hint">Runs in classic admin</span>
+</form>
+{% endif %}

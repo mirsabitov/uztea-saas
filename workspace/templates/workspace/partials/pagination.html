@@ -1,0 +1,24 @@
+{% load workspace_tags %}
+<div class="pager">
+  <span class="pager-info">{% if page.paginator.count %}{{ page.start_index }}–{{ page.end_index }} of {{ page.paginator.count }}{% else %}0 results{% endif %}</span>
+  {% if page_sizes %}
+  <form method="get" class="pager-size">
+    {% for key, value in request.GET.items %}{% if key != 'per_page' and key != 'page' and key != 'preview' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
+    <label for="per-page">Rows</label>
+    <select id="per-page" name="per_page" data-autosubmit>
+      {% for size in page_sizes %}<option value="{{ size }}"{% if size == per_page %} selected{% endif %}>{{ size }}</option>{% endfor %}
+    </select>
+  </form>
+  {% endif %}
+  {% if page.paginator.num_pages > 1 %}
+  <nav class="pager-pages" aria-label="Pagination">
+    {% if page.has_previous %}<a class="pager-btn" href="{% query page=page.previous_page_number preview='' %}" aria-label="Previous page">{% icon 'chevron-left' %}</a>{% else %}<span class="pager-btn is-disabled" aria-disabled="true">{% icon 'chevron-left' %}</span>{% endif %}
+    {% for n in page.paginator.page_range %}
+      {% if n == page.number %}<span class="pager-btn is-current" aria-current="page">{{ n }}</span>
+      {% elif n == 1 or n == page.paginator.num_pages or n >= page.number|add:-2 and n <= page.number|add:2 %}<a class="pager-btn" href="{% query page=n preview='' %}">{{ n }}</a>
+      {% elif n == page.number|add:-3 or n == page.number|add:3 %}<span class="pager-gap">…</span>{% endif %}
+    {% endfor %}
+    {% if page.has_next %}<a class="pager-btn" href="{% query page=page.next_page_number preview='' %}" aria-label="Next page">{% icon 'chevron-right' %}</a>{% else %}<span class="pager-btn is-disabled" aria-disabled="true">{% icon 'chevron-right' %}</span>{% endif %}
+  </nav>
+  {% endif %}
+</div>

@@ -33,6 +33,7 @@ MY_APPS = [
     'click',
     'atmos',
     'payme',
+    'workspace',
 ]
 
 THIRD_PARTY_APPS = [

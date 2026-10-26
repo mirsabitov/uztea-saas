@@ -1,0 +1,64 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">Partners</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div class="page-actions">
+      {% if import_url %}<a class="btn btn-outline" href="{{ import_url }}">{% icon 'upload' %}Import</a>{% endif %}
+      {% if export_url %}<a class="btn btn-outline" href="{{ export_url }}">{% icon 'download' %}Export</a>{% endif %}
+      {% if add_url %}<a class="btn btn-primary" href="{{ add_url }}">{% icon 'plus' %}Add partner</a>{% endif %}
+    </div>
+  </div>
+  <p class="note">{% icon 'alert' %}Benefits, offers and event links for partners are planned for the Partners phase.</p>
+
+  <form class="filters card" method="get" role="search" aria-label="Filter partners">
+    <div class="search-field">{% icon 'search' %}<label for="q" class="sr-only">Search partners</label>
+      <input id="q" type="search" name="q" value="{{ q }}" placeholder="Search name, company, email or phone…"></div>
+    <label class="sr-only" for="f-country">Country</label>
+    <select id="f-country" name="country" class="select" data-autosubmit>
+      <option value="">Country</option>
+      {% for c in countries %}<option value="{{ c }}"{% if c == country %} selected{% endif %}>{{ c }}</option>{% endfor %}
+    </select>
+    <label class="sr-only" for="f-source">Source</label>
+    <select id="f-source" name="source" class="select" data-autosubmit>
+      <option value="">Source</option>
+      {% for s in sources %}<option value="{{ s }}"{% if s == source %} selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-primary" type="submit">Search</button>
+    {% if q or country or source %}<a class="btn btn-ghost" href="{% url 'workspace:partners' %}">Clear</a>{% endif %}
+  </form>
+
+  <div class="toolbar"><div class="toolbar-left"><strong class="count">{{ total }} partner{{ total|pluralize }}</strong>{% include "workspace/partials/bulk_bar.html" %}</div></div>
+
+  <div class="card table-card">
+    {% if rows %}
+    <div class="table-scroll">
+      <table class="table">
+        <thead><tr>
+          <th class="col-select" scope="col">{% if bulk %}<input type="checkbox" aria-label="Select all on this page" data-select-all>{% endif %}</th>
+          <th scope="col">Contact</th><th scope="col">Organisation</th><th scope="col">Phone</th><th scope="col">Country</th><th scope="col">Source</th><th scope="col" class="col-actions">Actions</th>
+        </tr></thead>
+        <tbody>
+          {% for row in rows %}{% with p=row.obj %}
+          <tr>
+            <td class="col-select">{% if bulk %}<input type="checkbox" name="_selected_action" value="{{ p.pk }}" form="bulk-form" aria-label="Select {{ p }}" data-row-check>{% endif %}</td>
+            <td><div class="person"><span class="avatar avatar-md" aria-hidden="true">{{ row.initials }}</span><div>
+              <span class="person-name">{{ p.full_name|default:"—" }}</span>{% if row.is_demo %} <span class="chip chip-demo">Demo data</span>{% endif %}
+              <div class="muted">{{ p.email|default:"" }}</div></div></div></td>
+            <td>{{ p.company_name|default:"—" }}{% if p.position %}<div class="muted">{{ p.position }}</div>{% endif %}</td>
+            <td>{{ p.phone_number|default:"—" }}</td>
+            <td>{{ p.country|default:"—" }}</td>
+            <td>{% if p.source %}<span class="chip">{{ p.source }}</span>{% else %}—{% endif %}</td>
+            <td class="col-actions">{% if row.url %}<a class="btn btn-sm btn-ghost" href="{{ row.url }}">{% icon 'pencil' %}Edit</a>{% endif %}</td>
+          </tr>
+          {% endwith %}{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "workspace/partials/pagination.html" %}
+    {% else %}
+      <div class="empty"><span class="empty-icon">{% icon 'handshake' %}</span><h2>{% if q or country or source %}No partners match{% else %}No partners yet{% endif %}</h2><p>{% if q or country or source %}Try another search.{% else %}Import a spreadsheet or add a partner.{% endif %}</p></div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

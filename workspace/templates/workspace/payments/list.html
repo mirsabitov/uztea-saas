@@ -1,0 +1,119 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">Payments</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div class="page-actions">{% if add_url %}<a class="btn btn-primary" href="{{ add_url }}">{% icon 'plus' %}Add promo code</a>{% endif %}</div>
+  </div>
+  <p class="note">{% icon 'shield' %}Read-only view. Payment verification, callbacks and status changes stay in the existing payment code and the classic admin. Payment status is separate from membership status.</p>
+
+  <nav class="tabs tabs-scroll" aria-label="Payment lists">
+    {% for key, label in tabs %}<a class="tab{% if tab == key %} is-active{% endif %}" href="?tab={{ key }}"{% if tab == key %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+  </nav>
+
+  {% if tab != 'tools' %}
+  <form class="filters card" method="get" role="search" aria-label="Filter">
+    <input type="hidden" name="tab" value="{{ tab }}">
+    <div class="search-field">{% icon 'search' %}<label for="q" class="sr-only">Search</label>
+      <input id="q" type="search" name="q" value="{{ q }}" placeholder="{% if tab == 'orders' %}Order #, name, email or Click transaction ID…{% elif tab == 'pending' %}Name, email or membership ID…{% elif tab == 'promo' %}Promo code…{% else %}Transaction ID or order #…{% endif %}"></div>
+    {% if status_options %}
+    <label class="sr-only" for="f-status">Status</label>
+    <select id="f-status" name="status" class="select" data-autosubmit>
+      <option value="">Status</option>
+      {% for value, label in status_options %}<option value="{{ value }}"{% if status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    {% endif %}
+    <button class="btn btn-primary" type="submit">Search</button>
+    {% if q or status %}<a class="btn btn-ghost" href="?tab={{ tab }}">Clear</a>{% endif %}
+  </form>
+  {% endif %}
+
+  {% if tab == 'tools' %}
+    <div class="card tool-card">
+      <span class="quick-icon tone-blue">{% icon 'wave' %}</span>
+      <div><h2>Click Tools &amp; Logs</h2><p class="muted">Live Click logs, webhook simulation and manual order creation. These tools stay in the classic admin because they talk to the payment provider.</p></div>
+      {% if tools_url %}<a class="btn btn-primary" href="{{ tools_url }}">Open Click Tools {% icon 'external-link' %}</a>{% endif %}
+    </div>
+  {% else %}
+  <div class="card table-card">
+    {% if rows %}
+    <div class="table-scroll">
+      <table class="table">
+        {% if tab == 'orders' %}
+        <thead><tr><th scope="col">Order</th><th scope="col">For</th><th scope="col">Amount</th><th scope="col">Order status</th><th scope="col">Provider</th><th scope="col">Promo</th><th scope="col">Created</th><th scope="col" class="col-actions"><span class="sr-only">Open</span></th></tr></thead>
+        <tbody>{% for r in rows %}{% with o=r.o %}
+          <tr>
+            <td class="mono">#{{ o.pk }}</td>
+            <td>{% if o.membership %}<a href="{% url 'workspace:member_profile' o.membership_id %}">{{ o.membership.full_name }}</a><div class="muted">Membership</div>{% elif o.conference_registration %}{{ o.conference_registration.full_name }}<div class="muted">TESOL Conference</div>{% else %}<span class="muted">—</span>{% endif %}</td>
+            <td>{{ o.amount|uzs }}</td>
+            <td><span class="status status-{% if o.status == 'paid' %}success{% elif o.status == 'failed' %}danger{% else %}warning{% endif %}">{{ o.get_status_display }}</span></td>
+            <td class="stack-sm">
+              {% if o.click_trans_id %}<div>Click · <span class="mono">{{ o.click_trans_id }}</span></div>{% endif %}
+              {% if o.payme_count %}<div>Payme · {{ o.payme_count }} txn</div>{% endif %}
+              {% if r.atmos %}<div>Atmos · {{ r.atmos.get_status_display }}</div>{% endif %}
+              {% if not o.click_trans_id and not o.payme_count and not r.atmos %}<span class="muted">—</span>{% endif %}
+            </td>
+            <td>{{ o.promocode.code|default:"—" }}</td>
+            <td>{{ o.created_at|date:"d M Y, H:i" }}</td>
+            <td class="col-actions">{% if r.url %}<a class="btn btn-sm btn-ghost" href="{{ r.url }}">Open</a>{% endif %}</td>
+          </tr>{% endwith %}{% endfor %}</tbody>
+
+        {% elif tab == 'pending' %}
+        <thead><tr><th scope="col">Member</th><th scope="col">Membership</th><th scope="col">Payment</th><th scope="col">Applied</th><th scope="col" class="col-actions"><span class="sr-only">Open</span></th></tr></thead>
+        <tbody>{% for row in rows %}
+          <tr>
+            <td><div class="person"><span class="avatar avatar-md" aria-hidden="true">{{ row.initials }}</span><div><span class="person-name">{{ row.obj.full_name }}</span>{% if row.is_demo %} <span class="chip chip-demo">Demo data</span>{% endif %}<div class="muted">{{ row.obj.email }}</div></div></div></td>
+            <td>{{ row.type_name }}<div class="muted mono">{{ row.membership_id }}</div></td>
+            <td><span class="status status-{{ row.payment.tone }}">{{ row.payment.label }}</span></td>
+            <td>{{ row.obj.created_at|date:"d M Y" }}</td>
+            <td class="col-actions"><a class="btn btn-sm btn-ghost" href="{% url 'workspace:people' %}?view=pending&preview={{ row.pk }}">Preview</a></td>
+          </tr>{% endfor %}</tbody>
+
+        {% elif tab == 'atmos' %}
+        <thead><tr><th scope="col">Transaction</th><th scope="col">Order</th><th scope="col">Amount</th><th scope="col">Card</th><th scope="col">Status</th><th scope="col">Created</th><th scope="col" class="col-actions"><span class="sr-only">Open</span></th></tr></thead>
+        <tbody>{% for r in rows %}{% with t=r.t %}
+          <tr>
+            <td class="mono">{{ t.transaction_id|truncatechars:22 }}{% if t.atmos_transaction_id %}<div class="muted">Atmos {{ t.atmos_transaction_id }}</div>{% endif %}</td>
+            <td class="mono">#{{ t.account }}</td>
+            <td>{{ t.amount_uzs|uzs }}</td>
+            <td>{{ t.get_payment_type_display }}{% if t.card_number_masked %}<div class="muted mono">{{ t.card_number_masked }}</div>{% endif %}</td>
+            <td><span class="status status-{% if t.status == 'SUCCESS' %}success{% elif t.status == 'FAILED' %}danger{% elif t.status == 'CANCELLED' %}muted{% else %}warning{% endif %}">{{ t.get_status_display }}</span></td>
+            <td>{{ t.created_at|date:"d M Y, H:i" }}</td>
+            <td class="col-actions">{% if r.url %}<a class="btn btn-sm btn-ghost" href="{{ r.url }}">Open</a>{% endif %}</td>
+          </tr>{% endwith %}{% endfor %}</tbody>
+
+        {% elif tab == 'payme' %}
+        <thead><tr><th scope="col">Transaction</th><th scope="col">Order</th><th scope="col">Amount</th><th scope="col">State</th><th scope="col">Created</th><th scope="col">Performed</th><th scope="col" class="col-actions"><span class="sr-only">Open</span></th></tr></thead>
+        <tbody>{% for r in rows %}{% with t=r.t %}
+          <tr>
+            <td class="mono">{{ t.transaction_id|truncatechars:22 }}</td>
+            <td class="mono">#{{ t.order_id }}</td>
+            <td>{{ t.amount|uzs }}</td>
+            <td><span class="status status-{% if t.state == 2 %}success{% elif t.state == 1 %}warning{% else %}muted{% endif %}">{{ t.get_state_display }}</span>{% if t.reason %}<div class="muted">{{ t.get_reason_display }}</div>{% endif %}</td>
+            <td>{{ t.created_at|date:"d M Y, H:i" }}</td>
+            <td>{{ t.performed_at|date:"d M Y, H:i"|default:"—" }}</td>
+            <td class="col-actions">{% if r.url %}<a class="btn btn-sm btn-ghost" href="{{ r.url }}">Open</a>{% endif %}</td>
+          </tr>{% endwith %}{% endfor %}</tbody>
+
+        {% elif tab == 'promo' %}
+        <thead><tr><th scope="col">Code</th><th scope="col">Discount</th><th scope="col">Status</th><th scope="col">Used</th><th scope="col">Expires</th><th scope="col" class="col-actions"><span class="sr-only">Open</span></th></tr></thead>
+        <tbody>{% for r in rows %}{% with p=r.p %}
+          <tr>
+            <td class="mono"><strong>{{ p.code }}</strong></td>
+            <td>{{ p.discount_percent }}%</td>
+            <td><span class="status status-{% if p.is_active %}success{% else %}muted{% endif %}">{% if p.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+            <td>{{ p.used_count }}{% if p.max_uses %} / {{ p.max_uses }}{% else %} / ∞{% endif %}</td>
+            <td>{{ p.expires_at|date:"d M Y"|default:"Never" }}</td>
+            <td class="col-actions">{% if r.url %}<a class="btn btn-sm btn-ghost" href="{{ r.url }}">{% icon 'pencil' %}Edit</a>{% endif %}</td>
+          </tr>{% endwith %}{% endfor %}</tbody>
+        {% endif %}
+      </table>
+    </div>
+    {% include "workspace/partials/pagination.html" %}
+    {% else %}
+      <div class="empty"><span class="empty-icon">{% icon 'credit-card' %}</span><h2>Nothing here</h2><p>{% if q or status %}No records match the filters.{% else %}No records yet.{% endif %}</p></div>
+    {% endif %}
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

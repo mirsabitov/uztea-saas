@@ -1,0 +1,16 @@
+{% load workspace_tags %}
+{% if events %}
+<ol class="timeline">
+  {% for e in events %}
+  <li class="timeline-item">
+    <span class="timeline-icon tone-{{ e.tone }}">{% icon e.icon %}</span>
+    <div class="timeline-body">
+      <div class="timeline-head"><strong>{{ e.title }}</strong><time datetime="{{ e.when|date:'c' }}">{{ e.when|date:"d M Y" }}</time></div>
+      {% if e.text %}<p class="muted">{{ e.text }}</p>{% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ol>
+{% else %}
+<p class="muted empty-inline">No activity recorded yet.</p>
+{% endif %}

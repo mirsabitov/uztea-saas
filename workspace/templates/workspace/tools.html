@@ -1,0 +1,33 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">More tools</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    {% if admin_index_url %}<div class="page-actions"><a class="btn btn-outline" href="{{ admin_index_url }}">Open classic admin {% icon 'external-link' %}</a></div>{% endif %}
+  </div>
+
+  <div class="settings-grid">
+    {% for app in app_list %}
+    <section class="card" aria-labelledby="app-{{ app.app_label }}">
+      <h2 class="card-title" id="app-{{ app.app_label }}">{{ app.name }}</h2>
+      <ul class="link-list">
+        {% for model in app.models %}
+        <li>{% if model.admin_url %}<a href="{{ model.admin_url }}"><span>{{ model.name }}</span>{% if model.add_url %}<span class="chip chip-soft">can add</span>{% endif %}{% icon 'chevron-right' %}</a>{% else %}<span class="muted">{{ model.name }}</span>{% endif %}</li>
+        {% endfor %}
+        {% if app.app_label == 'click' and click_tools_url %}<li><a href="{{ click_tools_url }}"><span>Click Tools &amp; Logs</span>{% icon 'chevron-right' %}</a></li>{% endif %}
+        {% if app.app_label == 'app' %}<li><a href="{% url 'admin:app_membership_compose_email' %}"><span>Email composer <small class="muted">(select recipients in a list first)</small></span>{% icon 'chevron-right' %}</a></li>{% endif %}
+      </ul>
+    </section>
+    {% empty %}
+    <div class="card empty"><h2>No admin sections</h2><p>Your account has no admin permissions.</p></div>
+    {% endfor %}
+
+    <section class="card" aria-labelledby="public-pages">
+      <h2 class="card-title" id="public-pages">Public pages</h2>
+      <ul class="link-list">
+        {% for label, url in public_pages %}<li><a href="{{ url }}" target="_blank" rel="noopener"><span>{{ label }}</span>{% icon 'external-link' %}</a></li>{% endfor %}
+      </ul>
+    </section>
+  </div>
+</section>
+{% endblock %}

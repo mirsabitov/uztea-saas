@@ -1,0 +1,59 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">People</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div class="page-actions">
+      {% if import_url %}<a class="btn btn-outline" href="{{ import_url }}">{% icon 'upload' %}Import</a>{% endif %}
+      {% if export_url %}<a class="btn btn-outline" href="{{ export_url }}">{% icon 'download' %}Export</a>{% endif %}
+      {% if add_url %}<a class="btn btn-primary" href="{{ add_url }}">{% icon 'plus' %}Add teacher</a>{% endif %}
+    </div>
+  </div>
+  {% include "workspace/partials/people_tabs.html" %}
+  <p class="note">{% icon 'alert' %}Teachers Bank is a contact list. Being here does not make someone a paying member.</p>
+
+  <form class="filters card" method="get" role="search" aria-label="Filter Teachers Bank">
+    <div class="search-field">{% icon 'search' %}<label for="q" class="sr-only">Search</label>
+      <input id="q" type="search" name="q" value="{{ q }}" placeholder="Search name, email, phone or source…"></div>
+    <label class="sr-only" for="f-source">Source</label>
+    <select id="f-source" name="source" class="select" data-autosubmit>
+      <option value="">Source</option>
+      {% for s in sources %}<option value="{{ s }}"{% if s == source %} selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-primary" type="submit">Search</button>
+    {% if q or source %}<a class="btn btn-ghost" href="{% url 'workspace:teachers_bank' %}">Clear</a>{% endif %}
+  </form>
+
+  <div class="toolbar"><div class="toolbar-left"><strong class="count">{{ total }} contact{{ total|pluralize }}</strong>{% include "workspace/partials/bulk_bar.html" %}</div></div>
+
+  <div class="card table-card">
+    {% if rows %}
+    <div class="table-scroll">
+      <table class="table">
+        <thead><tr>
+          <th class="col-select" scope="col">{% if bulk %}<input type="checkbox" aria-label="Select all on this page" data-select-all>{% endif %}</th>
+          <th scope="col">Name</th><th scope="col">Phone</th><th scope="col">Source</th><th scope="col" class="col-actions">Actions</th>
+        </tr></thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td class="col-select">{% if bulk %}<input type="checkbox" name="_selected_action" value="{{ row.obj.pk }}" form="bulk-form" aria-label="Select {{ row.obj }}" data-row-check>{% endif %}</td>
+            <td><div class="person"><span class="avatar avatar-md" aria-hidden="true">{{ row.initials }}</span><div>
+              <span class="person-name">{{ row.obj.full_name|default:"—" }}</span>{% if row.is_demo %} <span class="chip chip-demo">Demo data</span>{% endif %}
+              <div class="muted">{{ row.obj.email|default:"" }}</div></div></div></td>
+            <td>{{ row.obj.phone_number|default:"—" }}</td>
+            <td>{% if row.obj.source %}<span class="chip">{{ row.obj.source }}</span>{% else %}—{% endif %}</td>
+            <td class="col-actions">{% if row.url %}<a class="btn btn-sm btn-ghost" href="{{ row.url }}">{% icon 'pencil' %}Edit</a>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "workspace/partials/pagination.html" %}
+    {% else %}
+      <div class="empty"><span class="empty-icon">{% icon 'users' %}</span><h2>{% if q or source %}No contacts match{% else %}Teachers Bank is empty{% endif %}</h2>
+        <p>{% if q or source %}Try another search.{% else %}Import a spreadsheet to add teachers.{% endif %}</p></div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

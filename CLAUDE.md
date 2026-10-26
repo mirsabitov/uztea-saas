@@ -71,6 +71,32 @@ On Unix use `make PYTHON=python3 PIP=pip3` or `.venv/bin/python`.
 7. `requirements.txt` lists `requests` twice; `makefile` package is unnecessary.
 8. Log file `click_payments.log` is written into the project root — move to a logs dir.
 
+## UzTEA Workspace (`/workspace/`) — approved decisions
+Phases and status live in `docs/ROADMAP.md`.
+- The workspace is a separate staff-only Django app (`workspace/`) at `/workspace/`.
+  The classic `/admin/` stays as it is and is reachable from "More tools".
+- Plain Django templates + one vanilla CSS/JS file (`workspace/static/workspace/`).
+  No frontend framework, no new dependencies.
+- The workspace reads data. Every change (edit, add, import/export, bulk actions,
+  payment tools) goes through the existing admin views, so admin permissions stay the
+  single source of truth. Bulk actions POST to the admin changelist.
+- Navigation: Home, People (Members / Teachers Bank / All contacts), Forms & Events,
+  Payments, Partners, Settings, plus More tools (every admin section) and the user menu.
+- Payment status is computed by `app/payment_status.py` (shared with the admin column) and
+  is never merged with membership status. `Membership` has no status or validity date
+  yet, so "Active" / "Renewal due" / "valid until" are marked "Next phase" — don't fake them.
+- Records from different tables are never merged. The same email in several lists is
+  only pointed out ("Also in").
+- Unbuilt features are labelled "Preview" / "Next phase" and their buttons are disabled.
+  Form Studio is a client-side sandbox that saves nothing.
+- Logos: `workspace/static/workspace/img/logo-{white,navy,blue}.png` (white on dark,
+  navy on light, blue for accents). Never crop or stretch them.
+- Demo data: `manage.py workspace_demo_data` (`--clear` to remove) runs only with
+  DEBUG + SQLite. Demo records use `@demo.uztea.test` emails and show a "Demo data" badge.
+  Optional local login from `DEMO_ADMIN_USERNAME` / `DEMO_ADMIN_PASSWORD` in `.env`.
+- Local dev without PostgreSQL: in `.env` set `DB_ENGINE=django.db.backends.sqlite3`
+  and `POSTGRES_DB=db.sqlite3`.
+
 ## Future
 uztea.uz (currently Tilda) will later be rebuilt in Python as a replica and served
 alongside / integrated with this project.

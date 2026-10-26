@@ -1,0 +1,106 @@
+{% load static workspace_tags %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page_title %}{{ page_title }} · {% endif %}UzTEA Workspace</title>
+  <link rel="icon" href="{% static 'workspace/img/logo-navy.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="{% static 'workspace/workspace.css' %}">
+</head>
+<body class="ws">
+{% include "workspace/partials/icons.html" %}
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="ws-shell">
+  <aside class="ws-sidebar" id="ws-sidebar" aria-label="Main navigation">
+    <div class="ws-brand">
+      <a href="{% url 'workspace:home' %}" class="ws-brand-link" aria-label="UzTEA Workspace home">
+        <img src="{% static 'workspace/img/logo-white.png' %}" alt="UzTEA" class="ws-logo" width="480" height="331">
+      </a>
+      <button type="button" class="ws-icon-btn ws-sidebar-close" data-sidebar-close aria-label="Close menu">{% icon 'x' %}</button>
+    </div>
+    <div class="ws-org" title="Organisation">
+      <span class="ws-org-name">UzTEA</span>
+      <span class="ws-org-note">Workspace</span>
+    </div>
+
+    <nav class="ws-nav">
+      <ul>
+        {% for item in nav %}
+          <li><a href="{{ item.url }}" class="ws-nav-link{% if item.active %} is-active{% endif %}"{% if item.active %} aria-current="page"{% endif %}>{% icon item.icon %}<span>{{ item.label }}</span></a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <div class="ws-sidebar-bottom">
+      <details class="ws-more"{% if section == 'tools' %} open{% endif %}>
+        <summary class="ws-nav-link{% if section == 'tools' %} is-active{% endif %}">{% icon 'grid' %}<span>More tools</span>{% icon 'chevron-down' 'ws-caret' %}</summary>
+        <ul class="ws-more-list">
+          <li><a href="{% url 'workspace:tools' %}">All tools &amp; admin sections</a></li>
+          {% if admin_index_url %}<li><a href="{{ admin_index_url }}">Classic admin</a></li>{% endif %}
+          <li><a href="{% url 'membership_form' %}" target="_blank" rel="noopener">Public membership form</a></li>
+        </ul>
+      </details>
+
+      <details class="ws-user">
+        <summary>
+          <span class="avatar avatar-sm avatar-light" aria-hidden="true">{{ user_initials }}</span>
+          <span class="ws-user-text"><strong>{{ request.user.get_full_name|default:request.user.get_username }}</strong><small>{{ user_role }}</small></span>
+          {% icon 'chevron-right' 'ws-caret' %}
+        </summary>
+        <div class="ws-user-menu">
+          {% if password_change_url %}<a href="{{ password_change_url }}">{% icon 'key' %}Change password</a>{% endif %}
+          {% if admin_index_url %}<a href="{{ admin_index_url }}">{% icon 'external-link' %}Classic admin</a>{% endif %}
+          {% if logout_url %}
+          <form method="post" action="{{ logout_url }}">{% csrf_token %}
+            <button type="submit">{% icon 'log-out' %}Log out</button>
+          </form>
+          {% endif %}
+        </div>
+      </details>
+    </div>
+  </aside>
+  <div class="ws-scrim" data-sidebar-close hidden></div>
+
+  <div class="ws-main">
+    <header class="ws-topbar">
+      <button type="button" class="ws-icon-btn ws-menu-btn" data-sidebar-open aria-label="Open menu" aria-controls="ws-sidebar">{% icon 'menu' %}</button>
+      <div class="ws-topbar-title">
+        <img src="{% static 'workspace/img/logo-navy.png' %}" alt="" class="ws-topbar-logo" width="480" height="331">
+        <div>
+          <span class="ws-product">UzTEA Workspace{% if page_title and section != 'home' %}<span class="ws-product-sep" aria-hidden="true">|</span><span class="ws-product-page">{{ page_title }}</span>{% endif %}</span>
+        </div>
+      </div>
+      {% if nav|length %}
+      <form class="ws-global-search" method="get" action="{% url 'workspace:contacts' %}" role="search">
+        <label for="ws-global-q" class="sr-only">Search people</label>
+        {% icon 'search' %}
+        <input id="ws-global-q" type="search" name="q" placeholder="Search people…" autocomplete="off">
+      </form>
+      {% endif %}
+      <a class="btn btn-soft btn-sm ws-hide-sm" href="https://uztea.uz/" target="_blank" rel="noopener">View website {% icon 'external-link' %}</a>
+      <span class="avatar avatar-md avatar-light" title="{{ request.user.get_username }}" aria-hidden="true">{{ user_initials }}</span>
+    </header>
+
+    {% if debug_mode %}
+      <div class="ws-dev-banner" role="note">{% icon 'alert' %}Local development server · records marked <span class="chip chip-demo">Demo data</span> are fake sample data</div>
+    {% endif %}
+
+    {% if messages %}
+      <div class="ws-messages">
+        {% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }}" role="status">{{ message }}</div>{% endfor %}
+      </div>
+    {% endif %}
+
+    <main id="main" class="ws-content" tabindex="-1">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<script src="{% static 'workspace/workspace.js' %}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

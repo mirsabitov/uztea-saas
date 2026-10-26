@@ -1,0 +1,76 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">Forms &amp; Events</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div class="page-actions">
+      <a class="link-arrow" href="#templates">Start from template {% icon 'arrow-right' %}</a>
+      <a class="btn btn-primary" href="{% url 'workspace:form_studio' %}?template=blank">{% icon 'plus' %}Create</a>
+    </div>
+  </div>
+
+  <form class="filters card" method="get" role="search" aria-label="Find a form or event">
+    <input type="hidden" name="tab" value="{{ tab }}">
+    <div class="search-field">{% icon 'search' %}<label for="q" class="sr-only">Find a form or event</label>
+      <input id="q" type="search" name="q" value="{{ q }}" placeholder="Find a form or event"></div>
+    <button class="btn btn-primary" type="submit">Search</button>
+  </form>
+
+  <div class="tabs-row">
+    <nav class="tabs" aria-label="Form status">
+      <a class="tab{% if tab == 'all' %} is-active{% endif %}" href="?tab=all"{% if tab == 'all' %} aria-current="page"{% endif %}>All</a>
+      <a class="tab{% if tab == 'published' %} is-active{% endif %}" href="?tab=published"{% if tab == 'published' %} aria-current="page"{% endif %}>Published</a>
+      <a class="tab{% if tab == 'drafts' %} is-active{% endif %}" href="?tab=drafts"{% if tab == 'drafts' %} aria-current="page"{% endif %}>Drafts</a>
+      <a class="tab{% if tab == 'archived' %} is-active{% endif %}" href="?tab=archived"{% if tab == 'archived' %} aria-current="page"{% endif %}>Archived</a>
+    </nav>
+    <div class="template-chips" id="templates" aria-label="Start from a template">
+      {% for t in templates %}<a class="btn btn-outline btn-sm" href="{% url 'workspace:form_studio' %}?template={{ t.key }}">{% icon t.icon %}{{ t.title }}</a>{% endfor %}
+    </div>
+  </div>
+
+  <div class="card list-card">
+    {% for f in forms %}
+    <div class="form-row">
+      <span class="form-icon tone-{% if f.kind == 'event' %}blue{% else %}purple{% endif %}">{% icon f.icon %}</span>
+      <div class="form-title">
+        <strong>{{ f.title }}</strong>
+        <span class="muted">{{ f.subtitle }}</span>
+      </div>
+      <div class="form-chips">
+        <span class="chip chip-{% if f.kind == 'event' %}blue{% else %}purple{% endif %}">{{ f.kind_label }}</span>
+        <span class="status status-success">Published</span>
+        <span class="chip chip-soft" title="Built before Form Studio; keeps its own URL and data">Legacy form</span>
+      </div>
+      <span class="form-count">{{ f.responses }} response{{ f.responses|pluralize }}{% if f.last_response %}<small class="muted">Last {{ f.last_response|date:"d M Y" }}</small>{% endif %}</span>
+      <div class="form-actions">
+        {% if f.responses_url %}<a class="btn btn-sm btn-outline" href="{{ f.responses_url }}">Responses</a>{% endif %}
+        <details class="menu">
+          <summary class="ws-icon-btn" aria-label="More for {{ f.title }}">{% icon 'more' %}</summary>
+          <div class="menu-body">
+            <a href="{{ f.public_url }}" target="_blank" rel="noopener">{% icon 'external-link' %}Open public form</a>
+            <button type="button" data-copy="{{ request.scheme }}://{{ request.get_host }}{{ f.public_url }}">{% icon 'link' %}Copy share link</button>
+            {% if f.export_url %}<a href="{{ f.export_url }}">{% icon 'download' %}Export responses</a>{% endif %}
+          </div>
+        </details>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty">
+      <span class="empty-icon">{% icon 'file-text' %}</span>
+      {% if tab == 'drafts' or tab == 'archived' %}
+        <h2>No {{ tab }} yet</h2>
+        <p>Forms built in Form Studio will appear here once saving and publishing ship in the Form Studio phase.</p>
+        <a class="btn btn-outline" href="{% url 'workspace:form_studio' %}?template=blank">Open Form Studio preview</a>
+      {% else %}
+        <h2>No forms match</h2><p>Try another search.</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+    <div class="list-foot muted">Legacy registrations:
+      <a href="{% url 'anniversary_register' %}" target="_blank" rel="noopener">30th Anniversary</a> ·
+      <a href="{% url 'conference_register' %}" target="_blank" rel="noopener">TESOL Conference</a> ·
+      <a href="{% url 'membership_form' %}" target="_blank" rel="noopener">Membership application</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
