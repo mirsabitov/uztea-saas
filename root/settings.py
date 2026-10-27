@@ -35,6 +35,7 @@ MY_APPS = [
     'payme',
     'workspace',
     'certificates',
+    'cabinet',
 ]
 
 THIRD_PARTY_APPS = [

@@ -1,0 +1,119 @@
+{% extends "public/base.html" %}{% load workspace_tags %}
+{% block title %}{% t "Member cabinet" %} · UzTEA{% endblock %}
+{% block brand %}UzTEA {% t "Member cabinet" %}{% endblock %}
+{% block brand_url %}{% url 'cabinet:home' %}{% endblock %}
+{% block header_actions %}
+  <form method="post" action="{% url 'cabinet:logout' %}">{% csrf_token %}<button class="btn btn-sm btn-ghost" type="submit">{% icon 'log-out' %}<span class="ws-hide-sm">{% t "Sign out" %}</span></button></form>
+{% endblock %}
+{% block content %}
+<div class="pub-wrap">
+  <div class="cab-head">
+    <span class="avatar avatar-xl" aria-hidden="true">{{ member.full_name|default:request.user.email|slice:":1"|upper }}</span>
+    <div>
+      <h1>{% t "Welcome" %}, {{ member.full_name|default:request.user.get_full_name|default:request.user.email }}</h1>
+      <p class="muted">{{ request.user.email }}</p>
+    </div>
+  </div>
+
+  {% if not member %}
+    <section class="card empty"><span class="empty-icon">{% icon 'id-card' %}</span>
+      <h2>{% t "No membership found for this email" %}</h2>
+      <p>{% t "If you applied with another email, sign in with that one. Otherwise you can apply now." %}</p>
+      <a class="btn btn-primary" href="{{ renew_url }}">{% t "Apply for membership" %}</a></section>
+  {% else %}
+
+  <nav class="cab-nav tabs" aria-label="{% t "Member cabinet" %}">
+    <a class="tab is-active" href="#membership">{% t "My membership" %}</a>
+    <a class="tab" href="#events">{% t "Upcoming events" %}</a>
+    <a class="tab" href="#certificates">{% t "My certificates" %}</a>
+    <a class="tab" href="#benefits">{% t "Bonuses & offers" %}</a>
+    <a class="tab" href="#payments">{% t "My payments" %}</a>
+    <a class="tab" href="#profile">{% t "Profile" %}</a>
+  </nav>
+
+  <div class="cab-grid">
+    <section id="membership" class="card member-card-hero wide" aria-labelledby="m-title">
+      <div>
+        <small>{% t "My membership" %}</small>
+        <h2 id="m-title">{{ member.get_membership_type_display }}</h2>
+        <div class="mono">{% t "Membership ID" %}: {{ membership_id }}</div>
+        <p style="margin-top:10px"><span class="status status-{{ status.tone }}">{{ status.label|tr:lang }}</span>
+          {% if status.valid_until %}<small> · {% t "Valid until" %} {{ status.valid_until|date:"d.m.Y" }}{% if status.key == 'renewal_due' %} ({{ status.days_left }} {% t "days left" %}){% endif %}</small>{% endif %}</p>
+      </div>
+      <div class="page-actions">
+        {% if card_url %}<a class="btn btn-primary" href="{{ card_url }}">{% icon 'credit-card' %}{% t "Download card" %}</a>{% endif %}
+        {% if not is_active or status.key == 'renewal_due' %}<a class="btn btn-soft" href="{{ renew_url }}">{% icon 'arrow-right' %}{% if status.key == 'renewal_due' or status.key == 'expired' %}{% t "Renew membership" %}{% else %}{% t "Complete payment" %}{% endif %}</a>{% endif %}
+      </div>
+    </section>
+
+    <section id="events" class="card" aria-labelledby="e-title">
+      <h2 class="card-title" id="e-title">{% icon 'calendar' %}{% t "Upcoming events" %}</h2>
+      {% if events %}<ul class="item-list">
+        {% for e in events %}<li><span class="date-badge"><strong>{{ e.starts_at|date:"d" }}</strong><small>{{ e.starts_at|date:"M" }}</small></span>
+          <div class="grow"><strong>{{ e.title }}</strong><div class="muted small">{{ e.starts_at|date:"d.m.Y, H:i" }}{% if e.location %} · {{ e.location }}{% endif %}</div>
+            {% if e.description %}<p class="small">{{ e.description|truncatechars:140 }}</p>{% endif %}</div>
+          {% if e.registration_url %}<a class="btn btn-sm btn-outline" href="{{ e.registration_url }}" target="_blank" rel="noopener">{% t "Register" %}</a>{% endif %}</li>{% endfor %}
+      </ul>{% else %}<p class="muted empty-inline">{% t "No upcoming events yet." %}</p>{% endif %}
+    </section>
+
+    <section id="certificates" class="card" aria-labelledby="c-title">
+      <h2 class="card-title" id="c-title">{% icon 'award' %}{% t "My certificates" %}</h2>
+      {% if certificates %}<ul class="item-list">
+        {% for r in certificates %}<li><div class="grow"><strong>{{ r.c.event_name }}</strong><div class="muted small mono">{{ r.c.number }}</div></div>
+          <a class="btn btn-sm btn-outline" href="{{ r.url }}">{% icon 'download' %}PDF</a></li>{% endfor %}
+      </ul>{% else %}<p class="muted empty-inline">{% t "No certificates yet." %}</p>{% endif %}
+    </section>
+
+    <section id="benefits" class="card" aria-labelledby="b-title">
+      <h2 class="card-title" id="b-title">{% icon 'tag' %}{% t "Bonuses & offers" %}</h2>
+      {% if not is_active %}<p class="muted">{% t "Offers are available to active members." %}</p>
+      {% elif benefits %}<ul class="item-list">
+        {% for b in benefits %}<li><div class="grow"><strong>{{ b.title }}</strong>{% if b.discount %} <span class="chip chip-blue">{{ b.discount }}</span>{% endif %}
+          <div class="muted small">{{ b.partner|default:"UzTEA" }}{% if b.valid_until %} · {% t "Valid until" %} {{ b.valid_until|date:"d.m.Y" }}{% endif %}</div>
+          {% if b.description %}<p class="small">{{ b.description }}</p>{% endif %}
+          {% if b.code %}<p class="small">{% t "Code" %}: <span class="benefit-code">{{ b.code }}</span></p>{% endif %}</div>
+          {% if b.link %}<a class="btn btn-sm btn-outline" href="{{ b.link }}" target="_blank" rel="noopener">{% t "Open" %}</a>{% endif %}</li>{% endfor %}
+      </ul>{% else %}<p class="muted empty-inline">{% t "No offers right now." %}</p>{% endif %}
+    </section>
+
+    <section class="card" aria-labelledby="conf-title">
+      <h2 class="card-title" id="conf-title">{% icon 'users' %}{% t "My events" %}</h2>
+      {% if conference or anniversary %}<ul class="item-list">
+        {% for r in conference %}<li><div class="grow"><strong>TESOL Conference</strong><div class="muted small">{{ r.created_at|date:"d.m.Y" }} · {{ r.organization }}</div></div>
+          {% if r.order %}<span class="status status-{% if r.order.status == 'paid' %}success{% else %}warning{% endif %}">{{ r.order.get_status_display }}</span>{% endif %}</li>{% endfor %}
+        {% for r in anniversary %}<li><div class="grow"><strong>UzTEA 30th Anniversary</strong><div class="muted small">{{ r.created_at|date:"d.m.Y" }}</div></div><span class="status status-success">{% t "Registered" %}</span></li>{% endfor %}
+      </ul>{% else %}<p class="muted empty-inline">{% t "You have not registered for events yet." %}</p>{% endif %}
+    </section>
+
+    <section class="card" aria-labelledby="course-title">
+      <h2 class="card-title" id="course-title">{% icon 'file-text' %}{% t "Courses" %} <span class="chip chip-next">{% t "Coming soon" %}</span></h2>
+      <p class="muted">{% t "Your courses will appear here." %}</p>
+    </section>
+
+    <section id="payments" class="card wide" aria-labelledby="p-title">
+      <h2 class="card-title" id="p-title">{% icon 'credit-card' %}{% t "My payments" %}</h2>
+      {% if orders %}<div class="table-scroll"><table class="table">
+        <thead><tr><th scope="col">{% t "Date" %}</th><th scope="col">{% t "Membership" %}</th><th scope="col">{% t "Amount" %}</th><th scope="col">{% t "Status" %}</th></tr></thead>
+        <tbody>{% for o in orders %}<tr><td>{{ o.created_at|date:"d.m.Y" }}</td><td>{{ o.membership.get_membership_type_display }}</td><td>{{ o.amount|uzs }}</td>
+          <td><span class="status status-{% if o.status == 'paid' %}success{% elif o.status == 'failed' %}danger{% else %}warning{% endif %}">{{ o.get_status_display }}</span></td></tr>{% endfor %}</tbody>
+      </table></div>{% else %}<p class="muted empty-inline">{% t "No payments yet." %}</p>{% endif %}
+    </section>
+
+    <section id="profile" class="card wide" aria-labelledby="pr-title">
+      <h2 class="card-title" id="pr-title">{% icon 'user' %}{% t "Profile" %}</h2>
+      <dl class="kv">
+        <div><dt>{% t "Name" %}</dt><dd>{{ member.full_name }}</dd></div>
+        <div><dt>{% t "Email" %}</dt><dd>{{ member.email }}</dd></div>
+        <div><dt>{% t "Phone" %}</dt><dd>{{ member.phone_number|default:"—" }}</dd></div>
+        <div><dt>{% t "Position" %}</dt><dd>{{ member.get_position_display }}</dd></div>
+        <div><dt>{% t "Institution" %}</dt><dd>{{ member.institution_name|default:"—" }}</dd></div>
+        <div><dt>{% t "Region" %}</dt><dd>{{ member.region_city|default:"—" }}, {{ member.country }}</dd></div>
+        <div><dt>{% t "Preferred language" %}</dt><dd>{{ member.get_preferred_language_display }}</dd></div>
+        <div><dt>{% t "Joined" %}</dt><dd>{{ member.created_at|date:"d.m.Y" }}</dd></div>
+      </dl>
+      <p class="muted small" style="margin-top:12px">{% t "To change your details, write to" %} <a href="mailto:{{ org.email }}">{{ org.email }}</a>.</p>
+    </section>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

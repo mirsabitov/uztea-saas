@@ -4,12 +4,15 @@ Selection toolbar. Admin bulk actions run in the existing admin changelist (same
 permission checks and confirmations); SMS / Email open the workspace composer with
 the same selection (formaction).
 {% endcomment %}
-{% if bulk or message_url or cert_issue_url %}
+{% if bulk or message_url or cert_issue_url or invite_url %}
 <form method="post" action="{% if bulk %}{{ bulk.url }}{% elif message_url %}{{ message_url }}{% else %}{{ cert_issue_url }}{% endif %}" class="bulk" id="bulk-form" data-bulk-form>
   {% csrf_token %}
   {% if message_url %}
     <button type="submit" class="btn btn-sm btn-outline" formaction="{{ message_url }}&amp;channel=sms" disabled data-bulk-msg>{% icon 'message-square' %}SMS</button>
     <button type="submit" class="btn btn-sm btn-outline" formaction="{{ message_url }}&amp;channel=email" disabled data-bulk-msg>{% icon 'mail' %}Email</button>
+  {% endif %}
+  {% if invite_url %}
+    <button type="submit" class="btn btn-sm btn-outline" formaction="{{ invite_url }}" disabled data-bulk-msg data-confirm="Email a cabinet invitation to the selected members?">{% icon 'key' %}Invite</button>
   {% endif %}
   {% if cert_issue_url %}
     <button type="submit" class="btn btn-sm btn-outline" formaction="{{ cert_issue_url }}" disabled data-bulk-msg>{% icon 'award' %}Certificate</button>

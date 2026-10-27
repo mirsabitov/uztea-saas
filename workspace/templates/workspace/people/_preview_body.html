@@ -42,6 +42,12 @@
     {% if p.edit_url %}<a class="btn btn-outline" href="{{ p.edit_url }}">{% icon 'pencil' %}Edit profile</a>{% endif %}
     <a class="btn btn-primary" href="{{ p.card_url }}">{% icon 'credit-card' %}Download card</a>
   </div>
+  {% if p.invite_url and m.email %}
+  <form method="post" action="{{ p.invite_url }}" class="preview-invite">
+    {% csrf_token %}<input type="hidden" name="ids" value="{{ m.pk }}"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <button type="submit" class="btn btn-ghost btn-block" data-confirm="Email {{ m.full_name }} a link to the member cabinet?">{% icon 'key' %}Invite to cabinet</button>
+  </form>
+  {% endif %}
   {% if p.message_url %}
   <div class="preview-actions">
     <a class="btn btn-soft" href="{{ p.message_url }}&amp;channel=sms">{% icon 'message-square' %}Send SMS</a>

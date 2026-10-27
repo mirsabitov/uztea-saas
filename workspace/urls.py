@@ -11,6 +11,7 @@ urlpatterns = [
     path('people/contacts/', views.people_contacts, name='contacts'),
     path('people/<int:pk>/', views.member_profile, name='member_profile'),
     path('people/<int:pk>/preview/', views.member_preview, name='member_preview'),
+    path('people/invite/', views.cabinet_invite, name='cabinet_invite'),
     path('messages/', views_messages.history, name='messages'),
     path('messages/compose/', views_messages.compose, name='message_compose'),
     path('website/', views.website, name='website'),

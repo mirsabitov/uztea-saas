@@ -213,6 +213,7 @@ def people_members(request):
         'message_url': _message_url(user, 'member'),
         'cert_issue_url': (reverse('workspace:cert_issue') + '?source=member')
         if can(user, 'certificates.add_certificate') else None,
+        'invite_url': reverse('workspace:cabinet_invite') if can(user, 'app.change_membership') else None,
     }, 'people')
 
 
@@ -244,6 +245,7 @@ def _preview_context(request, member):
         'edit_url': admin_url(f'{opt}_change', member.pk)
         if can(user, 'app.change_membership', 'app.change_pendingpayment') else None,
         'card_url': reverse('membership_card', args=[member.pk]) + '?download=1',
+        'invite_url': reverse('workspace:cabinet_invite') if can(user, 'app.change_membership') else None,
         'message_url': (_message_url(user, 'member') + f'&ids={member.pk}') if _message_url(user, 'member') else None,
     }
 
@@ -635,3 +637,36 @@ def saas_settings(request):
         'form': form, 'can_edit': can_edit, 'org': org,
         'integrations': integration_status() if request.user.is_superuser else None,
     }, 'saas')
+
+
+# ── Member cabinet invitations ──────────────────────────────────────────────
+
+@workspace_view('people', 'app.change_membership')
+def cabinet_invite(request):
+    """POST ids (or _selected_action) → email each member a set-password link."""
+    from django.contrib import messages as flash
+    from cabinet.accounts import send_password_link
+
+    if request.method != 'POST':
+        return redirect('workspace:people')
+    ids = messaging.parse_ids(request.POST.getlist('_selected_action') or request.POST.getlist('ids'))
+    sent = skipped = failed = 0
+    for member in Membership.objects.filter(pk__in=ids)[:300]:
+        if not member.email:
+            skipped += 1
+            continue
+        try:
+            if send_password_link(member.email, invited_by=request.user):
+                sent += 1
+            else:
+                skipped += 1
+        except Exception:
+            failed += 1
+    note = f'Cabinet invitation sent to {sent} member(s).'
+    if skipped:
+        note += f' {skipped} skipped (no email or staff account).'
+    if failed:
+        note += f' {failed} failed — check the email settings.'
+    (flash.success if sent and not failed else flash.warning)(request, note)
+    back = request.POST.get('next', '')
+    return redirect(back if back.startswith('/workspace/') else reverse('workspace:people'))

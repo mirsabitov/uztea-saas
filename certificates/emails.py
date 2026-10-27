@@ -25,8 +25,10 @@ def verify_url(number):
     return f'{portal_base()}/v/{number}/'
 
 
-def _send(to, subject, html):
-    message = EmailMultiAlternatives(subject=subject, body=strip_tags(html), from_email=settings.DEFAULT_FROM_EMAIL, to=[to])
+def _send(to, subject, html, links=()):
+    # The plain-text part carries the links too, for mail apps that don't show HTML.
+    text = strip_tags(html).strip() + ''.join(f'\n\n{link}' for link in links)
+    message = EmailMultiAlternatives(subject=subject, body=text, from_email=settings.DEFAULT_FROM_EMAIL, to=[to])
     message.attach_alternative(html, 'text/html')
     message.send(fail_silently=False)
 
@@ -49,7 +51,7 @@ def send_certificate_emails(certificates, user=None):
         html = render_to_string('certificates/email_certificate.html', {
             'cert': cert, 'download_url': download_url(cert), 'verify_url': verify_url(cert.number)})
         try:
-            _send(cert.email, subject, html)
+            _send(cert.email, subject, html, [download_url(cert)])
             cert.emailed_at = timezone.now()
             cert.save(update_fields=['emailed_at'])
             status, error = 'sent', ''
@@ -69,4 +71,4 @@ def send_lookup_email(email, certificates, lang='en'):
     """Portal lookup: send the list of someone's certificates to the address on file."""
     html = render_to_string('certificates/email_lookup.html', {
         'items': [{'cert': c, 'download_url': download_url(c)} for c in certificates], 'lang': lang})
-    _send(email, 'Your UzTEA certificates', html)
+    _send(email, 'Your UzTEA certificates', html, [download_url(c) for c in certificates])
