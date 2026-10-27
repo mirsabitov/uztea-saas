@@ -1,0 +1,18 @@
+<!doctype html>
+<html><body style="margin:0;padding:24px 12px;background:#f3f6fb;font-family:Arial,sans-serif;color:#12213f;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;">
+  <tr><td style="background:#0c2247;padding:22px 28px;color:#ffffff;font-size:18px;font-weight:bold;">UzTEA · Your certificates</td></tr>
+  <tr><td style="padding:28px;font-size:15px;line-height:1.6;">
+    <p style="margin:0 0 16px;">Someone (hopefully you) asked for the certificates linked to this email on certificates.uztea.uz. Here they are:</p>
+    {% for item in items %}
+    <p style="margin:0 0 14px;padding:12px 14px;border:1px solid #e2e8f1;border-radius:8px;">
+      <strong>{{ item.cert.event_name }}</strong><br>
+      <span style="color:#66758f;font-size:13px;">{{ item.cert.number }} · {{ item.cert.recipient_name }}</span><br>
+      <a href="{{ item.download_url }}" style="color:#1f6feb;font-weight:bold;">Download PDF</a>
+    </p>
+    {% endfor %}
+    <p style="margin:16px 0 0;color:#66758f;font-size:13px;">If you did not ask for this, you can ignore this email.</p>
+  </td></tr>
+</table></td></tr></table>
+</body></html>

@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap">
+<style>
+  @page { size: {{ width }}px {{ height }}px; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: {{ width }}px; height: {{ height }}px; background: #fff; }
+  .page { position: relative; width: {{ width }}px; height: {{ height }}px; overflow: hidden; background: #fff;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .frame { position: absolute; inset: 22px; border: 3px solid {{ t.accent_color }}; border-radius: 6px; }
+  .frame::after { content: ""; position: absolute; inset: 9px; border: 1px solid #222e50; border-radius: 3px; opacity: .55; }
+  .corner { position: absolute; width: 90px; height: 90px; border: 0 solid {{ t.accent_color }}; opacity: .9; }
+  .corner.tl { top: 40px; left: 40px; border-top-width: 6px; border-left-width: 6px; }
+  .corner.tr { top: 40px; right: 40px; border-top-width: 6px; border-right-width: 6px; }
+  .corner.bl { bottom: 40px; left: 40px; border-bottom-width: 6px; border-left-width: 6px; }
+  .corner.br { bottom: 40px; right: 40px; border-bottom-width: 6px; border-right-width: 6px; }
+  .el { position: absolute; transform: translate(-50%, -50%); line-height: 1.3; }
+  .el img { display: block; width: 100%; height: auto; }
+  .el.line { border-top: 1.5px solid #222e50; padding-top: 8px; }
+</style></head>
+<body><div class="page">
+  {% if background %}<img class="bg" src="{{ background }}" alt="">{% endif %}
+  {% if t.frame %}<div class="frame"></div><div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>{% endif %}
+  {% for el in elements %}
+    {% if el.type == 'image' %}<div class="el" style="{{ el.style }}"><img src="{{ el.src }}" alt=""></div>
+    {% else %}<div class="el{% if el.line %} line{% endif %}" style="{{ el.style }}">{{ el.html }}</div>{% endif %}
+  {% endfor %}
+</div></body></html>

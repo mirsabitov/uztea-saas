@@ -1,0 +1,64 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">{% t "Certificates" %}</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    {% if batch %}<div class="page-actions"><a class="btn btn-outline" href="{% url 'workspace:cert_batch_zip' %}?batch={{ batch }}">{% icon 'download' %}Download this batch (ZIP)</a></div>{% endif %}
+  </div>
+  {% include "certificates/workspace/_tabs.html" %}
+
+  <form class="filters card" method="get" role="search" aria-label="Filter certificates">
+    {% if batch %}<input type="hidden" name="batch" value="{{ batch }}">{% endif %}
+    <div class="search-field">{% icon 'search' %}<label for="q" class="sr-only">{% t "Search" %}</label>
+      <input id="q" type="search" name="q" value="{{ q }}" placeholder="Number, name, email or event…"></div>
+    <label class="sr-only" for="f-template">Template</label>
+    <select id="f-template" name="template" class="select" data-autosubmit><option value="">Template</option>{% for tpl in templates %}<option value="{{ tpl.pk }}"{% if filters.template == tpl.pk|stringformat:'s' %} selected{% endif %}>{{ tpl.name }}</option>{% endfor %}</select>
+    <label class="sr-only" for="f-status">{% t "Status" %}</label>
+    <select id="f-status" name="status" class="select" data-autosubmit><option value="">{% t "Status" %}</option>{% for v, l in status_options %}<option value="{{ v }}"{% if filters.status == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+    <button class="btn btn-primary" type="submit">{% t "Search" %}</button>
+    {% if q or filters.template or filters.status or batch %}<a class="btn btn-ghost" href="{% url 'workspace:cert_issued' %}">{% t "Clear" %}</a>{% endif %}
+  </form>
+
+  <div class="toolbar"><strong class="count">{{ total }} certificate{{ total|pluralize }}</strong></div>
+  <div class="card table-card">
+    {% if rows %}
+    <div class="table-scroll">
+      <table class="table">
+        <thead><tr><th scope="col">{% t "Number" %}</th><th scope="col">{% t "Issued to" %}</th><th scope="col">{% t "Event" %}</th><th scope="col">{% t "Issued on" %}</th><th scope="col">{% t "Status" %}</th><th scope="col" class="col-actions">{% t "Actions" %}</th></tr></thead>
+        <tbody>
+          {% for r in rows %}{% with c=r.c %}
+          <tr>
+            <td class="mono"><strong>{{ c.number }}</strong></td>
+            <td><span class="person-name">{% if c.membership_id %}<a href="{% url 'workspace:member_profile' c.membership_id %}">{{ c.recipient_name }}</a>{% else %}{{ c.recipient_name }}{% endif %}</span><div class="muted small">{{ c.email|default:"no email" }}</div></td>
+            <td>{{ c.event_name }}<div class="muted small">{{ c.template.name }}</div></td>
+            <td class="nowrap">{{ c.created_at|date:"d M Y" }}{% if c.emailed_at %}<div class="muted small">emailed {{ c.emailed_at|date:"d M" }}</div>{% endif %}</td>
+            <td><span class="status status-{% if c.is_valid %}success{% else %}danger{% endif %}">{{ c.get_status_display }}</span></td>
+            <td class="col-actions">
+              <details class="menu">
+                <summary class="ws-icon-btn" aria-label="Actions for {{ c.number }}">{% icon 'more' %}</summary>
+                <div class="menu-body">
+                  <a href="{% url 'workspace:cert_download' c.pk %}">{% icon 'download' %}{% t "Download PDF" %}</a>
+                  <button type="button" data-copy="{{ r.url }}">{% icon 'link' %}Copy download link</button>
+                  {% if can_change %}
+                  <form method="post" action="{% url 'workspace:cert_action' c.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    {% if c.email %}<button type="submit" name="action" value="email">{% icon 'mail' %}Email again</button>{% endif %}
+                    {% if c.is_valid %}<button type="submit" name="action" value="revoke" data-confirm="Revoke {{ c.number }}? Verification will show it as revoked.">{% icon 'x' %}Revoke</button>
+                    {% else %}<button type="submit" name="action" value="restore">{% icon 'check' %}Make valid again</button>{% endif %}
+                  </form>
+                  {% endif %}
+                </div>
+              </details>
+            </td>
+          </tr>
+          {% endwith %}{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "workspace/partials/pagination.html" %}
+    {% else %}
+      <div class="empty"><span class="empty-icon">{% icon 'award' %}</span><h2>No certificates yet</h2><p>Issue certificates from a template.</p>
+        {% if perms.certificates.add_certificate %}<a class="btn btn-primary" href="{% url 'workspace:cert_issue' %}">{% t "Issue certificates" %}</a>{% endif %}</div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">{% t "Certificates" %}</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div class="page-actions">
+      {% if can_add %}<form method="post" action="{% url 'workspace:cert_template_new' %}">{% csrf_token %}<button class="btn btn-primary" type="submit">{% icon 'plus' %}{% t "New template" %}</button></form>{% endif %}
+    </div>
+  </div>
+  {% include "certificates/workspace/_tabs.html" %}
+
+  {% if templates %}
+  <div class="cert-grid">
+    {% for tpl in templates %}
+    <article class="card cert-card">
+      <div class="cert-thumb {{ tpl.orientation }}" style="--accent: {{ tpl.accent_color }}" aria-hidden="true">
+        <span class="cert-thumb-title">CERTIFICATE</span><span class="cert-thumb-name">{{ tpl.event_name|truncatechars:36 }}</span>
+      </div>
+      <div class="cert-card-body">
+        <h2>{{ tpl.name }}</h2>
+        <p class="muted">{{ tpl.event_name }}{% if tpl.date_text %} · {{ tpl.date_text }}{% endif %}</p>
+        <div class="chips">
+          <span class="chip chip-soft">{{ tpl.get_orientation_display }}</span>
+          <span class="chip chip-blue">{{ tpl.issued }} issued</span>
+          {% if not tpl.is_active %}<span class="chip">Inactive</span>{% endif %}
+        </div>
+      </div>
+      <div class="cert-card-actions">
+        <a class="btn btn-sm btn-outline" href="{% url 'workspace:cert_designer' tpl.pk %}">{% icon 'pencil' %}{% if can_change %}Design{% else %}{% t "Open" %}{% endif %}</a>
+        <a class="btn btn-sm btn-ghost" href="{% url 'workspace:cert_template_preview' tpl.pk %}" target="_blank" rel="noopener">{% icon 'eye' %}PDF</a>
+        {% if can_issue and tpl.is_active %}<a class="btn btn-sm btn-primary" href="{% url 'workspace:cert_issue' %}?template={{ tpl.pk }}">{% icon 'send' %}Issue</a>{% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card empty"><span class="empty-icon">{% icon 'award' %}</span><h2>No certificate templates yet</h2>
+    <p>Create a template, put your signature, stamp and logos on it, then issue numbered certificates to members or to a list from Excel.</p>
+    {% if can_add %}<form method="post" action="{% url 'workspace:cert_template_new' %}">{% csrf_token %}<button class="btn btn-primary" type="submit">{% icon 'plus' %}{% t "New template" %}</button></form>{% endif %}
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

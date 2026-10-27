@@ -9,6 +9,7 @@
     </div>
   </div>
 
+  {% with forms_tab='forms' %}{% include "workspace/partials/forms_tabs.html" %}{% endwith %}
   <form class="filters card" method="get" role="search" aria-label="Find a form or event">
     <input type="hidden" name="tab" value="{{ tab }}">
     <div class="search-field">{% icon 'search' %}<label for="q" class="sr-only">Find a form or event</label>

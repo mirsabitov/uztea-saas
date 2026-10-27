@@ -33,3 +33,18 @@ def query(context, **kwargs):
             params[key] = value
     encoded = params.urlencode()
     return f'?{encoded}' if encoded else '?'
+
+
+@register.simple_tag(takes_context=True)
+def t(context, text, **values):
+    """{% t "People" %} -> text in the current language (English when no translation)."""
+    from workspace.i18n import translate
+    out = translate(context.get('lang', 'en'), text)
+    return out.format(**values) if values else out
+
+
+@register.filter
+def tr(text, lang):
+    """{{ item.label|tr:lang }} for labels that come from Python."""
+    from workspace.i18n import translate
+    return translate(lang, text)

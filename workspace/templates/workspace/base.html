@@ -1,9 +1,9 @@
 {% load static workspace_tags %}<!doctype html>
-<html lang="en">
+<html lang="{{ lang|default:'en' }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% if page_title %}{{ page_title }} · {% endif %}UzTEA Workspace</title>
+  <title>{% if page_title %}{{ page_title|tr:lang }} · {% endif %}UzTEA Workspace</title>
   <link rel="icon" href="{% static 'workspace/img/logo-navy.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
@@ -12,7 +12,7 @@
 </head>
 <body class="ws">
 {% include "workspace/partials/icons.html" %}
-<a class="skip-link" href="#main">Skip to content</a>
+<a class="skip-link" href="#main">{% t "Skip to content" %}</a>
 
 <div class="ws-shell">
   <aside class="ws-sidebar" id="ws-sidebar" aria-label="Main navigation">
@@ -20,28 +20,28 @@
       <a href="{% url 'workspace:home' %}" class="ws-brand-link" aria-label="UzTEA Workspace home">
         <img src="{% static 'workspace/img/logo-white.png' %}" alt="UzTEA" class="ws-logo" width="480" height="331">
       </a>
-      <button type="button" class="ws-icon-btn ws-sidebar-close" data-sidebar-close aria-label="Close menu">{% icon 'x' %}</button>
+      <button type="button" class="ws-icon-btn ws-sidebar-close" data-sidebar-close aria-label="{% t "Close menu" %}">{% icon 'x' %}</button>
     </div>
     <div class="ws-org" title="Organisation">
       <span class="ws-org-name">UzTEA</span>
-      <span class="ws-org-note">Workspace</span>
+      <span class="ws-org-note">{% t "Workspace" %}</span>
     </div>
 
     <nav class="ws-nav">
       <ul>
         {% for item in nav %}
-          <li{% if item.key == 'website' %} class="ws-nav-separate"{% endif %}><a href="{{ item.url }}" class="ws-nav-link{% if item.active %} is-active{% endif %}"{% if item.active %} aria-current="page"{% endif %}>{% icon item.icon %}<span>{{ item.label }}</span></a></li>
+          <li{% if item.key == 'website' %} class="ws-nav-separate"{% endif %}><a href="{{ item.url }}" class="ws-nav-link{% if item.active %} is-active{% endif %}"{% if item.active %} aria-current="page"{% endif %}>{% icon item.icon %}<span>{{ item.label|tr:lang }}</span></a></li>
         {% endfor %}
       </ul>
     </nav>
 
     <div class="ws-sidebar-bottom">
       <details class="ws-more"{% if section == 'tools' %} open{% endif %}>
-        <summary class="ws-nav-link{% if section == 'tools' %} is-active{% endif %}">{% icon 'grid' %}<span>More tools</span>{% icon 'chevron-down' 'ws-caret' %}</summary>
+        <summary class="ws-nav-link{% if section == 'tools' %} is-active{% endif %}">{% icon 'grid' %}<span>{% t "More tools" %}</span>{% icon 'chevron-down' 'ws-caret' %}</summary>
         <ul class="ws-more-list">
-          <li><a href="{% url 'workspace:tools' %}">All tools &amp; admin sections</a></li>
-          {% if admin_index_url %}<li><a href="{{ admin_index_url }}">Classic admin</a></li>{% endif %}
-          <li><a href="{% url 'membership_form' %}" target="_blank" rel="noopener">Public membership form</a></li>
+          <li><a href="{% url 'workspace:tools' %}">{% t "All tools & admin sections" %}</a></li>
+          {% if admin_index_url %}<li><a href="{{ admin_index_url }}">{% t "Classic admin" %}</a></li>{% endif %}
+          <li><a href="{% url 'membership_form' %}" target="_blank" rel="noopener">{% t "Public membership form" %}</a></li>
         </ul>
       </details>
 
@@ -52,11 +52,11 @@
           {% icon 'chevron-right' 'ws-caret' %}
         </summary>
         <div class="ws-user-menu">
-          {% if password_change_url %}<a href="{{ password_change_url }}">{% icon 'key' %}Change password</a>{% endif %}
-          {% if admin_index_url %}<a href="{{ admin_index_url }}">{% icon 'external-link' %}Classic admin</a>{% endif %}
+          {% if password_change_url %}<a href="{{ password_change_url }}">{% icon 'key' %}{% t "Change password" %}</a>{% endif %}
+          {% if admin_index_url %}<a href="{{ admin_index_url }}">{% icon 'external-link' %}{% t "Classic admin" %}</a>{% endif %}
           {% if logout_url %}
           <form method="post" action="{{ logout_url }}">{% csrf_token %}
-            <button type="submit">{% icon 'log-out' %}Log out</button>
+            <button type="submit">{% icon 'log-out' %}{% t "Log out" %}</button>
           </form>
           {% endif %}
         </div>
@@ -67,30 +67,38 @@
 
   <div class="ws-main">
     <header class="ws-topbar">
-      <button type="button" class="ws-icon-btn ws-menu-btn" data-sidebar-open aria-label="Open menu" aria-controls="ws-sidebar">{% icon 'menu' %}</button>
+      <button type="button" class="ws-icon-btn ws-menu-btn" data-sidebar-open aria-label="{% t "Open menu" %}" aria-controls="ws-sidebar">{% icon 'menu' %}</button>
       <div class="ws-topbar-title">
         <span class="ws-topbar-logo">
           <img src="{% static 'workspace/img/logo-navy.png' %}" alt="" class="logo-on-light" width="480" height="331">
           <img src="{% static 'workspace/img/logo-white.png' %}" alt="" class="logo-on-dark" width="480" height="331">
         </span>
         <div>
-          <span class="ws-product">UzTEA Workspace{% if page_title and section != 'home' %}<span class="ws-product-sep" aria-hidden="true">|</span><span class="ws-product-page">{{ page_title }}</span>{% endif %}</span>
+          <span class="ws-product">UzTEA Workspace{% if page_title and section != 'home' %}<span class="ws-product-sep" aria-hidden="true">|</span><span class="ws-product-page">{{ page_title|tr:lang }}</span>{% endif %}</span>
         </div>
       </div>
       {% if nav|length %}
       <form class="ws-global-search" method="get" action="{% url 'workspace:contacts' %}" role="search">
-        <label for="ws-global-q" class="sr-only">Search people</label>
+        <label for="ws-global-q" class="sr-only">{% t "Search people…" %}</label>
         {% icon 'search' %}
-        <input id="ws-global-q" type="search" name="q" placeholder="Search people…" autocomplete="off">
+        <input id="ws-global-q" type="search" name="q" placeholder="{% t "Search people…" %}" autocomplete="off">
       </form>
       {% endif %}
-      <button type="button" class="ws-icon-btn theme-toggle" data-theme-toggle aria-label="Switch dark / light mode" title="Dark / light mode">{% icon 'moon' 'ic-moon' %}{% icon 'sun' 'ic-sun' %}</button>
-      <a class="btn btn-soft btn-sm ws-hide-sm" href="https://uztea.uz/" target="_blank" rel="noopener">View website {% icon 'external-link' %}</a>
+      {% if can_saas %}<a class="btn btn-sm {% if section == 'saas' %}btn-primary{% else %}btn-outline{% endif %} ws-saas-btn" href="{% url 'workspace:saas' %}">{% icon 'settings' %}<span class="ws-hide-sm">{% t "SaaS Settings" %}</span></a>{% endif %}
+      <details class="menu ws-lang">
+        <summary class="ws-icon-btn" aria-label="{% t "Language" %}" title="{% t "Language" %}"><span class="ws-lang-code">{{ lang|upper }}</span></summary>
+        <form class="menu-body" method="post" action="{% url 'set_language' %}">
+          {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+          {% for code, name in languages %}<button type="submit" name="language" value="{{ code }}"{% if lang == code %} aria-current="true"{% endif %}>{% if lang == code %}{% icon 'check' %}{% else %}<span class="ic"></span>{% endif %}{{ name }}</button>{% endfor %}
+        </form>
+      </details>
+      <button type="button" class="ws-icon-btn theme-toggle" data-theme-toggle aria-label="{% t "Switch dark / light mode" %}" title="{% t "Switch dark / light mode" %}">{% icon 'moon' 'ic-moon' %}{% icon 'sun' 'ic-sun' %}</button>
+      <a class="btn btn-soft btn-sm ws-hide-sm" href="https://uztea.uz/" target="_blank" rel="noopener">{% t "View website" %} {% icon 'external-link' %}</a>
       <span class="avatar avatar-md avatar-light" title="{{ request.user.get_username }}" aria-hidden="true">{{ user_initials }}</span>
     </header>
 
     {% if debug_mode %}
-      <div class="ws-dev-banner" role="note">{% icon 'alert' %}Local development server · records marked <span class="chip chip-demo">Demo data</span> are fake sample data</div>
+      <div class="ws-dev-banner" role="note">{% icon 'alert' %}{% t "Local development server · records marked" %} <span class="chip chip-demo">{% t "Demo data" %}</span> {% t "are fake sample data" %}</div>
     {% endif %}
 
     {% if messages %}

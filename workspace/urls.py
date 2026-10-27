@@ -1,6 +1,6 @@
-from django.urls import path
+from django.urls import include, path
 
-from . import views, views_messages
+from . import views, views_catalog, views_messages
 
 app_name = 'workspace'
 
@@ -16,8 +16,16 @@ urlpatterns = [
     path('website/', views.website, name='website'),
     path('forms/', views.forms_list, name='forms'),
     path('forms/studio/', views.form_studio, name='form_studio'),
+    path('events/', views_catalog.events_list, name='events'),
+    path('events/new/', views_catalog.event_edit, name='event_add'),
+    path('events/<int:pk>/', views_catalog.event_edit, name='event_edit'),
+    path('partners/benefits/', views_catalog.benefits_list, name='benefits'),
+    path('partners/benefits/new/', views_catalog.benefit_edit, name='benefit_add'),
+    path('partners/benefits/<int:pk>/', views_catalog.benefit_edit, name='benefit_edit'),
     path('payments/', views.payments, name='payments'),
     path('partners/', views.partners, name='partners'),
+    path('certificates/', include('certificates.urls_workspace')),
     path('settings/', views.settings_view, name='settings'),
+    path('saas/', views.saas_settings, name='saas'),
     path('tools/', views.tools, name='tools'),
 ]

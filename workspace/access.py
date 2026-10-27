@@ -20,12 +20,16 @@ NAV_SECTIONS = [
     )),
     ('forms', 'Forms & Events', 'workspace:forms', 'file-text', (
         'app.view_membership', 'app.view_conferenceregistration', 'app.view_anniversaryregistration',
+        'workspace.view_event',
     )),
     ('payments', 'Payments', 'workspace:payments', 'credit-card', (
         'click.view_order', 'app.view_pendingpayment', 'atmos.view_atmostransaction',
         'payme.view_paymetransaction', 'click.view_promocode',
     )),
-    ('partners', 'Partners', 'workspace:partners', 'handshake', ('app.view_partner',)),
+    ('partners', 'Partners', 'workspace:partners', 'handshake', ('app.view_partner', 'workspace.view_benefit')),
+    ('certificates', 'Certificates', 'workspace:certificates', 'award', (
+        'certificates.view_certificatetemplate', 'certificates.view_certificate',
+    )),
     ('settings', 'Settings', 'workspace:settings', 'settings', (
         'app.view_membershiptypeconfig', 'auth.view_user', 'auth.view_group',
     )),
@@ -33,6 +37,8 @@ NAV_SECTIONS = [
     ('website', 'Website', 'workspace:website', 'globe', ()),
 ]
 SECTION_PERMS = {key: perms for key, _label, _url, _icon, perms in NAV_SECTIONS}
+# Sections reached from the header rather than the sidebar.
+SECTION_PERMS['saas'] = ('workspace.view_organizationsettings', 'workspace.change_organizationsettings')
 
 
 def can(user, *perms):
@@ -93,8 +99,13 @@ def workspace_view(section, *perms):
 
 def render_ws(request, template, context, section, status=200):
     user = request.user
+    from .i18n import LANGUAGES, language_for
+    lang = language_for(request)
     base = {
+        'lang': lang,
+        'languages': LANGUAGES,
         'nav': nav_items(user, section),
+        'can_saas': can(user, *SECTION_PERMS['saas']),
         'section': section,
         'user_role': user_role(user),
         'user_initials': initials(user.get_full_name() or user.get_username()),

@@ -1,0 +1,17 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page narrow" aria-labelledby="page-title">
+  <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="{{ list_url }}">{% t "Upcoming events" %}</a>{% icon 'chevron-right' %}<span aria-current="page">{% if obj %}{{ obj }}{% else %}{% t "Create event" %}{% endif %}</span></nav>
+  <div class="page-head"><div><h1 id="page-title">{% if obj %}{{ obj }}{% else %}{% t "Create event" %}{% endif %}</h1>
+    <p class="page-sub">Published events appear in members' cabinets under "Upcoming events".</p></div></div>
+  <form method="post" class="card form-stack">
+    {% csrf_token %}
+    {% include "workspace/partials/form_fields.html" %}
+    <div class="page-actions form-actions-row">
+      {% if can_delete %}<button type="submit" name="delete" value="1" class="btn btn-ghost btn-danger" data-confirm="Delete this event?">{% icon 'trash' %}{% t "Delete" %}</button>{% endif %}
+      <a class="btn btn-ghost" href="{{ list_url }}">{% t "Cancel" %}</a>
+      <button type="submit" class="btn btn-primary">{% icon 'check' %}{% t "Save" %}</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

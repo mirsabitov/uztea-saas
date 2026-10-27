@@ -6,7 +6,8 @@ from django.contrib.auth.models import Group, User
 from django.core.paginator import Paginator
 from django.db.models import Count, Max, Q
 from django.http import Http404
-from django.shortcuts import get_object_or_404
+from django import forms
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 
@@ -210,6 +211,8 @@ def people_members(request):
         ),
         'preview': preview,
         'message_url': _message_url(user, 'member'),
+        'cert_issue_url': (reverse('workspace:cert_issue') + '?source=member')
+        if can(user, 'certificates.add_certificate') else None,
     }, 'people')
 
 
@@ -533,21 +536,7 @@ def _configured(*env_names):
 @workspace_view('settings')
 def settings_view(request):
     user = request.user
-    # Only "configured / not configured" is shown — never the values.
-    integrations = [
-        {'name': 'Click', 'icon': 'credit-card', 'ok': _configured('CLICK_SERVICE_ID', 'CLICK_MERCHANT_ID', 'CLICK_SECRET_KEY'),
-         'note': 'Membership and conference checkout'},
-        {'name': 'Payme', 'icon': 'credit-card', 'ok': bool(settings.PAYME_CASHBOX_ID and settings.PAYME_SECRET_KEY),
-         'note': f'Environment: {settings.PAYME_ENV}'},
-        {'name': 'Atmos', 'icon': 'wallet', 'ok': bool(settings.ATMOS_CONSUMER_KEY and settings.ATMOS_CONSUMER_SECRET),
-         'note': 'UzCard / Humo and Visa / Mastercard'},
-        {'name': 'Email (SMTP)', 'icon': 'mail', 'ok': bool(getattr(settings, 'EMAIL_HOST', None)),
-         'note': 'Welcome emails and the email composer'},
-        {'name': 'Eskiz SMS', 'icon': 'message-square', 'ok': messaging.sms_mode() == 'live',
-         'note': 'SMS from People and Partners (ESKIZ_EMAIL, ESKIZ_PASSWORD, ESKIZ_FROM)'},
-        {'name': 'Telegram', 'icon': 'send', 'ok': bool(settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_ADMIN_CHAT_ID),
-         'note': 'Admin notifications about new applications'},
-    ]
+    integrations = integration_status()
     return render_ws(request, 'workspace/settings.html', {
         'page_title': 'Settings',
         'page_subtitle': 'Organisation, membership types, access and integrations',
@@ -596,3 +585,53 @@ def website(request):
         'page_title': 'Website',
         'page_subtitle': 'Content of uztea.uz, managed from the workspace',
     }, 'website')
+
+
+# ── SaaS Settings (organisation, language, integrations) ────────────────────
+
+class OrganizationForm(forms.ModelForm):
+    class Meta:
+        from .models import OrganizationSettings
+        model = OrganizationSettings
+        fields = ['name', 'short_name', 'tagline', 'email', 'phone', 'website', 'address', 'default_language']
+        widgets = {'address': forms.Textarea(attrs={'rows': 3})}
+
+
+def integration_status():
+    """Configured / not configured only — never the values."""
+    from . import brevo
+    return [
+        {'name': 'Brevo (email)', 'icon': 'mail', 'ok': brevo.is_configured(),
+         'note': 'Sends all emails through Brevo (BREVO_SMTP_LOGIN, BREVO_SMTP_KEY)'},
+        {'name': 'Eskiz SMS', 'icon': 'message-square', 'ok': messaging.sms_mode() == 'live',
+         'note': 'SMS from People and Partners (ESKIZ_EMAIL, ESKIZ_PASSWORD, ESKIZ_FROM)'},
+        {'name': 'Click', 'icon': 'credit-card', 'ok': _configured('CLICK_SERVICE_ID', 'CLICK_MERCHANT_ID', 'CLICK_SECRET_KEY'),
+         'note': 'Membership and conference checkout'},
+        {'name': 'Payme', 'icon': 'credit-card', 'ok': bool(settings.PAYME_CASHBOX_ID and settings.PAYME_SECRET_KEY),
+         'note': f'Environment: {settings.PAYME_ENV}'},
+        {'name': 'Atmos', 'icon': 'wallet', 'ok': bool(settings.ATMOS_CONSUMER_KEY and settings.ATMOS_CONSUMER_SECRET),
+         'note': 'UzCard / Humo and Visa / Mastercard'},
+        {'name': 'Telegram', 'icon': 'send', 'ok': bool(settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_ADMIN_CHAT_ID),
+         'note': 'Admin notifications about new applications'},
+    ]
+
+
+@workspace_view('saas')
+def saas_settings(request):
+    from django.contrib import messages as flash
+    from .i18n import translate
+    from .models import OrganizationSettings
+
+    org = OrganizationSettings.get()
+    can_edit = request.user.has_perm('workspace.change_organizationsettings')
+    form = OrganizationForm(request.POST or None, instance=org)
+    if request.method == 'POST' and can_edit and form.is_valid():
+        form.save()
+        flash.success(request, translate(request.session.get('uztea_lang') or form.cleaned_data['default_language'],
+                                         'Settings saved.'))
+        return redirect('workspace:saas')
+    return render_ws(request, 'workspace/saas.html', {
+        'page_title': 'SaaS Settings',
+        'form': form, 'can_edit': can_edit, 'org': org,
+        'integrations': integration_status() if request.user.is_superuser else None,
+    }, 'saas')

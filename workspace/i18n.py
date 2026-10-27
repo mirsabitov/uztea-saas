@@ -1,0 +1,163 @@
+"""Uzbek / Russian translations for the workspace, member cabinet and certificate portal.
+
+English is the source text: {% t "People" %} shows the Uzbek or Russian line when one
+exists and the English text otherwise, so a missing translation never breaks a page.
+Add new lines to UZ and RU below (same key = the exact English text).
+
+Language order: the person's own choice (session) > organisation default (SaaS
+Settings) > English.
+"""
+LANGUAGES = [('en', 'English'), ('uz', "O'zbekcha"), ('ru', 'Русский')]
+LANGUAGE_CODES = {code for code, _ in LANGUAGES}
+SESSION_KEY = 'uztea_lang'
+
+UZ = {
+    # Navigation & shell
+    'Home': 'Bosh sahifa', 'People': 'Odamlar', 'Forms & Events': 'Formalar va tadbirlar',
+    'Payments': "To'lovlar", 'Partners': 'Hamkorlar', 'Settings': 'Sozlamalar', 'Website': 'Veb-sayt',
+    'Certificates': 'Sertifikatlar', 'More tools': "Boshqa vositalar", 'SaaS Settings': 'SaaS sozlamalari',
+    'Search people…': 'Odamlarni qidirish…', 'View website': "Saytni ko'rish", 'Change password': "Parolni o'zgartirish",
+    'Classic admin': 'Klassik admin', 'Log out': 'Chiqish', 'Language': 'Til',
+    'All tools & admin sections': "Barcha vositalar va admin bo'limlari", 'Public membership form': "A'zolik formasi",
+    'Skip to content': "Asosiy qismga o'tish", 'Open menu': 'Menyuni ochish', 'Close menu': 'Menyuni yopish',
+    'Switch dark / light mode': "Tungi / kunduzgi rejim", 'Workspace': 'Ish maydoni',
+    'Local development server · records marked': 'Lokal server · belgilangan yozuvlar',
+    'are fake sample data': "sinov uchun soxta ma'lumot", 'Demo data': "Demo ma'lumot",
+    'No access to this section': "Bu bo'limga ruxsat yo'q",
+    'Your account does not have permission to view it. Ask an administrator to update your group permissions.':
+        "Hisobingizda bu bo'limni ko'rish huquqi yo'q. Administratordan guruh huquqlarini yangilashni so'rang.",
+    'Back to Home': 'Bosh sahifaga qaytish',
+    # Common
+    'Search': 'Qidirish', 'Clear': 'Tozalash', 'Import': 'Import', 'Export': 'Eksport', 'Add person': "Odam qo'shish",
+    'Save': 'Saqlash', 'Cancel': 'Bekor qilish', 'Edit': 'Tahrirlash', 'Open': 'Ochish', 'Delete': "O'chirish",
+    'Status': 'Holat', 'Type': 'Turi', 'Position': 'Lavozim', 'Actions': 'Amallar', 'Rows': 'Qatorlar',
+    'More filters': "Ko'proq filtrlar", 'Columns': 'Ustunlar', 'Apply': "Qo'llash", 'Any': 'Istalgan',
+    'Next phase': 'Keyingi bosqich', 'Preview': "Ko'rib chiqish", 'Send': 'Yuborish', 'Download': 'Yuklab olish',
+    'Show table': "Jadvalni ko'rsatish", 'No records in this period.': "Bu davrda yozuvlar yo'q.",
+    'Membership ID': 'A\'zolik ID', 'Email': 'Email', 'Phone': 'Telefon', 'Name': 'Ism', 'Date': 'Sana',
+    'Source': 'Manba', 'Country': 'Davlat', 'Joined': "Qo'shilgan", 'Valid until': 'Amal qiladi',
+    'Membership': "A'zolik", 'Payment': "To'lov", 'Member': "A'zo", 'Members': "A'zolar",
+    # Home / dashboard
+    'Welcome': 'Xush kelibsiz', 'How UzTEA is doing · live from the database': "UzTEA holati · bazadan jonli ma'lumot",
+    'Create form': 'Forma yaratish', 'Create event': 'Tadbir yaratish', '30 days': '30 kun', '90 days': '90 kun',
+    '12 months': '12 oy', 'All time': 'Butun davr', 'Active members': "Faol a'zolar",
+    'New applications': 'Yangi arizalar', 'Revenue': 'Daromad', 'Paid applications': "To'langan arizalar",
+    'New membership applications': "Yangi a'zolik arizalari", 'Payment status of applications': "Arizalarning to'lov holati",
+    'Membership types': "A'zolik turlari", 'Event registrations': "Tadbirlarga ro'yxatdan o'tish",
+    'Regions': 'Hududlar', 'Positions': 'Lavozimlar', 'Preferred language': 'Afzal til',
+    'Recent activity': "So'nggi faollik", 'Needs attention': "E'tibor talab qiladi", 'Upcoming events': 'Yaqin tadbirlar',
+    'Nothing waiting right now.': "Hozircha kutilayotgan ish yo'q.",
+    # People
+    'Your members and professional community': "A'zolaringiz va professional hamjamiyat",
+    'Teachers Bank': "O'qituvchilar banki", 'All contacts': 'Barcha kontaktlar', 'Messages': 'Xabarlar',
+    'All members': "Barcha a'zolar", 'Active': 'Faol', 'Renewal due': 'Yangilash vaqti',
+    'Expired': "Muddati o'tgan", 'Pending Payment list': "To'lov kutilayotganlar", 'Pending payment': "To'lov kutilmoqda",
+    'No payment record': "To'lov yozuvi yo'q", 'Search name, email or membership ID…': "Ism, email yoki a'zolik ID…",
+    'Member preview': "A'zo haqida qisqacha", 'Open full profile': "To'liq profilni ochish",
+    'Edit profile': 'Profilni tahrirlash', 'Download card': 'Kartani yuklab olish', 'Send SMS': 'SMS yuborish',
+    'Send email': 'Email yuborish', 'Overview': 'Umumiy', 'Activity': 'Faollik', 'Membership status': "A'zolik holati",
+    'Payment status': "To'lov holati", 'Institution': 'Muassasa', 'Invite to cabinet': 'Kabinetga taklif qilish',
+    # Settings
+    'Organisation': 'Tashkilot', 'Organisation name': 'Tashkilot nomi', 'Short name': 'Qisqa nomi', 'Tagline': 'Shior',
+    'Website address': 'Sayt manzili', 'Address': 'Manzil', 'Default language': 'Asosiy til',
+    'Your language': 'Sizning tilingiz', 'Settings saved.': 'Sozlamalar saqlandi.', 'Integrations': 'Integratsiyalar',
+    'Configured': 'Sozlangan', 'Not configured': 'Sozlanmagan',
+    # Certificates (workspace)
+    'Certificate templates': 'Sertifikat shablonlari', 'Issued certificates': 'Berilgan sertifikatlar',
+    'New template': 'Yangi shablon', 'Issue certificates': 'Sertifikat berish', 'Number': 'Raqam',
+    # Cabinet & public portal
+    'Member cabinet': "A'zo kabineti", 'Sign in': 'Kirish', 'Sign out': 'Chiqish', 'Password': 'Parol',
+    'Forgot password?': 'Parolni unutdingizmi?', 'Create your account': 'Hisob yaratish',
+    'Set your password': "Parol o'rnatish", 'New password': 'Yangi parol', 'Repeat password': 'Parolni takrorlang',
+    'My membership': "Mening a'zoligim", 'My payments': "Mening to'lovlarim", 'My certificates': 'Mening sertifikatlarim',
+    'My events': 'Mening tadbirlarim', 'Bonuses & offers': 'Bonuslar va takliflar', 'Courses': 'Kurslar',
+    'Coming soon': 'Tez orada', 'Profile': 'Profil', 'Amount': 'Summa',
+    'Find your certificates': 'Sertifikatlaringizni toping', 'Verify a certificate': 'Sertifikatni tekshirish',
+    'Email or membership ID': "Email yoki a'zolik ID", 'Certificate number': 'Sertifikat raqami',
+    'Send me the link': 'Havolani yuboring', 'Check': 'Tekshirish', 'Valid certificate': 'Haqiqiy sertifikat',
+    'Certificate not found': 'Sertifikat topilmadi', 'Issued to': 'Kimga berilgan', 'Issued on': 'Berilgan sana',
+    'Event': 'Tadbir', 'Download PDF': 'PDF yuklab olish',
+}
+
+RU = {
+    'Home': 'Главная', 'People': 'Люди', 'Forms & Events': 'Формы и события', 'Payments': 'Платежи',
+    'Partners': 'Партнёры', 'Settings': 'Настройки', 'Website': 'Сайт', 'Certificates': 'Сертификаты',
+    'More tools': 'Другие инструменты', 'SaaS Settings': 'Настройки SaaS', 'Search people…': 'Поиск людей…',
+    'View website': 'Открыть сайт', 'Change password': 'Сменить пароль', 'Classic admin': 'Классическая админка',
+    'Log out': 'Выйти', 'Language': 'Язык', 'All tools & admin sections': 'Все инструменты и разделы админки',
+    'Public membership form': 'Форма членства', 'Skip to content': 'К содержимому', 'Open menu': 'Открыть меню',
+    'Close menu': 'Закрыть меню', 'Switch dark / light mode': 'Тёмная / светлая тема', 'Workspace': 'Рабочее пространство',
+    'Local development server · records marked': 'Локальный сервер · записи с меткой',
+    'are fake sample data': '— тестовые данные', 'Demo data': 'Демо-данные',
+    'No access to this section': 'Нет доступа к разделу',
+    'Your account does not have permission to view it. Ask an administrator to update your group permissions.':
+        'У вашей учётной записи нет прав на этот раздел. Попросите администратора обновить права группы.',
+    'Back to Home': 'На главную',
+    'Search': 'Найти', 'Clear': 'Сбросить', 'Import': 'Импорт', 'Export': 'Экспорт', 'Add person': 'Добавить человека',
+    'Save': 'Сохранить', 'Cancel': 'Отмена', 'Edit': 'Изменить', 'Open': 'Открыть', 'Delete': 'Удалить',
+    'Status': 'Статус', 'Type': 'Тип', 'Position': 'Должность', 'Actions': 'Действия', 'Rows': 'Строк',
+    'More filters': 'Ещё фильтры', 'Columns': 'Столбцы', 'Apply': 'Применить', 'Any': 'Любой',
+    'Next phase': 'Следующий этап', 'Preview': 'Предпросмотр', 'Send': 'Отправить', 'Download': 'Скачать',
+    'Show table': 'Показать таблицу', 'No records in this period.': 'За этот период записей нет.',
+    'Membership ID': 'ID членства', 'Email': 'Email', 'Phone': 'Телефон', 'Name': 'Имя', 'Date': 'Дата',
+    'Source': 'Источник', 'Country': 'Страна', 'Joined': 'Дата вступления', 'Valid until': 'Действует до',
+    'Membership': 'Членство', 'Payment': 'Оплата', 'Member': 'Участник', 'Members': 'Участники',
+    'Welcome': 'Добро пожаловать', 'How UzTEA is doing · live from the database': 'Показатели UzTEA · данные из базы',
+    'Create form': 'Создать форму', 'Create event': 'Создать событие', '30 days': '30 дней', '90 days': '90 дней',
+    '12 months': '12 месяцев', 'All time': 'За всё время', 'Active members': 'Активные участники',
+    'New applications': 'Новые заявки', 'Revenue': 'Выручка', 'Paid applications': 'Оплаченные заявки',
+    'New membership applications': 'Новые заявки на членство', 'Payment status of applications': 'Статус оплаты заявок',
+    'Membership types': 'Типы членства', 'Event registrations': 'Регистрации на события', 'Regions': 'Регионы',
+    'Positions': 'Должности', 'Preferred language': 'Предпочитаемый язык', 'Recent activity': 'Последние действия',
+    'Needs attention': 'Требует внимания', 'Upcoming events': 'Ближайшие события',
+    'Nothing waiting right now.': 'Сейчас ничего не ожидает.',
+    'Your members and professional community': 'Ваши участники и профессиональное сообщество',
+    'Teachers Bank': 'Банк учителей', 'All contacts': 'Все контакты', 'Messages': 'Сообщения',
+    'All members': 'Все участники', 'Active': 'Активен', 'Renewal due': 'Пора продлить', 'Expired': 'Истёк',
+    'Pending Payment list': 'Ожидают оплаты', 'Pending payment': 'Ожидает оплаты', 'No payment record': 'Нет записи об оплате',
+    'Search name, email or membership ID…': 'Имя, email или ID членства…', 'Member preview': 'Карточка участника',
+    'Open full profile': 'Открыть профиль', 'Edit profile': 'Изменить профиль', 'Download card': 'Скачать карту',
+    'Send SMS': 'Отправить SMS', 'Send email': 'Отправить email', 'Overview': 'Обзор', 'Activity': 'Активность',
+    'Membership status': 'Статус членства', 'Payment status': 'Статус оплаты', 'Institution': 'Учреждение',
+    'Invite to cabinet': 'Пригласить в кабинет',
+    'Organisation': 'Организация', 'Organisation name': 'Название организации', 'Short name': 'Краткое название',
+    'Tagline': 'Слоган', 'Website address': 'Адрес сайта', 'Address': 'Адрес', 'Default language': 'Язык по умолчанию',
+    'Your language': 'Ваш язык', 'Settings saved.': 'Настройки сохранены.', 'Integrations': 'Интеграции',
+    'Configured': 'Настроено', 'Not configured': 'Не настроено',
+    'Certificate templates': 'Шаблоны сертификатов', 'Issued certificates': 'Выданные сертификаты',
+    'New template': 'Новый шаблон', 'Issue certificates': 'Выдать сертификаты', 'Number': 'Номер',
+    'Member cabinet': 'Кабинет участника', 'Sign in': 'Войти', 'Sign out': 'Выйти', 'Password': 'Пароль',
+    'Forgot password?': 'Забыли пароль?', 'Create your account': 'Создать аккаунт', 'Set your password': 'Задайте пароль',
+    'New password': 'Новый пароль', 'Repeat password': 'Повторите пароль', 'My membership': 'Моё членство',
+    'My payments': 'Мои платежи', 'My certificates': 'Мои сертификаты', 'My events': 'Мои события',
+    'Bonuses & offers': 'Бонусы и предложения', 'Courses': 'Курсы', 'Coming soon': 'Скоро', 'Profile': 'Профиль',
+    'Amount': 'Сумма', 'Find your certificates': 'Найдите свои сертификаты', 'Verify a certificate': 'Проверить сертификат',
+    'Email or membership ID': 'Email или ID членства', 'Certificate number': 'Номер сертификата',
+    'Send me the link': 'Отправить ссылку', 'Check': 'Проверить', 'Valid certificate': 'Действительный сертификат',
+    'Certificate not found': 'Сертификат не найден', 'Issued to': 'Кому выдан', 'Issued on': 'Дата выдачи',
+    'Event': 'Событие', 'Download PDF': 'Скачать PDF',
+}
+
+CATALOG = {'uz': UZ, 'ru': RU}
+
+
+def translate(lang, text):
+    return CATALOG.get(lang, {}).get(text, text)
+
+
+def default_language():
+    try:
+        from .models import OrganizationSettings
+        return OrganizationSettings.get().default_language
+    except Exception:  # e.g. before migrations
+        return 'en'
+
+
+def language_for(request):
+    lang = request.session.get(SESSION_KEY) if hasattr(request, 'session') else None
+    return lang if lang in LANGUAGE_CODES else default_language()
+
+
+def set_language(request, lang):
+    if lang in LANGUAGE_CODES:
+        request.session[SESSION_KEY] = lang

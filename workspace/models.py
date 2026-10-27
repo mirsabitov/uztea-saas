@@ -44,3 +44,85 @@ class MessageLog(models.Model):
 
     def __str__(self):
         return f'{self.get_channel_display()} to {self.to or self.recipient_name} ({self.status})'
+
+
+LANGUAGE_CHOICES = [('en', 'English'), ('uz', "O'zbekcha"), ('ru', 'Русский')]
+
+
+class OrganizationSettings(models.Model):
+    """Single row with the organisation's details (SaaS Settings)."""
+    name = models.CharField(max_length=255, default='Uzbekistan Teachers of English Association')
+    short_name = models.CharField(max_length=50, default='UzTEA')
+    tagline = models.CharField(max_length=255, blank=True, default='Empowering teachers, stronger together')
+    email = models.EmailField(blank=True, default='info@uztea.uz')
+    phone = models.CharField(max_length=50, blank=True)
+    website = models.URLField(blank=True, default='https://www.uztea.uz')
+    address = models.TextField(blank=True)
+    default_language = models.CharField(max_length=5, choices=LANGUAGE_CHOICES, default='en',
+                                        help_text='Language of the workspace, member cabinet and certificate portal '
+                                                  'unless a person picks another one.')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Organisation settings'
+        verbose_name_plural = 'Organisation settings'
+
+    def __str__(self):
+        return self.short_name or self.name
+
+    @classmethod
+    def get(cls):
+        obj = cls.objects.order_by('pk').first()
+        return obj or cls.objects.create()
+
+
+class Event(models.Model):
+    """An UzTEA event shown to members as "upcoming". Registration stays on its own form for now."""
+    KIND_CHOICES = [('conference', 'Conference'), ('workshop', 'Workshop / seminar'),
+                    ('webinar', 'Webinar'), ('celebration', 'Celebration'), ('other', 'Other')]
+
+    title = models.CharField(max_length=255)
+    kind = models.CharField(max_length=20, choices=KIND_CHOICES, default='workshop')
+    description = models.TextField(blank=True)
+    starts_at = models.DateTimeField()
+    ends_at = models.DateTimeField(null=True, blank=True)
+    location = models.CharField(max_length=255, blank=True, help_text='Venue or "Online".')
+    registration_url = models.URLField(blank=True, help_text='Public registration page, if any.')
+    is_published = models.BooleanField(default=False, help_text='Published events are shown in member cabinets.')
+    members_only = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['starts_at']
+
+    def __str__(self):
+        return self.title
+
+
+class Benefit(models.Model):
+    """A bonus, discount or offer for members (often from a partner)."""
+    title = models.CharField(max_length=255)
+    partner = models.ForeignKey('app.Partner', null=True, blank=True, on_delete=models.SET_NULL, related_name='benefits')
+    description = models.TextField(blank=True)
+    discount = models.CharField(max_length=100, blank=True, help_text='e.g. "20% off" or "Free entry".')
+    code = models.CharField(max_length=100, blank=True, help_text='Promo code members show or enter.')
+    link = models.URLField(blank=True)
+    membership_types = models.CharField(max_length=255, blank=True,
+                                        help_text='Comma-separated membership type codes. Empty = all members.')
+    valid_until = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+    def type_codes(self):
+        return [c.strip() for c in self.membership_types.split(',') if c.strip()]
+
+    def applies_to(self, membership_type):
+        codes = self.type_codes()
+        return not codes or membership_type in codes

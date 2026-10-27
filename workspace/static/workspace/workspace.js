@@ -450,3 +450,9 @@
   });
   form.addEventListener('submit', function () { if (sendBtn) { sendBtn.disabled = true; sendBtn.lastChild.textContent = 'Sending…'; } });
 })();
+
+/* Buttons that need a confirmation step (delete). */
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-confirm]');
+  if (b && !window.confirm(b.getAttribute('data-confirm'))) e.preventDefault();
+});

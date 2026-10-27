@@ -1,0 +1,5 @@
+{% load workspace_tags %}
+<nav class="segmented" aria-label="Partners">
+  {% if perms.app.view_partner %}<a class="seg{% if partners_tab == 'partners' %} is-active{% endif %}" href="{% url 'workspace:partners' %}"{% if partners_tab == 'partners' %} aria-current="page"{% endif %}>{% icon 'handshake' %}{% t "Partners" %}</a>{% endif %}
+  {% if perms.workspace.view_benefit %}<a class="seg{% if partners_tab == 'benefits' %} is-active{% endif %}" href="{% url 'workspace:benefits' %}"{% if partners_tab == 'benefits' %} aria-current="page"{% endif %}>{% icon 'tag' %}{% t "Bonuses & offers" %}</a>{% endif %}
+</nav>

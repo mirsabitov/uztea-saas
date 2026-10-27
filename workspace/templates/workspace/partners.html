@@ -9,7 +9,7 @@
       {% if add_url %}<a class="btn btn-primary" href="{{ add_url }}">{% icon 'plus' %}Add partner</a>{% endif %}
     </div>
   </div>
-  <p class="note">{% icon 'alert' %}Benefits, offers and event links for partners are planned for the Partners phase.</p>
+  {% with partners_tab='partners' %}{% include "workspace/partials/partners_tabs.html" %}{% endwith %}
 
   <form class="filters card" method="get" role="search" aria-label="Filter partners">
     <div class="search-field">{% icon 'search' %}<label for="q" class="sr-only">Search partners</label>

@@ -105,7 +105,7 @@
         <table class="table" data-columns-table="members">
           <thead>
             <tr>
-              <th class="col-select" scope="col">{% if bulk or message_url %}<input type="checkbox" aria-label="Select all on this page" data-select-all>{% endif %}</th>
+              <th class="col-select" scope="col">{% if bulk or message_url or cert_issue_url %}<input type="checkbox" aria-label="Select all on this page" data-select-all>{% endif %}</th>
               <th scope="col"><a class="sort{% if sort == 'name' or sort == '-name' %} is-sorted{% endif %}" href="?{{ sort_query }}{% if sort_query %}&{% endif %}sort={% if sort == 'name' %}-name{% else %}name{% endif %}">Member {% icon 'sort' %}</a></th>
               <th scope="col" data-col="membership"><a class="sort{% if sort == 'type' or sort == '-type' %} is-sorted{% endif %}" href="?{{ sort_query }}{% if sort_query %}&{% endif %}sort={% if sort == 'type' %}-type{% else %}type{% endif %}">Membership {% icon 'sort' %}</a></th>
               <th scope="col" data-col="status">Status</th>
@@ -120,7 +120,7 @@
           <tbody>
             {% for row in rows %}
             <tr class="row-clickable{% if preview and preview.member.pk == row.pk %} is-selected{% endif %}" data-preview-url="{% url 'workspace:member_preview' row.pk %}" data-pk="{{ row.pk }}">
-              <td class="col-select" data-no-preview>{% if bulk or message_url %}<input type="checkbox" name="_selected_action" value="{{ row.pk }}" form="bulk-form" aria-label="Select {{ row.obj.full_name }}" data-row-check>{% endif %}</td>
+              <td class="col-select" data-no-preview>{% if bulk or message_url or cert_issue_url %}<input type="checkbox" name="_selected_action" value="{{ row.pk }}" form="bulk-form" aria-label="Select {{ row.obj.full_name }}" data-row-check>{% endif %}</td>
               <td>
                 <div class="person">
                   <span class="avatar avatar-md" aria-hidden="true">{{ row.initials }}</span>
