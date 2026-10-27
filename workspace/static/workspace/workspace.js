@@ -90,18 +90,24 @@
     var counter = $('[data-bulk-count]', bulkForm);
     var all = $('[data-select-all]');
     var checks = $$('[data-row-check]');
+    var msgButtons = $$('[data-bulk-msg]', bulkForm);
+    var selected = function () { return checks.filter(function (c) { return c.checked; }).length; };
     var refresh = function () {
-      var n = checks.filter(function (c) { return c.checked; }).length;
-      select.disabled = n === 0;
-      apply.disabled = n === 0 || !select.value;
+      var n = selected();
+      if (select) select.disabled = n === 0;
+      if (apply) apply.disabled = n === 0 || !select.value;
+      msgButtons.forEach(function (b) { b.disabled = n === 0; });
       counter.textContent = n ? n + ' selected' : '';
       if (all) { all.checked = n > 0 && n === checks.length; all.indeterminate = n > 0 && n < checks.length; }
       checks.forEach(function (c) { var tr = c.closest('tr'); if (tr) tr.classList.toggle('is-checked', c.checked); });
     };
     checks.forEach(function (c) { c.addEventListener('change', refresh); });
     if (all) all.addEventListener('change', function () { checks.forEach(function (c) { c.checked = all.checked; }); refresh(); });
-    select.addEventListener('change', refresh);
-    bulkForm.addEventListener('submit', function (e) { if (apply.disabled) e.preventDefault(); });
+    if (select) select.addEventListener('change', refresh);
+    bulkForm.addEventListener('submit', function (e) {
+      var viaMessage = e.submitter && e.submitter.hasAttribute('data-bulk-msg');
+      if (selected() === 0 || (!viaMessage && (!apply || apply.disabled))) e.preventDefault();
+    });
     refresh();
   }
 
@@ -368,4 +374,79 @@
     el.addEventListener('blur', hide);
   });
   window.addEventListener('scroll', hide, { passive: true });
+})();
+
+/* Dark / light mode. No stored choice = follow the OS setting. */
+(function () {
+  'use strict';
+  var btn = document.querySelector('[data-theme-toggle]');
+  if (!btn) return;
+  var root = document.documentElement;
+  var isDark = function () {
+    var t = root.getAttribute('data-theme');
+    if (t) return t === 'dark';
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  };
+  var label = function () {
+    btn.setAttribute('aria-pressed', isDark() ? 'true' : 'false');
+    btn.setAttribute('aria-label', isDark() ? 'Switch to light mode' : 'Switch to dark mode');
+  };
+  btn.addEventListener('click', function () {
+    var next = isDark() ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('ws-theme', next); } catch (e) { /* private mode */ }
+    label();
+  });
+  label();
+})();
+
+/* Message composer: channel panels, SMS counter, placeholders. */
+(function () {
+  'use strict';
+  var form = document.querySelector('[data-compose]');
+  if (!form) return;
+  var radios = form.querySelectorAll('[data-channel]');
+  var sendBtn = form.querySelector('[data-send-button]');
+  var lastField = null;
+  function channel() {
+    var checked = form.querySelector('[data-channel]:checked');
+    return checked ? checked.value : 'email';
+  }
+  function showPanels() {
+    var c = channel();
+    document.querySelectorAll('[data-channel-panel]').forEach(function (el) {
+      el.hidden = el.getAttribute('data-channel-panel') !== c;
+    });
+    if (sendBtn) sendBtn.lastChild.textContent = c === 'sms' ? 'Send SMS' : 'Send email';
+  }
+  radios.forEach(function (r) { r.addEventListener('change', showPanels); });
+  showPanels();
+
+  var sms = form.querySelector('[data-sms-text]');
+  var counter = form.querySelector('[data-sms-count]');
+  function countSms() {
+    var text = sms.value;
+    var unicode = /[^\x00-\x7f]/.test(text);
+    var single = unicode ? 70 : 160, multi = unicode ? 67 : 153;
+    var parts = !text.length ? 0 : (text.length <= single ? 1 : Math.ceil(text.length / multi));
+    counter.textContent = text.length + ' characters · ' + parts + ' SMS per person';
+  }
+  if (sms && counter) { sms.addEventListener('input', countSms); countSms(); }
+
+  form.querySelectorAll('textarea, input[type="text"], input:not([type])').forEach(function (el) {
+    el.addEventListener('focus', function () { lastField = el; });
+  });
+  form.querySelectorAll('[data-insert]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var target = lastField || (channel() === 'sms' ? sms : form.querySelector('#id_body'));
+      if (!target) return;
+      var code = b.getAttribute('data-insert');
+      var start = target.selectionStart || target.value.length, end = target.selectionEnd || start;
+      target.value = target.value.slice(0, start) + code + target.value.slice(end);
+      target.focus();
+      target.selectionStart = target.selectionEnd = start + code.length;
+      target.dispatchEvent(new Event('input'));
+    });
+  });
+  form.addEventListener('submit', function () { if (sendBtn) { sendBtn.disabled = true; sendBtn.lastChild.textContent = 'Sending…'; } });
 })();

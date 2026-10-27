@@ -17,10 +17,13 @@
     {% include "workspace/partials/people_tabs.html" %}
 
     <div class="segmented" role="group" aria-label="Member lists">
-      {% if can_all %}<a class="seg{% if view == 'all' %} is-active{% endif %}" href="{% url 'workspace:people' %}"{% if view == 'all' %} aria-current="true"{% endif %}>All members</a>{% endif %}
-      <span class="seg is-disabled" aria-disabled="true" title="Needs a membership validity rule — planned for the People &amp; membership lifecycle phase">Active <span class="chip chip-next">Next phase</span></span>
-      <span class="seg is-disabled" aria-disabled="true" title="Needs a renewal rule — planned for the People &amp; membership lifecycle phase">Renewal due <span class="chip chip-next">Next phase</span></span>
-      {% if can_pending %}<a class="seg{% if view == 'pending' %} is-active{% endif %}" href="{% url 'workspace:people' %}?view=pending"{% if view == 'pending' %} aria-current="true"{% endif %}>Pending payment</a>{% endif %}
+      {% if can_all %}
+      <a class="seg{% if view == 'all' and not status %} is-active{% endif %}" href="{% url 'workspace:people' %}"{% if view == 'all' and not status %} aria-current="true"{% endif %}>All members</a>
+      <a class="seg{% if view == 'all' and status == 'active' %} is-active{% endif %}" href="{% url 'workspace:people' %}?status=active"{% if status == 'active' %} aria-current="true"{% endif %}>Active</a>
+      <a class="seg{% if view == 'all' and status == 'renewal_due' %} is-active{% endif %}" href="{% url 'workspace:people' %}?status=renewal_due&amp;sort=renewal"{% if status == 'renewal_due' %} aria-current="true"{% endif %} title="Valid, 30 days or less left">Renewal due</a>
+      <a class="seg{% if view == 'all' and status == 'expired' %} is-active{% endif %}" href="{% url 'workspace:people' %}?status=expired"{% if status == 'expired' %} aria-current="true"{% endif %}>Expired</a>
+      {% endif %}
+      {% if can_pending %}<a class="seg{% if view == 'pending' %} is-active{% endif %}" href="{% url 'workspace:people' %}?view=pending"{% if view == 'pending' %} aria-current="true"{% endif %} title="The admin's Pending Payment list">Pending Payment list</a>{% endif %}
     </div>
 
     <form class="filters card" method="get" role="search" aria-label="Filter members">
@@ -40,6 +43,11 @@
       <select id="f-position" name="position" class="select" data-autosubmit>
         <option value="">Position</option>
         {% for code, name in position_options %}<option value="{{ code }}"{% if filters.position == code %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+      <label class="sr-only" for="f-status">Membership status</label>
+      <select id="f-status" name="status" class="select" data-autosubmit>
+        <option value="">Status</option>
+        {% for code, name in status_options %}<option value="{{ code }}"{% if status == code %} selected{% endif %}>{{ name }}</option>{% endfor %}
       </select>
       <label class="sr-only" for="f-language">Language</label>
       <select id="f-language" name="language" class="select" data-autosubmit>
@@ -76,10 +84,12 @@
           <summary class="btn btn-outline">{% icon 'columns' %}Columns</summary>
           <div class="popover-body" role="group" aria-label="Visible columns">
             <label class="check"><input type="checkbox" data-col-toggle="membership" checked> Membership</label>
-            <label class="check"><input type="checkbox" data-col-toggle="payment" checked> Payment</label>
+            <label class="check"><input type="checkbox" data-col-toggle="status" checked> Status</label>
+            <label class="check"><input type="checkbox" data-col-toggle="renewal" checked> Valid until</label>
+            <label class="check"><input type="checkbox" data-col-toggle="payment"> Payment</label>
             <label class="check"><input type="checkbox" data-col-toggle="position"> Position</label>
             <label class="check"><input type="checkbox" data-col-toggle="language"> Language</label>
-            <label class="check"><input type="checkbox" data-col-toggle="joined" checked> Joined</label>
+            <label class="check"><input type="checkbox" data-col-toggle="joined"> Joined</label>
           </div>
         </details>
         <div class="view-toggle" role="group" aria-label="Layout">
@@ -95,20 +105,22 @@
         <table class="table" data-columns-table="members">
           <thead>
             <tr>
-              <th class="col-select" scope="col">{% if bulk %}<input type="checkbox" aria-label="Select all on this page" data-select-all>{% endif %}</th>
+              <th class="col-select" scope="col">{% if bulk or message_url %}<input type="checkbox" aria-label="Select all on this page" data-select-all>{% endif %}</th>
               <th scope="col"><a class="sort{% if sort == 'name' or sort == '-name' %} is-sorted{% endif %}" href="?{{ sort_query }}{% if sort_query %}&{% endif %}sort={% if sort == 'name' %}-name{% else %}name{% endif %}">Member {% icon 'sort' %}</a></th>
               <th scope="col" data-col="membership"><a class="sort{% if sort == 'type' or sort == '-type' %} is-sorted{% endif %}" href="?{{ sort_query }}{% if sort_query %}&{% endif %}sort={% if sort == 'type' %}-type{% else %}type{% endif %}">Membership {% icon 'sort' %}</a></th>
-              <th scope="col" data-col="payment">Payment</th>
+              <th scope="col" data-col="status">Status</th>
+              <th scope="col" data-col="renewal"><a class="sort{% if sort == 'renewal' or sort == '-renewal' %} is-sorted{% endif %}" href="?{{ sort_query }}{% if sort_query %}&{% endif %}sort={% if sort == 'renewal' %}-renewal{% else %}renewal{% endif %}">Valid until {% icon 'sort' %}</a></th>
+              <th scope="col" data-col="payment" hidden>Payment</th>
               <th scope="col" data-col="position" hidden>Position</th>
               <th scope="col" data-col="language" hidden>Language</th>
-              <th scope="col" data-col="joined"><a class="sort{% if sort == 'joined' or sort == '-joined' %} is-sorted{% endif %}" href="?{{ sort_query }}{% if sort_query %}&{% endif %}sort={% if sort == '-joined' %}joined{% else %}-joined{% endif %}">Joined {% icon 'sort' %}</a></th>
+              <th scope="col" data-col="joined" hidden><a class="sort{% if sort == 'joined' or sort == '-joined' %} is-sorted{% endif %}" href="?{{ sort_query }}{% if sort_query %}&{% endif %}sort={% if sort == '-joined' %}joined{% else %}-joined{% endif %}">Joined {% icon 'sort' %}</a></th>
               <th scope="col" class="col-actions">Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for row in rows %}
             <tr class="row-clickable{% if preview and preview.member.pk == row.pk %} is-selected{% endif %}" data-preview-url="{% url 'workspace:member_preview' row.pk %}" data-pk="{{ row.pk }}">
-              <td class="col-select" data-no-preview>{% if bulk %}<input type="checkbox" name="_selected_action" value="{{ row.pk }}" form="bulk-form" aria-label="Select {{ row.obj.full_name }}" data-row-check>{% endif %}</td>
+              <td class="col-select" data-no-preview>{% if bulk or message_url %}<input type="checkbox" name="_selected_action" value="{{ row.pk }}" form="bulk-form" aria-label="Select {{ row.obj.full_name }}" data-row-check>{% endif %}</td>
               <td>
                 <div class="person">
                   <span class="avatar avatar-md" aria-hidden="true">{{ row.initials }}</span>
@@ -120,10 +132,12 @@
                 </div>
               </td>
               <td data-col="membership"><div>{{ row.type_name }}</div><div class="muted mono">{{ row.membership_id }}</div></td>
-              <td data-col="payment"><span class="status status-{{ row.payment.tone }}">{{ row.payment.label }}</span></td>
+              <td data-col="status"><span class="status status-{{ row.status.tone }}">{{ row.status.label }}</span></td>
+              <td data-col="renewal" class="nowrap">{% if row.status.valid_until %}{{ row.status.valid_until|date:"d M Y" }}{% if row.status.key == 'renewal_due' %}<div class="muted small">{{ row.status.days_left }} day{{ row.status.days_left|pluralize }} left</div>{% endif %}{% else %}<span class="muted">—</span>{% endif %}</td>
+              <td data-col="payment" hidden><span class="status status-{{ row.payment.tone }}">{{ row.payment.label }}</span></td>
               <td data-col="position" hidden>{{ row.obj.get_position_display }}</td>
               <td data-col="language" hidden>{{ row.obj.get_preferred_language_display }}</td>
-              <td data-col="joined" class="nowrap">{{ row.obj.created_at|date:"d M Y" }}</td>
+              <td data-col="joined" class="nowrap" hidden>{{ row.obj.created_at|date:"d M Y" }}</td>
               <td class="col-actions" data-no-preview>
                 <details class="menu">
                   <summary class="ws-icon-btn" aria-label="Actions for {{ row.obj.full_name }}">{% icon 'more' %}</summary>

@@ -6,7 +6,8 @@ when the same email shows up in several places it is only pointed out.
 import re
 from collections import defaultdict
 
-from django.db.models import Q
+from django.utils import timezone
+from django.db.models import Case, IntegerField, Q, Value, When
 
 from app.models import (
     AnniversaryRegistration,
@@ -16,6 +17,7 @@ from app.models import (
     Partner,
     TeacherBank,
 )
+from app import membership_lifecycle as lifecycle
 from app.payment_status import (
     NO_PAYMENT,
     bulk_membership_payment_status,
@@ -37,8 +39,25 @@ MEMBER_SORTS = {
     '-joined': ('-created_at', '-id'),
     'id': ('id',),
     '-id': ('-id',),
+    # Validity is computed, not stored: these two are ordered in Python.
+    'renewal': None,
+    '-renewal': None,
 }
 DEFAULT_MEMBER_SORT = '-joined'
+
+# Membership status filters (see app/membership_lifecycle.py). "Active" includes
+# members whose renewal is due, because they are still valid.
+STATUS_FILTERS = {
+    'active': (lifecycle.ACTIVE, lifecycle.RENEWAL_DUE),
+    'renewal_due': (lifecycle.RENEWAL_DUE,),
+    'expired': (lifecycle.EXPIRED,),
+    'pending': (lifecycle.PENDING,),
+    'no_record': (lifecycle.NO_RECORD,),
+}
+STATUS_FILTER_LABELS = [
+    ('active', 'Active'), ('renewal_due', 'Renewal due'), ('expired', 'Expired'),
+    ('pending', 'Pending payment'), ('no_record', 'No payment record'),
+]
 
 # Membership fields grouped the way the application form groups them.
 PROFILE_SECTIONS = [
@@ -109,8 +128,15 @@ def search_memberships(qs, q):
     return qs.filter(cond)
 
 
+def _ordered_by_pks(qs, pks):
+    if not pks:
+        return qs.none()
+    order = Case(*[When(pk=pk, then=Value(i)) for i, pk in enumerate(pks)], output_field=IntegerField())
+    return qs.filter(pk__in=pks).order_by(order)
+
+
 def filter_members(params, pending):
-    """Apply list params (q, type, position, language, institution_type, country, sort)."""
+    """Apply list params (q, type, position, language, institution_type, country, status, sort)."""
     qs = Membership.objects.filter(is_pending_payment=pending)
     qs = search_memberships(qs, params.get('q'))
     for field, key in (
@@ -120,12 +146,25 @@ def filter_members(params, pending):
         value = params.get(key)
         if value:
             qs = qs.filter(**{field: value})
+    status = params.get('status')
+    if status in STATUS_FILTERS:
+        qs = qs.filter(pk__in=lifecycle.ids_with_status(qs, STATUS_FILTERS[status]))
     sort = params.get('sort') if params.get('sort') in MEMBER_SORTS else DEFAULT_MEMBER_SORT
+    if MEMBER_SORTS[sort] is None:
+        # Soonest renewal first; members without a validity date go last.
+        statuses = lifecycle.bulk_status(list(qs.values_list('pk', flat=True)))
+        dated = sorted((s['valid_until'], pk) for pk, s in statuses.items() if s['valid_until'])
+        undated = sorted(pk for pk, s in statuses.items() if not s['valid_until'])
+        pks = [pk for _when, pk in dated]
+        if sort == '-renewal':
+            pks.reverse()
+        return _ordered_by_pks(qs, pks + undated), sort
     return qs.order_by(*MEMBER_SORTS[sort]), sort
 
 
 def member_rows(memberships, type_names):
     statuses = bulk_membership_payment_status(memberships)
+    member_status = lifecycle.bulk_status(memberships)
     rows = []
     for m in memberships:
         rows.append({
@@ -135,6 +174,7 @@ def member_rows(memberships, type_names):
             'initials': initials(m.full_name),
             'type_name': type_names.get(m.membership_type) or m.membership_type,
             'payment': payment_badge(statuses.get(m.pk, NO_PAYMENT)),
+            'status': member_status[m.pk],
             'is_demo': is_demo_email(m.email),
         })
     return rows
@@ -200,6 +240,18 @@ def membership_activity(membership):
                            'tone': 'green' if txn.status == 'SUCCESS' else 'muted',
                            'title': f'Atmos transaction · {txn.get_status_display()}',
                            'text': f'Order #{txn.account} · {txn.amount_uzs:,.0f} UZS'.replace(',', ' ')})
+    from .models import MessageLog
+    for msg in MessageLog.objects.filter(source='member', recipient_id=membership.pk).exclude(status=MessageLog.SKIPPED)[:20]:
+        events.append({'when': msg.created_at, 'icon': 'mail' if msg.channel == MessageLog.CHANNEL_EMAIL else 'message-square',
+                       'tone': 'danger' if msg.status == MessageLog.FAILED else 'purple',
+                       'title': f'{msg.get_channel_display()} {msg.get_status_display().lower()}',
+                       'text': msg.subject or msg.body[:80]})
+    from app import membership_lifecycle as lifecycle_mod
+    status = lifecycle_mod.membership_status(membership)
+    if status['paid_at']:
+        events.append({'when': status['paid_at'], 'icon': 'check-circle', 'tone': 'green',
+                       'title': 'Membership active',
+                       'text': f"Valid until {timezone.localtime(status['valid_until']):%d %b %Y}"})
     events.sort(key=lambda e: e['when'], reverse=True)
     return events
 
@@ -250,6 +302,24 @@ CONTACT_SOURCES = [
 ]
 
 
+INSTITUTION_MEMBER_SLOTS = (2, 3, 4, 5)
+INSTITUTION_MEMBER_SOURCE = ('institution_member', 'Institution member')
+
+
+def institution_members(membership):
+    """People listed inside an institutional membership (member 2–5), each shown as a person.
+
+    They have no record of their own: their membership status is the institution's.
+    """
+    people = []
+    for slot in INSTITUTION_MEMBER_SLOTS:
+        name = (getattr(membership, f'member_{slot}_name') or '').strip()
+        email = (getattr(membership, f'member_{slot}_email') or '').strip()
+        if name or email:
+            people.append({'slot': slot, 'name': name or '—', 'email': email, 'initials': initials(name or email)})
+    return people
+
+
 def contact_sources_for(user):
     return [s for s in CONTACT_SOURCES if can(user, s[2])]
 
@@ -278,6 +348,24 @@ def all_contacts(user, q='', source=''):
                 'admin_url': admin_url(f'{meta.app_label}_{meta.model_name}_change', pk),
                 'is_demo': is_demo_email(email),
             })
+    if can(user, 'app.view_membership') and source in ('', INSTITUTION_MEMBER_SOURCE[0]):
+        has_members = Q()
+        for slot in INSTITUTION_MEMBER_SLOTS:
+            has_members |= Q(**{f'member_{slot}_name__gt': ''}) | Q(**{f'member_{slot}_email__gt': ''})
+        for m in Membership.objects.filter(has_members):
+            for person in institution_members(m):
+                if person['email']:
+                    email_sources[person['email'].lower()].add(INSTITUTION_MEMBER_SOURCE[1])
+                text = f"{person['name']} {person['email']}".lower()
+                if q and q.lower() not in text:
+                    continue
+                rows.append({
+                    'source_key': INSTITUTION_MEMBER_SOURCE[0], 'source': INSTITUTION_MEMBER_SOURCE[1],
+                    'pk': m.pk, 'name': person['name'], 'email': person['email'], 'phone': '',
+                    'initials': person['initials'], 'is_member_record': True,
+                    'institution': m.institution_name or m.full_name,
+                    'admin_url': None, 'is_demo': is_demo_email(person['email']) or is_demo_email(m.email),
+                })
     for row in rows:
         others = email_sources.get(row['email'].lower(), set()) - {row['source']} if row['email'] else set()
         row['also_in'] = sorted(others)

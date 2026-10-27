@@ -31,7 +31,7 @@
           <tr>
             <td><div class="person"><span class="avatar avatar-md" aria-hidden="true">{{ r.initials }}</span><div>
               <span class="person-name">{{ r.name }}</span>{% if r.is_demo %} <span class="chip chip-demo">Demo data</span>{% endif %}
-              <div class="muted">{{ r.email }}</div></div></div></td>
+              <div class="muted">{{ r.email }}</div>{% if r.institution %}<div class="muted small">Member of {{ r.institution }}</div>{% endif %}</div></div></td>
             <td>{{ r.phone|default:"—" }}</td>
             <td><span class="chip chip-src-{{ r.source_key }}">{{ r.source }}</span></td>
             <td>{% for s in r.also_in %}<span class="chip chip-soft">{{ s }}</span> {% empty %}<span class="muted">—</span>{% endfor %}</td>

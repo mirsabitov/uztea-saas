@@ -1,0 +1,100 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="{{ back_url }}">{{ source_label }}</a>{% icon 'chevron-right' %}<span aria-current="page">Send message</span>
+  </nav>
+  <div class="page-head">
+    <div>
+      <h1 id="page-title">Send a message</h1>
+      <p class="page-sub">{{ total }} {% if total == 1 %}person{% else %}people{% endif %} from {{ source_label }} · {{ with_phone }} with a mobile number · {{ with_email }} with an email</p>
+    </div>
+  </div>
+
+  {% if truncated %}<p class="note">{% icon 'alert' %}Only the first {{ max_recipients }} selected people are included. Send the rest in another batch.</p>{% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="compose" data-compose>
+    {% csrf_token %}
+    <input type="hidden" name="step" value="send">
+    <input type="hidden" name="source" value="{{ source }}">
+    {% for p in people %}<input type="hidden" name="ids" value="{{ p.id }}">{% endfor %}
+
+    <div class="compose-grid">
+      <div class="stack">
+        {% if form.non_field_errors %}<div class="alert alert-error" role="alert">{% for e in form.non_field_errors %}{{ e }} {% endfor %}</div>{% endif %}
+
+        <fieldset class="card channel-switch">
+          <legend class="card-title">Channel</legend>
+          <label class="channel-option"><input type="radio" name="channel" value="sms" {% if channel == 'sms' %}checked{% endif %} data-channel>
+            <span>{% icon 'message-square' %}<strong>SMS</strong><small>{{ with_phone }} of {{ total }} have a valid mobile number</small></span></label>
+          <label class="channel-option"><input type="radio" name="channel" value="email" {% if channel != 'sms' %}checked{% endif %} data-channel>
+            <span>{% icon 'mail' %}<strong>Email</strong><small>{{ with_email }} of {{ total }} have an email address</small></span></label>
+        </fieldset>
+
+        <section class="card" data-channel-panel="sms" aria-label="SMS">
+          <h2 class="card-title">SMS via Eskiz</h2>
+          {% if sms_mode == 'live' %}
+            <p class="muted">Sender: <strong>{{ sms_sender }}</strong>. Eskiz delivers only texts that match a template approved in your Eskiz cabinet.</p>
+          {% elif sms_mode == 'test' %}
+            <p class="note">{% icon 'alert' %}Test mode: Eskiz is not configured on this local server, so nothing is sent. Messages are only written to the history as "Test mode".</p>
+          {% else %}
+            <p class="alert alert-error">SMS is not configured on this server. Add ESKIZ_EMAIL and ESKIZ_PASSWORD to the server's .env.</p>
+          {% endif %}
+          <label for="id_sms_text">Message</label>
+          <textarea id="id_sms_text" name="sms_text" class="input textarea" rows="5" maxlength="1000" data-sms-text placeholder="Hello {name}! …">{{ form.sms_text.value|default:"" }}</textarea>
+          <div class="field-meta"><span data-sms-count>0 characters · 0 SMS</span><span class="muted">Cyrillic text: 70 characters per SMS</span></div>
+          {% for e in form.sms_text.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        </section>
+
+        <section class="card" data-channel-panel="email" aria-label="Email">
+          <h2 class="card-title">Email</h2>
+          {% if email_console %}<p class="note">{% icon 'alert' %}This server prints emails to its console instead of sending them (local setup).</p>{% endif %}
+          <div class="form-row-2">
+            <div><label for="id_sender">From</label>
+              <select id="id_sender" name="sender" class="select">{% for v, l in form.fields.sender.choices %}<option value="{{ v }}"{% if form.sender.value == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+            <div><label for="id_template">Design</label>
+              <select id="id_template" name="template" class="select">{% for v, l in form.fields.template.choices %}<option value="{{ v }}"{% if form.template.value == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+          </div>
+          <label for="id_subject">Subject</label>
+          <input id="id_subject" name="subject" class="input" maxlength="255" value="{{ form.subject.value|default:"" }}">
+          {% for e in form.subject.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+          <label for="id_body">Message</label>
+          <textarea id="id_body" name="body" class="input textarea" rows="10" placeholder="Dear {name}, …">{{ form.body.value|default:"" }}</textarea>
+          {% for e in form.body.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+          <label class="check"><input type="checkbox" name="is_html" {% if form.is_html.value %}checked{% endif %}> The message is HTML (otherwise line breaks become paragraphs)</label>
+          <label for="id_attachments">Attachments <span class="muted">(up to 5 MB each)</span></label>
+          <input id="id_attachments" name="attachments" type="file" multiple class="input file-input">
+        </section>
+
+        <div class="card confirm-row">
+          <label class="check"><input type="checkbox" name="confirm" required> I confirm sending this message to the selected people</label>
+          {% for e in form.confirm.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+          <div class="page-actions">
+            <a class="btn btn-ghost" href="{{ back_url }}">Cancel</a>
+            <button type="submit" class="btn btn-primary" data-send-button>{% icon 'send' %}Send</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="stack">
+        <section class="card">
+          <h2 class="card-title">Personalise</h2>
+          <p class="muted">These are replaced for each person:</p>
+          <ul class="placeholder-list">{% for code, label in placeholders %}<li><button type="button" class="chip chip-soft" data-insert="{{ code }}">{{ code }}</button> {{ label }}</li>{% endfor %}</ul>
+        </section>
+        <section class="card">
+          <h2 class="card-title">Recipients <span class="count-badge">{{ total }}</span></h2>
+          <ul class="recipient-list">
+            {% for p in shown_people %}
+            <li><span class="person-name">{{ p.name }}</span>
+              <span class="muted small" data-channel-panel="sms">{% if p.phone %}+{{ p.phone }}{% else %}<span class="field-error">no valid number — skipped</span>{% endif %}</span>
+              <span class="muted small" data-channel-panel="email">{% if p.email %}{{ p.email }}{% else %}<span class="field-error">no email — skipped</span>{% endif %}</span></li>
+            {% endfor %}
+          </ul>
+          {% if total > shown_people|length %}<p class="muted small">and {{ total|add:"-50" }} more</p>{% endif %}
+        </section>
+      </aside>
+    </div>
+  </form>
+</section>
+{% endblock %}

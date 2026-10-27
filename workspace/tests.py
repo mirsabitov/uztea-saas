@@ -49,7 +49,7 @@ class WorkspaceAccessTests(TestCase):
         self.client.force_login(staff)
         home = self.client.get(reverse('workspace:home'))
         self.assertEqual(home.status_code, 200)
-        self.assertEqual([item['key'] for item in home.context['nav']], ['home'])
+        self.assertEqual([item['key'] for item in home.context['nav']], ['home', 'website'])
         for name in ('workspace:people', 'workspace:payments', 'workspace:partners', 'workspace:settings'):
             self.assertEqual(self.client.get(reverse(name)).status_code, 403, name)
 

@@ -7,6 +7,7 @@
   <link rel="icon" href="{% static 'workspace/img/logo-navy.png' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <script>try{var t=localStorage.getItem('ws-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
   <link rel="stylesheet" href="{% static 'workspace/workspace.css' %}">
 </head>
 <body class="ws">
@@ -29,7 +30,7 @@
     <nav class="ws-nav">
       <ul>
         {% for item in nav %}
-          <li><a href="{{ item.url }}" class="ws-nav-link{% if item.active %} is-active{% endif %}"{% if item.active %} aria-current="page"{% endif %}>{% icon item.icon %}<span>{{ item.label }}</span></a></li>
+          <li{% if item.key == 'website' %} class="ws-nav-separate"{% endif %}><a href="{{ item.url }}" class="ws-nav-link{% if item.active %} is-active{% endif %}"{% if item.active %} aria-current="page"{% endif %}>{% icon item.icon %}<span>{{ item.label }}</span></a></li>
         {% endfor %}
       </ul>
     </nav>
@@ -68,7 +69,10 @@
     <header class="ws-topbar">
       <button type="button" class="ws-icon-btn ws-menu-btn" data-sidebar-open aria-label="Open menu" aria-controls="ws-sidebar">{% icon 'menu' %}</button>
       <div class="ws-topbar-title">
-        <img src="{% static 'workspace/img/logo-navy.png' %}" alt="" class="ws-topbar-logo" width="480" height="331">
+        <span class="ws-topbar-logo">
+          <img src="{% static 'workspace/img/logo-navy.png' %}" alt="" class="logo-on-light" width="480" height="331">
+          <img src="{% static 'workspace/img/logo-white.png' %}" alt="" class="logo-on-dark" width="480" height="331">
+        </span>
         <div>
           <span class="ws-product">UzTEA Workspace{% if page_title and section != 'home' %}<span class="ws-product-sep" aria-hidden="true">|</span><span class="ws-product-page">{{ page_title }}</span>{% endif %}</span>
         </div>
@@ -80,6 +84,7 @@
         <input id="ws-global-q" type="search" name="q" placeholder="Search people…" autocomplete="off">
       </form>
       {% endif %}
+      <button type="button" class="ws-icon-btn theme-toggle" data-theme-toggle aria-label="Switch dark / light mode" title="Dark / light mode">{% icon 'moon' 'ic-moon' %}{% icon 'sun' 'ic-sun' %}</button>
       <a class="btn btn-soft btn-sm ws-hide-sm" href="https://uztea.uz/" target="_blank" rel="noopener">View website {% icon 'external-link' %}</a>
       <span class="avatar avatar-md avatar-light" title="{{ request.user.get_username }}" aria-hidden="true">{{ user_initials }}</span>
     </header>

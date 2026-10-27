@@ -12,6 +12,7 @@ import math
 from django.db.models import Q
 from django.utils import timezone
 
+from app import membership_lifecycle as lifecycle
 from app.models import AnniversaryRegistration, ConferenceRegistration, Membership
 from app.payment_status import NO_PAYMENT, bulk_membership_payment_status
 from atmos.models import AtmosTransaction
@@ -32,7 +33,7 @@ MAX_ALL_TIME_MONTHS = 36
 # Status colours carry an icon/label next to them, never colour alone.
 STATUS_COLORS = {
     'SUCCESS': '#0ca30c', 'PENDING': '#fab219', 'OTP_SENT': '#fab219', 'CARD_BOUND': '#fab219',
-    'FAILED': '#d03b3b', 'CANCELLED': '#9aa4b2', NO_PAYMENT: '#c3cad6',
+    'FAILED': '#d03b3b', 'CANCELLED': 'var(--series-other)', NO_PAYMENT: '#c3cad6',
 }
 STATUS_LABELS = {
     'SUCCESS': 'Paid', 'PENDING': 'Pending', 'OTP_SENT': 'In progress (OTP sent)',
@@ -106,9 +107,11 @@ def bucket_list(period):
     return out
 
 
-def bucket_label(d, unit, short=False):
+def bucket_label(d, unit, short=False, with_year=False):
     if unit == 'month':
-        return d.strftime('%b' if short else '%b %Y')
+        if short:
+            return d.strftime("%b '%y") if with_year else d.strftime('%b')
+        return d.strftime('%b %Y')
     return d.strftime('%d %b')
 
 
@@ -153,7 +156,10 @@ def column_chart(buckets, series, unit, money=False):
     totals = [sum(s['values'].get(b, 0) for s in series) for b in buckets]
     ticks = nice_ticks(max(totals) if totals else 0)
     top = ticks[-1] or 1
-    label_every = max(1, math.ceil(len(buckets) / 6))
+    # Every month is labelled up to 12 months; longer ranges and day/week buckets thin out.
+    max_labels = 12 if unit == 'month' else 6
+    label_every = max(1, math.ceil(len(buckets) / max_labels))
+    with_year = unit == 'month' and len({b.year for b in buckets}) > 1 and len(buckets) > 12
     columns = []
     for i, b in enumerate(buckets):
         segments = []
@@ -166,7 +172,7 @@ def column_chart(buckets, series, unit, money=False):
             segments[-1]['is_top'] = True
         tip_lines = [f"{seg['label']}: {seg['value']}" for seg in segments] if len(series) > 1 else []
         columns.append({
-            'label': bucket_label(b, unit, short=True),
+            'label': bucket_label(b, unit, short=True, with_year=with_year),
             'full_label': bucket_label(b, unit) + (' (week)' if unit == 'week' else ''),
             'show_label': i % label_every == 0,
             'segments': list(reversed(segments)),  # top segment first for column-reverse stacking
@@ -184,13 +190,13 @@ def column_chart(buckets, series, unit, money=False):
     }
 
 
-def bar_list(items, color='#2a78d6', limit=None, other_label='Other'):
+def bar_list(items, color='var(--series-1)', limit=None, other_label='Other'):
     """Horizontal bars, sorted by value. items: [(label, value)] or [(label, value, color)]."""
     rows = [i if len(i) == 3 else (i[0], i[1], color) for i in items if i[1]]
     rows.sort(key=lambda r: r[1], reverse=True)
     if limit and len(rows) > limit:
         rest = sum(r[1] for r in rows[limit - 1:])
-        rows = rows[:limit - 1] + [(other_label, rest, '#9aa4b2')]
+        rows = rows[:limit - 1] + [(other_label, rest, 'var(--series-other)')]
     total = sum(r[1] for r in rows) or 1
     top = max((r[1] for r in rows), default=0) or 1
     return {
@@ -232,14 +238,19 @@ def build(user, period_key):
         apps = Membership.objects.filter(in_period)
         new_now = apps.count()
         new_prev = Membership.objects.filter(in_prev).count()
-        data['tiles'].append({'label': 'Members list', 'value': full_number(Membership.objects.filter(is_pending_payment=False).count()),
-                              'note': 'all time, excluding Pending Payment', 'icon': 'users'})
+        member_ids = list(Membership.objects.filter(is_pending_payment=False).values_list('pk', flat=True))
+        lifecycle_counts = Counter(s['key'] for s in lifecycle.bulk_status(member_ids).values())
+        active_now = lifecycle_counts[lifecycle.ACTIVE] + lifecycle_counts[lifecycle.RENEWAL_DUE]
+        data['tiles'].append({'label': 'Active members', 'value': full_number(active_now), 'icon': 'users',
+                              'note': f"{full_number(lifecycle_counts[lifecycle.RENEWAL_DUE])} renewal due · "
+                                      f"{full_number(lifecycle_counts[lifecycle.EXPIRED])} expired · today"})
+        data['lifecycle_counts'] = lifecycle_counts
         data['tiles'].append({'label': 'New applications', 'value': full_number(new_now),
                               'note': period['label'], 'delta': delta(new_now, new_prev, period), 'icon': 'id-card'})
 
         per_bucket = Counter(bucket_key(dt, unit) for dt in apps.values_list('created_at', flat=True))
         data['charts']['applications'] = column_chart(
-            buckets, [{'key': 'apps', 'label': 'Applications', 'color': '#2a78d6', 'values': per_bucket}], unit)
+            buckets, [{'key': 'apps', 'label': 'Applications', 'color': 'var(--series-1)', 'values': per_bucket}], unit)
 
         type_names = dict(membership_type_options())
         by_type = Counter(apps.values_list('membership_type', flat=True))
@@ -248,7 +259,7 @@ def build(user, period_key):
         member_list = list(apps.only('pk'))
         statuses = Counter(bulk_membership_payment_status(member_list).values())
         data['charts']['payment_status'] = bar_list(
-            [(STATUS_LABELS.get(k, k), statuses[k], STATUS_COLORS.get(k, '#9aa4b2'))
+            [(STATUS_LABELS.get(k, k), statuses[k], STATUS_COLORS.get(k, 'var(--series-other)'))
              for k in STATUS_ORDER + [k for k in statuses if k not in STATUS_ORDER] if statuses.get(k)])
         paid_share = statuses.get('SUCCESS', 0)
         data['tiles'].append({'label': 'Paid applications', 'value': f'{round(paid_share / new_now * 100)}%' if new_now else '—',
@@ -275,8 +286,8 @@ def build(user, period_key):
         data['tiles'].insert(2, {'label': 'Revenue', 'value': compact(total_now) + ' UZS', 'title': full_number(total_now) + ' UZS',
                                  'note': period['label'], 'delta': delta(total_now, total_prev, period), 'icon': 'credit-card'})
         data['charts']['revenue'] = column_chart(buckets, [
-            {'key': 'membership', 'label': 'Membership', 'color': '#2a78d6', 'values': rev_member},
-            {'key': 'tesol', 'label': 'TESOL Conference', 'color': '#eb6834', 'values': rev_tesol},
+            {'key': 'membership', 'label': 'Membership', 'color': 'var(--series-1)', 'values': rev_member},
+            {'key': 'tesol', 'label': 'TESOL Conference', 'color': 'var(--series-2)', 'values': rev_tesol},
         ], unit, money=True)
         pending_orders = Order.objects.filter(status__in=('pending', 'processing')).filter(in_period).count()
         data['pending_orders'] = pending_orders
@@ -290,7 +301,7 @@ def build(user, period_key):
     if can(user, 'app.view_anniversaryregistration'):
         events.append(('30th Anniversary', AnniversaryRegistration.objects.filter(in_period).count(), None))
     if events:
-        chart = bar_list([(label, n) for label, n, _paid in events], color='#2a78d6')
+        chart = bar_list([(label, n) for label, n, _paid in events], color='var(--series-1)')
         notes = {label: paid_n for label, _n, paid_n in events}
         for row in chart['rows']:
             paid_n = notes.get(row['label'])

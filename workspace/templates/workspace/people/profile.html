@@ -15,6 +15,8 @@
       {% if is_demo %}<span class="chip chip-demo">Demo data</span>{% endif %}
     </div>
     <div class="page-actions">
+      {% if message_url %}<a class="btn btn-soft" href="{{ message_url }}&amp;channel=sms">{% icon 'message-square' %}SMS</a>
+      <a class="btn btn-soft" href="{{ message_url }}&amp;channel=email">{% icon 'mail' %}Email</a>{% endif %}
       {% if edit_url %}<a class="btn btn-outline" href="{{ edit_url }}">{% icon 'pencil' %}Edit profile</a>{% endif %}
       <a class="btn btn-primary" href="{{ card_url }}">{% icon 'credit-card' %}Download card</a>
     </div>
@@ -37,8 +39,8 @@
         <span class="stat-icon tone-muted">{% icon 'id-card' %}</span>
         <div>
           <div class="stat-label">Membership</div>
-          <div class="stat-value">{{ m.get_membership_type_display }}</div>
-          <div class="muted">In the {{ list_name }} · status &amp; validity <span class="chip chip-next">Next phase</span></div>
+          <div class="stat-value"><span class="status status-{{ status.tone }}">{{ status.label }}</span></div>
+          <div class="muted">{{ m.get_membership_type_display }}{% if status.valid_until %} · until {{ status.valid_until|date:"d M Y" }}{% if status.key == 'renewal_due' %} ({{ status.days_left }} days left){% endif %}{% endif %}</div>
         </div>
       </div>
       <div class="stat-card card">
@@ -81,9 +83,21 @@
         <div><dt>Membership ID</dt><dd class="mono">{{ membership_id }}</dd></div>
         <div><dt>Admin list</dt><dd>{{ list_name }}</dd></div>
         <div><dt>Joined</dt><dd>{{ m.created_at|date:"d M Y, H:i" }}</dd></div>
-        <div><dt>Membership status / valid until</dt><dd><span class="muted">Not stored in the current model</span> <span class="chip chip-next">Next phase</span></dd></div>
+        <div><dt>Membership status</dt><dd><span class="status status-{{ status.tone }}">{{ status.label }}</span></dd></div>
+        <div><dt>Last successful payment</dt><dd>{{ status.paid_at|date:"d M Y, H:i"|default:"—" }}</dd></div>
+        <div><dt>Valid until</dt><dd>{{ status.valid_until|date:"d M Y"|default:"—" }}</dd></div>
+        <div><dt>Rule</dt><dd class="muted">Active for 12 months from the latest successful payment; renewal due in the last 30 days.</dd></div>
       </dl>
     </section>
+    {% if institution_members %}
+    <section class="card">
+      <h2 class="card-title">Institution members</h2>
+      <p class="muted">People named in this institutional membership. They share its status: <span class="status status-{{ status.tone }}">{{ status.label }}</span>{% if status.valid_until %} until {{ status.valid_until|date:"d M Y" }}{% endif %}.</p>
+      <ul class="doc-list">
+        {% for p in institution_members %}<li><span class="avatar avatar-sm" aria-hidden="true">{{ p.initials }}</span><span><strong>{{ p.name }}</strong><br><span class="muted">{{ p.email|default:"No email" }}</span></span><span class="chip chip-soft">Member {{ p.slot }}</span></li>{% endfor %}
+      </ul>
+    </section>
+    {% endif %}
     {% for s in sections %}{% if s.key != 'personal' and s.key != 'professional' %}
       {% include "workspace/people/_field_section.html" %}
     {% endif %}{% endfor %}

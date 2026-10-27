@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.shortcuts import redirect, render
 from django.urls import NoReverseMatch, reverse
+from django.views.decorators.csrf import csrf_protect
 
 # Section key -> (label, url name, icon, permissions: any one of them grants access)
 NAV_SECTIONS = [
@@ -28,6 +29,8 @@ NAV_SECTIONS = [
     ('settings', 'Settings', 'workspace:settings', 'settings', (
         'app.view_membershiptypeconfig', 'auth.view_user', 'auth.view_group',
     )),
+    # uztea.uz content (news, events, pages) — placeholder until the website phase.
+    ('website', 'Website', 'workspace:website', 'globe', ()),
 ]
 SECTION_PERMS = {key: perms for key, _label, _url, _icon, perms in NAV_SECTIONS}
 
@@ -72,6 +75,9 @@ def workspace_view(section, *perms):
     required = perms or SECTION_PERMS.get(section, ())
 
     def decorator(view):
+        # The project's CSRF middleware is off. Protecting every workspace view sets the
+        # CSRF cookie on pages that render forms and checks every POST they send.
+        @csrf_protect
         @wraps(view)
         def wrapper(request, *args, **kwargs):
             user = request.user

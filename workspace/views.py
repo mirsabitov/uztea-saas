@@ -18,12 +18,13 @@ from app.models import (
     Partner,
     TeacherBank,
 )
+from app import membership_lifecycle as lifecycle
 from app.payment_status import membership_payment_status
 from atmos.models import AtmosTransaction
 from click.models import Order, PromoCode
 from payme.models import PaymeTransaction
 
-from . import dashboard, people
+from . import dashboard, messaging, people
 from .access import admin_url, can, render_ws, workspace_view
 from .studio import FIELD_LIBRARY, SMART_BLOCKS, TEMPLATES as FORM_TEMPLATES
 
@@ -46,6 +47,13 @@ def _query_without(request, *keys):
     for key in keys:
         params.pop(key, None)
     return params.urlencode()
+
+
+def _message_url(user, source):
+    """Compose URL for the SMS / Email buttons, or None when the user may not send to this list."""
+    if not messaging.can_send(user, source):
+        return None
+    return reverse('workspace:message_compose') + f'?source={source}'
 
 
 def _bulk_action(user, changelist, actions, perm):
@@ -88,6 +96,11 @@ def home(request):
     activity.sort(key=lambda e: e['when'], reverse=True)
 
     attention = []
+    dash = dashboard.build(user, request.GET.get('period'))
+    counts = dash.get('lifecycle_counts') or {}
+    if counts.get(lifecycle.RENEWAL_DUE):
+        attention.append({'count': counts[lifecycle.RENEWAL_DUE], 'label': 'memberships end within 30 days (renewal due)',
+                          'url': reverse('workspace:people') + '?status=renewal_due&sort=renewal'})
     if can(user, 'app.view_pendingpayment'):
         n = Membership.objects.filter(is_pending_payment=True).count()
         if n:
@@ -110,7 +123,7 @@ def home(request):
         'attention': attention,
         'add_person_url': admin_url('app_membership_add') if can(user, 'app.add_membership') else None,
         'legacy_events': _legacy_forms(user, kinds=('event',)),
-        'dash': dashboard.build(user, request.GET.get('period')),
+        'dash': dash,
         'can_view_members': can(user, 'app.view_membership', 'app.view_pendingpayment'),
         'can_view_orders': can(user, 'click.view_order'),
     }, 'home')
@@ -158,7 +171,7 @@ def people_members(request):
 
     countries = (Membership.objects.filter(is_pending_payment=pending).exclude(country='')
                  .order_by('country').values_list('country', flat=True).distinct())
-    active_filters = [k for k in ('type', 'position', 'language', 'institution_type', 'country') if request.GET.get(k)]
+    active_filters = [k for k in ('type', 'position', 'language', 'institution_type', 'country', 'status') if request.GET.get(k)]
 
     return render_ws(request, 'workspace/people/members.html', {
         'page_title': 'People',
@@ -181,6 +194,8 @@ def people_members(request):
         'position_options': Membership.POSITION_CHOICES,
         'language_options': Membership.LANGUAGE_CHOICES,
         'institution_type_options': Membership.INSTITUTION_TYPE_CHOICES,
+        'status_options': people.STATUS_FILTER_LABELS,
+        'status': request.GET.get('status', ''),
         'country_options': countries,
         'base_query': _query_without(request, 'page', 'preview'),
         'sort_query': _query_without(request, 'sort', 'page', 'preview'),
@@ -194,6 +209,7 @@ def people_members(request):
             'app.change_pendingpayment' if pending else 'app.change_membership',
         ),
         'preview': preview,
+        'message_url': _message_url(user, 'member'),
     }, 'people')
 
 
@@ -209,6 +225,7 @@ def _preview_context(request, member):
     user = request.user
     opt = 'app_pendingpayment' if member.is_pending_payment else 'app_membership'
     payment = people.payment_badge(membership_payment_status(member))
+    member_status = lifecycle.membership_status(member)
     perm_view = 'app.view_pendingpayment' if member.is_pending_payment else 'app.view_membership'
     if not can(user, perm_view):
         return None
@@ -217,12 +234,14 @@ def _preview_context(request, member):
         'membership_id': people.membership_id(member.pk),
         'initials': people.initials(member.full_name),
         'payment': payment,
+        'status': member_status,
         'is_demo': people.is_demo_email(member.email),
         'activity': people.membership_activity(member)[:5],
         'profile_url': reverse('workspace:member_profile', args=[member.pk]),
         'edit_url': admin_url(f'{opt}_change', member.pk)
         if can(user, 'app.change_membership', 'app.change_pendingpayment') else None,
         'card_url': reverse('membership_card', args=[member.pk]) + '?download=1',
+        'message_url': (_message_url(user, 'member') + f'&ids={member.pk}') if _message_url(user, 'member') else None,
     }
 
 
@@ -258,6 +277,7 @@ def member_profile(request, pk):
         'list_name': 'Pending Payment list' if member.is_pending_payment else 'Members list',
         'list_url': reverse('workspace:people') + ('?view=pending' if member.is_pending_payment else ''),
         'payment_proof_url': member.payment_proof.url if member.payment_proof else None,
+        'institution_members': people.institution_members(member),
     })
     return render_ws(request, 'workspace/people/profile.html', ctx, 'people')
 
@@ -293,6 +313,7 @@ def people_teachers_bank(request):
         'export_url': admin_url('app_teacherbank_export'),
         'add_url': admin_url('app_teacherbank_add') if can(user, 'app.add_teacherbank') else None,
         'bulk': _bulk_action(user, 'app_teacherbank_changelist', CONTACT_EMAIL_ACTIONS, 'app.change_teacherbank'),
+        'message_url': _message_url(user, 'teachers_bank'),
     }, 'people')
 
 
@@ -312,7 +333,8 @@ def people_contacts(request):
         'can_teachers_bank': can(user, 'app.view_teacherbank'),
         'page': page, 'per_page': per_page, 'page_sizes': PAGE_SIZES,
         'total': page.paginator.count, 'q': q, 'source': source,
-        'sources': [(s[0], s[1]) for s in people.contact_sources_for(user)],
+        'sources': [(s[0], s[1]) for s in people.contact_sources_for(user)]
+        + ([people.INSTITUTION_MEMBER_SOURCE] if can(user, 'app.view_membership') else []),
         'base_query': _query_without(request, 'page'),
     }, 'people')
 
@@ -498,6 +520,7 @@ def partners(request):
         'export_url': admin_url('app_partner_export'),
         'add_url': admin_url('app_partner_add') if can(user, 'app.add_partner') else None,
         'bulk': _bulk_action(user, 'app_partner_changelist', CONTACT_EMAIL_ACTIONS, 'app.change_partner'),
+        'message_url': _message_url(user, 'partner'),
     }, 'partners')
 
 
@@ -520,6 +543,8 @@ def settings_view(request):
          'note': 'UzCard / Humo and Visa / Mastercard'},
         {'name': 'Email (SMTP)', 'icon': 'mail', 'ok': bool(getattr(settings, 'EMAIL_HOST', None)),
          'note': 'Welcome emails and the email composer'},
+        {'name': 'Eskiz SMS', 'icon': 'message-square', 'ok': messaging.sms_mode() == 'live',
+         'note': 'SMS from People and Partners (ESKIZ_EMAIL, ESKIZ_PASSWORD, ESKIZ_FROM)'},
         {'name': 'Telegram', 'icon': 'send', 'ok': bool(settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_ADMIN_CHAT_ID),
          'note': 'Admin notifications about new applications'},
     ]
@@ -561,3 +586,13 @@ def tools(request):
         'public_pages': public_pages,
         'click_tools_url': admin_url('click_order_tools') if can(request.user, 'click.view_order') else None,
     }, 'tools')
+
+
+# ── Website (uztea.uz content) ──────────────────────────────────────────────
+
+@workspace_view('website')
+def website(request):
+    return render_ws(request, 'workspace/website.html', {
+        'page_title': 'Website',
+        'page_subtitle': 'Content of uztea.uz, managed from the workspace',
+    }, 'website')

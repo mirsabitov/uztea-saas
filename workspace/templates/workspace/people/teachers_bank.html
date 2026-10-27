@@ -31,13 +31,13 @@
     <div class="table-scroll">
       <table class="table">
         <thead><tr>
-          <th class="col-select" scope="col">{% if bulk %}<input type="checkbox" aria-label="Select all on this page" data-select-all>{% endif %}</th>
+          <th class="col-select" scope="col">{% if bulk or message_url %}<input type="checkbox" aria-label="Select all on this page" data-select-all>{% endif %}</th>
           <th scope="col">Name</th><th scope="col">Phone</th><th scope="col">Source</th><th scope="col" class="col-actions">Actions</th>
         </tr></thead>
         <tbody>
           {% for row in rows %}
           <tr>
-            <td class="col-select">{% if bulk %}<input type="checkbox" name="_selected_action" value="{{ row.obj.pk }}" form="bulk-form" aria-label="Select {{ row.obj }}" data-row-check>{% endif %}</td>
+            <td class="col-select">{% if bulk or message_url %}<input type="checkbox" name="_selected_action" value="{{ row.obj.pk }}" form="bulk-form" aria-label="Select {{ row.obj }}" data-row-check>{% endif %}</td>
             <td><div class="person"><span class="avatar avatar-md" aria-hidden="true">{{ row.initials }}</span><div>
               <span class="person-name">{{ row.obj.full_name|default:"—" }}</span>{% if row.is_demo %} <span class="chip chip-demo">Demo data</span>{% endif %}
               <div class="muted">{{ row.obj.email|default:"" }}</div></div></div></td>

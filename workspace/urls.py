@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import views, views_messages
 
 app_name = 'workspace'
 
@@ -11,6 +11,9 @@ urlpatterns = [
     path('people/contacts/', views.people_contacts, name='contacts'),
     path('people/<int:pk>/', views.member_profile, name='member_profile'),
     path('people/<int:pk>/preview/', views.member_preview, name='member_preview'),
+    path('messages/', views_messages.history, name='messages'),
+    path('messages/compose/', views_messages.compose, name='message_compose'),
+    path('website/', views.website, name='website'),
     path('forms/', views.forms_list, name='forms'),
     path('forms/studio/', views.form_studio, name='form_studio'),
     path('payments/', views.payments, name='payments'),

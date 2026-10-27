@@ -110,7 +110,8 @@ class Command(BaseCommand):
                 interests='Methodology, Assessment', agree_terms=True, consent_data=True, agree_communication=True,
                 is_pending_payment=pending,
             )
-            created = now - timedelta(days=rnd.randint(1, 420), hours=rnd.randint(0, 23))
+            # Spread over ~14 months so Active, Renewal due and Expired all appear.
+            created = now - timedelta(days=(rnd.randint(1, 420) if i % 6 else rnd.randint(336, 362)), hours=rnd.randint(0, 23))
             Membership.objects.filter(pk=m.pk).update(created_at=created)
 
             outcome = 'none' if i % 11 == 5 else rnd.choices(['paid', 'pending', 'failed', 'atmos_ok', 'atmos_otp'], [5, 2, 1, 3, 1])[0]
@@ -130,10 +131,19 @@ class Command(BaseCommand):
                     transaction_id=f'demo-{order.pk}-{rnd.randint(1000, 9999)}', account=str(order.pk),
                     amount=int(order.amount * 100), card_number_masked='8600 **** **** ' + str(rnd.randint(1000, 9999)),
                     status='SUCCESS' if outcome == 'atmos_ok' else 'OTP_SENT')
-                AtmosTransaction.objects.filter(pk=txn.pk).update(created_at=created + timedelta(minutes=2))
+                AtmosTransaction.objects.filter(pk=txn.pk).update(created_at=created + timedelta(minutes=2),
+                                                                  updated_at=created + timedelta(minutes=3))
             if i % 9 == 0 and outcome == 'paid':
                 PaymeTransaction.objects.create(transaction_id=f'demo-payme-{order.pk}', order=order,
                                                 amount=order.amount, state=2, performed_at=created + timedelta(minutes=3))
+
+        for m in Membership.objects.filter(email__endswith=f'@{DEMO_EMAIL_DOMAIN}', membership_type='institutional'):
+            extra = {}
+            for slot in (2, 3, 4):
+                full = f'{rnd.choice(FIRST)} {rnd.choice(LAST)}'
+                extra[f'member_{slot}_name'] = full
+                extra[f'member_{slot}_email'] = demo_email(full, 500 + m.pk * 10 + slot)
+            Membership.objects.filter(pk=m.pk).update(contact_person_name=m.full_name, **extra)
 
         for i in range(24):
             full = f'{rnd.choice(FIRST)} {rnd.choice(LAST)}'

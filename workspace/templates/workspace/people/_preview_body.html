@@ -24,10 +24,11 @@
   <div id="pv-overview-{{ m.pk }}" role="tabpanel" aria-labelledby="pv-tab-o-{{ m.pk }}">
     <dl class="facts card">
       <div class="fact">{% icon 'id-card' %}<dt>Membership type</dt><dd>{{ m.get_membership_type_display }}</dd></div>
-      <div class="fact">{% icon 'users' %}<dt>Membership status</dt><dd><span class="muted">Not tracked yet</span> <span class="chip chip-next" title="The model has no membership status or validity date yet">Next phase</span></dd></div>
+      <div class="fact">{% icon 'users' %}<dt>Membership status</dt><dd><span class="status status-{{ p.status.tone }}">{{ p.status.label }}</span></dd></div>
+      <div class="fact">{% icon 'calendar' %}<dt>Valid until</dt><dd>{% if p.status.valid_until %}{{ p.status.valid_until|date:"d M Y" }}{% if p.status.key == 'renewal_due' %} <span class="muted">({{ p.status.days_left }} days left)</span>{% endif %}{% else %}—{% endif %}</dd></div>
       <div class="fact">{% icon 'list' %}<dt>Admin list</dt><dd>{% if m.is_pending_payment %}Pending Payment{% else %}Members{% endif %}</dd></div>
       <div class="fact">{% icon 'credit-card' %}<dt>Payment status</dt><dd><span class="status status-{{ p.payment.tone }}">{{ p.payment.label }}</span></dd></div>
-      <div class="fact">{% icon 'calendar' %}<dt>Joined</dt><dd>{{ m.created_at|date:"d M Y" }}</dd></div>
+      <div class="fact">{% icon 'clock' %}<dt>Joined</dt><dd>{{ m.created_at|date:"d M Y" }}</dd></div>
       <div class="fact">{% icon 'user' %}<dt>Position</dt><dd>{{ m.get_position_display }}</dd></div>
       <div class="fact">{% icon 'globe' %}<dt>Preferred language</dt><dd>{{ m.get_preferred_language_display }}</dd></div>
       <div class="fact">{% icon 'building' %}<dt>Institution</dt><dd>{{ m.institution_name|default:"—" }}</dd></div>
@@ -41,6 +42,12 @@
     {% if p.edit_url %}<a class="btn btn-outline" href="{{ p.edit_url }}">{% icon 'pencil' %}Edit profile</a>{% endif %}
     <a class="btn btn-primary" href="{{ p.card_url }}">{% icon 'credit-card' %}Download card</a>
   </div>
+  {% if p.message_url %}
+  <div class="preview-actions">
+    <a class="btn btn-soft" href="{{ p.message_url }}&amp;channel=sms">{% icon 'message-square' %}Send SMS</a>
+    <a class="btn btn-soft" href="{{ p.message_url }}&amp;channel=email">{% icon 'mail' %}Send email</a>
+  </div>
+  {% endif %}
 
   <section class="card preview-activity" aria-label="Recent activity">
     <h3 class="card-title">Recent activity</h3>
