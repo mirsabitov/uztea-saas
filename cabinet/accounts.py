@@ -65,7 +65,7 @@ def send_password_link(email, *, invited_by=None, lang='en'):
         'name': member.full_name, 'link': link, 'invited': bool(invited_by),
         'has_password': user.has_usable_password(), 'lang': lang,
     })
-    subject = 'Your UzTEA member cabinet' if invited_by else 'Set your UzTEA cabinet password'
+    subject = 'Your UzTEA profile is ready' if invited_by else 'Set your UzTEA profile password'
     message = EmailMultiAlternatives(subject=subject, body=strip_tags(html).strip() + f'\n\n{link}',
                                      from_email=settings.DEFAULT_FROM_EMAIL,
                                      to=[member.email])

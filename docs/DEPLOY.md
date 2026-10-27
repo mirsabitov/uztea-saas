@@ -1,50 +1,74 @@
-# Putting the workspace on the server
+# Deploy — UzTEA Workspace release
 
-Branch: `feature/uztea-workspace-ui`. Merge into `main` only after the owner approves.
+Branch `feature/uztea-workspace-ui` → PR into `main`. Django 5.2, same stack, **no new
+Python packages** (Playwright and openpyxl were already in `requirements.txt`).
 
-## What changes in the database
-`migrate` only **adds** tables; no existing table or column is changed:
-`workspace_messagelog`, `workspace_organizationsettings`, `workspace_event`,
-`workspace_benefit`, `certificates_certificatetemplate`, `certificates_certificate`,
-`certificates_certificatesequence`. Back up the database first anyway.
+## What changed and where
+| Area | Where | Notes |
+|---|---|---|
+| Staff workspace (dashboard, people, payments, partners, settings, messages) | `workspace/` → `/workspace/` | Staff-only. `/admin/` unchanged. |
+| Membership status (Active / Renewal due / Expired) | `app/membership_lifecycle.py` | Computed from payments, nothing stored. |
+| Payment status helper | `app/payment_status.py` | Same rules as before; admin column uses it. |
+| SMS (Eskiz) + email from the workspace, message log | `workspace/sms.py`, `workspace/messaging.py` | |
+| SaaS Settings: organisation, logos, default language | `/workspace/saas/` | |
+| Languages EN / UZ / RU | `workspace/i18n.py` | Dictionary, no gettext needed. |
+| Brevo for all email | `root/settings.py` (EMAIL_* switch) | Only when `BREVO_*` env is set. |
+| Certificates: designer, numbering, PDF, issuing | `certificates/` → `/workspace/certificates/` | PDFs via Playwright Chromium. |
+| Certificate portal | `certificates/` → `certificates.uztea.uz` (= `/certificates/`) | `certificates.middleware.CertificatesHostMiddleware` |
+| Member area "My profile" (login, edit profile, photo, email opt-in) | `cabinet/` → `/account/` | Members are never staff. |
+| Public membership form look | `static/forms/membership-modern.css` (linked from `templates/membership_form.html`) | Fields and JS unchanged. |
+| Admin | `app/admin.py` | Membership list shows "Email updates" column + filter. |
+| Settings | `root/settings.py` | New apps `workspace`, `certificates`, `cabinet`; host middleware; Brevo block. |
+| URLs | `root/urls.py` | `/workspace/`, `/certificates/`, `/account/`, `/set-language/`. |
+
+Existing URLs, payment callbacks and public forms are unchanged.
+
+## Database
+`migrate` **only adds tables** (no change to existing tables):
+`workspace_*` (messagelog, organizationsettings, event, benefit), `certificates_*`
+(certificatetemplate, certificate, certificatesequence), `cabinet_*` (memberprofile,
+profilechange). Back up the DB first anyway.
 
 ## Steps
-1. Back up PostgreSQL and `media/`.
-2. `git fetch && git checkout <the approved branch or main>`
-3. `pip install -r requirements.txt`
-4. Chromium for certificate PDFs (and membership cards):
-   `python -m playwright install --with-deps chromium`
-5. `python manage.py migrate`
-6. `python manage.py collectstatic --noinput`
-7. Add to the server's `.env` (see `.env.example`):
-   - `BREVO_SMTP_LOGIN`, `BREVO_SMTP_KEY` — all email goes through Brevo once set.
-     Verify `info@uztea.uz` / the uztea.uz domain (SPF + DKIM) in Brevo first.
-   - `ESKIZ_EMAIL`, `ESKIZ_PASSWORD`, `ESKIZ_FROM` — SMS. Get the SMS texts approved
-     as templates in the Eskiz cabinet.
-   - `CERTIFICATES_BASE_URL=https://certificates.uztea.uz`
-   - `CABINET_BASE_URL=https://<site where /account/ is served>` (defaults to `SITE_BASE_URL`)
-   - `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`: add `certificates.uztea.uz`
-     (`https://certificates.uztea.uz` for CSRF).
-8. DNS: point `certificates.uztea.uz` at the server; add it to the web server config
-   (nginx `server_name`) and the TLS certificate. The same Django app serves it.
-9. Make sure `/media/` is served (uploaded signatures, stamps, logos, cached PDFs).
-10. Restart the app server.
+```bash
+# 0. backup PostgreSQL + media/
+git fetch origin && git checkout main && git pull        # after the PR is merged
+pip install -r requirements.txt
+python -m playwright install --with-deps chromium        # certificate PDFs / membership cards
+python manage.py migrate
+python manage.py collectstatic --noinput
+# restart gunicorn/uwsgi (or the service you use)
+```
 
-## After deploy — check
-- `/workspace/` opens for staff; `/admin/` still works.
-- `/apply/`, `/tesol/`, `/30years/` and the payment callbacks still work.
-- Send a test email and a test SMS to yourself from People.
-- Issue one certificate to yourself, open the emailed link, verify the number at
+`.env` additions (see `.env.example`):
+```
+BREVO_SMTP_LOGIN=...            # Brevo SMTP login
+BREVO_SMTP_KEY=...              # Brevo SMTP key → all mail goes via Brevo
+ESKIZ_EMAIL=...  ESKIZ_PASSWORD=...  ESKIZ_FROM=4546
+CERTIFICATES_BASE_URL=https://certificates.uztea.uz
+CABINET_BASE_URL=https://membership.uztea.uz   # where /account/ is served
+ALLOWED_HOSTS=...,certificates.uztea.uz
+CSRF_TRUSTED_ORIGINS=...,https://certificates.uztea.uz
+```
+
+Web server / DNS:
+- `certificates.uztea.uz` → same server and same Django app (add to nginx `server_name`
+  and the TLS certificate).
+- Serve `/media/` (uploaded logos, signatures, stamps, member photos, cached PDFs).
+- Brevo: verify the uztea.uz sender (SPF + DKIM). Eskiz: approve the SMS texts.
+
+## Smoke test after deploy
+- `/admin/`, `/apply/`, `/tesol/`, `/30years/` open; a test payment callback still works.
+- `/workspace/` (staff login) → Home dashboard loads.
+- Send yourself a test email and SMS from People.
+- Issue a certificate to yourself, open the emailed link, verify the number on
   `https://certificates.uztea.uz`.
-- Invite yourself to the cabinet and sign in at `/account/`.
+- People → a member → "Invite to cabinet" → set password → `/account/` → Edit profile.
 
-## Permissions to give staff
-Create groups in the admin (Users & groups):
-- **Membership team**: view/change membership, pending payment, teachers bank;
-  `workspace | message | add/view` to send SMS / email.
-- **Events team**: `workspace | event` add/change/view; certificates add/change/view.
-- **Finance**: click order, atmos, payme, promo code (view).
-Superusers see everything.
+## Rollback
+`git checkout <previous tag/commit>`, restart. The new tables can stay; old code ignores them.
 
-## Not for production
-`manage.py workspace_demo_data` refuses to run unless DEBUG and SQLite.
+## Notes
+- `manage.py workspace_demo_data` refuses to run in production (DEBUG + SQLite only).
+- Staff permissions: give groups `workspace | message | add/view`, `workspace | event`,
+  `workspace | benefit`, `certificates | *` as needed; superusers see everything.

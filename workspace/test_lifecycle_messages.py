@@ -117,7 +117,8 @@ class ComposeTests(TestCase):
     def setUp(self):
         self.admin = User.objects.create_superuser('admin', 'admin@example.org', 'pw')
         self.client.force_login(self.admin)
-        self.a = make_membership(full_name='Aziza', email='aziza@example.org', phone_number='+998901112233')
+        self.a = make_membership(full_name='Aziza', email='aziza@example.org', phone_number='+998901112233',
+                                 agree_communication=True)
         self.b = make_membership(full_name='Bekzod', email='', phone_number='12345')
         paid_order(self.a, 10)
         self.url = reverse('workspace:message_compose') + '?source=member'
@@ -162,6 +163,14 @@ class ComposeTests(TestCase):
         self.assertEqual(mail.outbox[0].to, ['aziza@example.org'])
         self.assertEqual(mail.outbox[0].subject, 'Hello Aziza')
         self.assertEqual(MessageLog.objects.get(recipient_name='Bekzod').status, MessageLog.SKIPPED)
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_unsubscribed_members_get_no_news_email(self):
+        self.a.agree_communication = False
+        self.a.save()
+        self.send(channel='email', subject='News', body='Hello')
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(MessageLog.objects.get(recipient_name='Aziza').error, 'Unsubscribed from UzTEA emails')
 
     def test_confirmation_required(self):
         response = self.send(channel='sms', sms_text='Hi', confirm='')

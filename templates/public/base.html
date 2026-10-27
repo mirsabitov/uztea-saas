@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}UzTEA{% endblock %}</title>
-  <link rel="icon" href="{% static 'workspace/img/logo-navy.png' %}">
+  <link rel="icon" href="{{ org.logo_urls.light }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <script>try{var t=localStorage.getItem('ws-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
@@ -18,7 +18,7 @@
 <header class="pub-header">
   <div class="pub-header-inner">
     <a class="pub-brand" href="{% block brand_url %}/{% endblock %}">
-      <span class="pub-logo"><img src="{% static 'workspace/img/logo-navy.png' %}" alt="UzTEA" class="logo-on-light" width="480" height="331"><img src="{% static 'workspace/img/logo-white.png' %}" alt="UzTEA" class="logo-on-dark" width="480" height="331"></span>
+      {% with logos=org.logo_urls %}<span class="pub-logo"><img src="{{ logos.light }}" alt="{{ org.short_name|default:'UzTEA' }}" class="logo-on-light"><img src="{{ logos.dark }}" alt="{{ org.short_name|default:'UzTEA' }}" class="logo-on-dark"></span>{% endwith %}
       <span class="pub-brand-text"><strong>{% block brand %}UzTEA{% endblock %}</strong><small>{{ org.name|default:"Uzbekistan Teachers of English Association" }}</small></span>
     </a>
     <div class="pub-header-actions">

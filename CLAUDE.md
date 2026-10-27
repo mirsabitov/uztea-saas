@@ -118,8 +118,18 @@ Phases and status live in `docs/ROADMAP.md`.
   Public portal `certificates.uztea.uz` (= `/certificates/` via
   `CertificatesHostMiddleware`): lookup by email or membership ID only emails the links
   to the address on file (nothing shown on screen); verification by number is public.
-- Member cabinet (`cabinet` app, `/account/`): Django users with username = email, never
-  staff. Accounts are created, invited and reset with the same emailed set-password link
+- Member area "My profile" (`cabinet` app, `/account/`; approved name 2026-10-27): Django
+  users with username = email, never staff. Members edit their application answers
+  (`cabinet/profile.py`, same labels as `/apply/`) except email, membership type/ID,
+  payments and the terms/data consents; every edit is logged in `cabinet.ProfileChange`
+  and shown in the workspace activity. Photo in `cabinet.MemberProfile`. Email opt-in is
+  the existing `Membership.agree_communication` (switch in My profile, column + filter in
+  admin and workspace); workspace news emails skip unsubscribed members, transactional
+  mail (certificates, password links, welcome) still goes.
+- Branding: logos uploaded in SaaS Settings (`OrganizationSettings.logo_*`) replace the
+  original files everywhere (workspace, public pages, certificate UzTEA logo); removing
+  them falls back to the originals.
+- My profile accounts are created, invited and reset with the same emailed set-password link
   (Django token, 3 days). Shows membership status, card, payments, event registrations,
   certificates, benefits (active members, by type) and published upcoming events.
   Courses: "Coming soon".

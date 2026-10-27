@@ -58,6 +58,11 @@ class OrganizationSettings(models.Model):
     phone = models.CharField(max_length=50, blank=True)
     website = models.URLField(blank=True, default='https://www.uztea.uz')
     address = models.TextField(blank=True)
+    logo_light = models.ImageField(upload_to='branding/', blank=True,
+                                   help_text='Logo for light backgrounds (default: navy UzTEA logo).')
+    logo_dark = models.ImageField(upload_to='branding/', blank=True,
+                                  help_text='Logo for dark backgrounds, e.g. the sidebar (default: white UzTEA logo).')
+    logo_accent = models.ImageField(upload_to='branding/', blank=True, help_text='Accent logo (default: blue UzTEA logo).')
     default_language = models.CharField(max_length=5, choices=LANGUAGE_CHOICES, default='en',
                                         help_text='Language of the workspace, member cabinet and certificate portal '
                                                   'unless a person picks another one.')
@@ -74,6 +79,15 @@ class OrganizationSettings(models.Model):
     def get(cls):
         obj = cls.objects.order_by('pk').first()
         return obj or cls.objects.create()
+
+    def logo_urls(self):
+        """Uploaded logos, falling back to the original UzTEA files."""
+        from django.templatetags.static import static
+        return {
+            'light': self.logo_light.url if self.logo_light else static('workspace/img/logo-navy.png'),
+            'dark': self.logo_dark.url if self.logo_dark else static('workspace/img/logo-white.png'),
+            'accent': self.logo_accent.url if self.logo_accent else static('workspace/img/logo-blue.png'),
+        }
 
 
 class Event(models.Model):

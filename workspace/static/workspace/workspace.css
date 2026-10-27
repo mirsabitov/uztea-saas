@@ -258,6 +258,7 @@ input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--blue); c
 .avatar-md { width: 40px; height: 40px; font-size: 13px; }
 .avatar-xl { width: 76px; height: 76px; font-size: 26px; }
 .avatar-xxl { width: 92px; height: 92px; font-size: 32px; }
+.avatar-photo { object-fit: cover; }
 .avatar-light { background: var(--blue-100); color: var(--brand-navy); }
 
 /* Tabs */
@@ -750,6 +751,13 @@ input.switch:checked::after { transform: translateX(18px); }
   .designer-grid { grid-template-columns: minmax(0, 1fr); }
   .designer-props { position: static; max-height: none; }
 }
+
+.logo-slots { display: grid; gap: 12px; }
+.logo-slot { display: grid; grid-template-columns: 120px 1fr; gap: 6px 12px; align-items: center; }
+.logo-slot .logo-swatch { grid-row: span 3; margin: 0; height: 74px; }
+.logo-slot-text { display: flex; flex-direction: column; }
+.logo-upload { justify-self: start; cursor: pointer; }
+.logo-upload.has-file { border-color: var(--blue); background: var(--blue-50); }
 
 /* ── Messages ──────────────────────────────────────────────────────── */
 .ws-nav-separate { margin-top: 14px !important; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, .14); }

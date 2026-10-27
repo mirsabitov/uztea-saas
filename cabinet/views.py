@@ -148,6 +148,25 @@ def set_password(request, uidb64, token):
     return render(request, 'cabinet/set_password.html', _ctx(request, form=form, valid=valid))
 
 
+def primary_membership(user):
+    """(membership, status, all memberships) for the signed-in member; valid ones first, then newest."""
+    from app import membership_lifecycle as lifecycle
+
+    memberships = list(memberships_for_email(user.email or user.username))
+    if not memberships:
+        return None, None, []
+    statuses = lifecycle.bulk_status(memberships)
+    rank = {lifecycle.ACTIVE: 0, lifecycle.RENEWAL_DUE: 0, lifecycle.EXPIRED: 1, lifecycle.PENDING: 2, lifecycle.NO_RECORD: 3}
+    memberships.sort(key=lambda m: (rank.get(statuses[m.pk]['key'], 9), -m.created_at.timestamp()))
+    return memberships[0], statuses[memberships[0].pk], memberships
+
+
+def photo_url(user):
+    profile = getattr(user, 'member_profile', None)
+    return profile.photo.url if profile and profile.photo else ''
+
+
+@csrf_protect  # the page holds the subscription and sign-out forms
 @_member_required
 def home(request):
     from app import membership_lifecycle as lifecycle
@@ -158,13 +177,7 @@ def home(request):
     from workspace.models import Benefit, Event
 
     email = request.user.email or request.user.username
-    memberships = list(memberships_for_email(email))
-    statuses = lifecycle.bulk_status(memberships) if memberships else {}
-    # Show the membership that matters most: valid first, then the newest.
-    rank = {lifecycle.ACTIVE: 0, lifecycle.RENEWAL_DUE: 0, lifecycle.EXPIRED: 1, lifecycle.PENDING: 2, lifecycle.NO_RECORD: 3}
-    memberships.sort(key=lambda m: (rank.get(statuses[m.pk]['key'], 9), -m.created_at.timestamp()))
-    member = memberships[0] if memberships else None
-    status = statuses.get(member.pk) if member else None
+    member, status, memberships = primary_membership(request.user)
     is_active = bool(status and status['key'] in (lifecycle.ACTIVE, lifecycle.RENEWAL_DUE))
 
     orders = list(Order.objects.filter(membership__in=memberships).order_by('-created_at')) if memberships else []
@@ -187,5 +200,77 @@ def home(request):
         orders=orders, conference=conference, anniversary=anniversary,
         certificates=[{'c': c, 'url': download_url(c)} for c in certs],
         benefits=benefits, events=list(events[:10]),
-        renew_url=reverse('membership_form'),
+        renew_url=reverse('membership_form'), photo=photo_url(request.user),
     ))
+
+
+@csrf_protect
+@_member_required
+def profile(request):
+    """All application answers; the member can edit everything except payment, type, ID, email and consents."""
+    from .models import MemberProfile
+    from .profile import STEPS, PhotoForm, ProfileForm, read_only_rows
+
+    member, status, _all = primary_membership(request.user)
+    if member is None:
+        return redirect('cabinet:home')
+    lang = language_for(request)
+    form = ProfileForm(request.POST if request.method == 'POST' and 'save_profile' in request.POST else None,
+                       instance=member)
+    photo_form = PhotoForm()
+    if request.method == 'POST':
+        if 'save_profile' in request.POST and form.is_valid():
+            changes = form.save_with_log(request.user)
+            messages.success(request, translate(lang, 'Your profile is saved.') if changes
+                             else translate(lang, 'Nothing changed.'))
+            return redirect('cabinet:profile')
+        if 'save_photo' in request.POST or 'remove_photo' in request.POST:
+            profile_obj, _ = MemberProfile.objects.get_or_create(user=request.user)
+            if 'remove_photo' in request.POST and profile_obj.photo:
+                profile_obj.photo.delete(save=True)
+                messages.success(request, translate(lang, 'Photo removed.'))
+                return redirect('cabinet:profile')
+            photo_form = PhotoForm(request.POST, request.FILES)
+            if photo_form.is_valid() and photo_form.cleaned_data.get('photo'):
+                if profile_obj.photo:
+                    profile_obj.photo.delete(save=False)
+                profile_obj.photo = photo_form.cleaned_data['photo']
+                profile_obj.save()
+                messages.success(request, translate(lang, 'Photo saved.'))
+                return redirect('cabinet:profile')
+    fixed = read_only_rows(member)
+    sections = []
+    for title, names in STEPS:
+        rows = []
+        for name in names:
+            if name in form.fields:
+                rows.append({'field': form[name]})
+            elif name in fixed:
+                rows.append({'fixed': fixed[name]})
+        if rows:
+            sections.append({'title': title, 'rows': rows})
+    return render(request, 'cabinet/profile.html', _ctx(
+        request, member=member, status=status, form=form, photo_form=photo_form, sections=sections,
+        membership_id=f'UZ{member.pk:06d}', photo=photo_url(request.user)))
+
+
+@require_POST
+@csrf_protect
+@_member_required
+def subscription(request):
+    """Quick switch for UzTEA emails (the application's "agree to receive communications")."""
+    member, _status, memberships = primary_membership(request.user)
+    if member is not None:
+        wanted = request.POST.get('subscribed') == 'on'
+        from app.models import Membership
+        from .models import ProfileChange
+        changed = [m for m in memberships if m.agree_communication != wanted]
+        if changed:
+            Membership.objects.filter(pk__in=[m.pk for m in changed]).update(agree_communication=wanted)
+            ProfileChange.objects.create(membership=member, user=request.user, changes={
+                'Email updates': ['Yes' if not wanted else 'No', 'Yes' if wanted else 'No']})
+        lang = language_for(request)
+        messages.success(request, translate(lang, 'You will receive UzTEA emails.') if wanted
+                         else translate(lang, 'You will no longer receive UzTEA news emails.'))
+    target = request.POST.get('next', '')
+    return redirect(target if target.startswith('/account/') else reverse('cabinet:home'))

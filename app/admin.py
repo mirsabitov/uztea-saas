@@ -329,11 +329,12 @@ class MembershipAdmin(ImportExportModelAdmin):
     actions = ('move_to_pending_payment', 'resend_welcome_email', 'compose_custom_email')
 
     list_display = ('card_id', 'full_name', 'email', 'membership_type', 'position',
-                    'payment_status', 'created_at', 'card_link')
+                    'payment_status', 'email_updates', 'created_at', 'card_link')
 
     list_editable = ('membership_type',)
 
-    list_filter = ('membership_type', 'position', 'preferred_language')
+    # agree_communication = "receives UzTEA emails"; members can switch it in My profile.
+    list_filter = ('membership_type', 'position', 'preferred_language', 'agree_communication')
 
     search_fields = ('full_name', 'email', 'institution_name')
 
@@ -847,6 +848,11 @@ class MembershipAdmin(ImportExportModelAdmin):
                 f'{skipped_count} member(s) skipped because no email address was provided.',
                 level=messages.WARNING,
             )
+
+    @admin.display(boolean=True, description='Email updates', ordering='agree_communication')
+    def email_updates(self, obj):
+        # Members switch this in My profile (the application's "agree to receive communications").
+        return obj.agree_communication
 
     def card_id(self, obj):
         return f'UZ{obj.id:06d}' if obj.id else '—'

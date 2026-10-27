@@ -100,8 +100,12 @@ def workspace_view(section, *perms):
 def render_ws(request, template, context, section, status=200):
     user = request.user
     from .i18n import LANGUAGES, language_for
+    from .models import OrganizationSettings
     lang = language_for(request)
+    org = OrganizationSettings.get()
     base = {
+        'org': org,
+        'brand': org.logo_urls(),
         'lang': lang,
         'languages': LANGUAGES,
         'nav': nav_items(user, section),

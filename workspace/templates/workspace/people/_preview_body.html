@@ -6,7 +6,7 @@
     <a class="ws-icon-btn" href="?{{ base_query }}" data-preview-close aria-label="Close preview">{% icon 'x' %}</a>
   </div>
   <div class="preview-person">
-    <span class="avatar avatar-xl" aria-hidden="true">{{ p.initials }}</span>
+    {% if p.photo_url %}<img class="avatar avatar-xl avatar-photo" src="{{ p.photo_url }}" alt="">{% else %}<span class="avatar avatar-xl" aria-hidden="true">{{ p.initials }}</span>{% endif %}
     <div>
       <h3>{{ m.full_name }}</h3>
       <div class="muted">{{ m.email }}</div>
@@ -32,6 +32,7 @@
       <div class="fact">{% icon 'user' %}<dt>{% t "Position" %}</dt><dd>{{ m.get_position_display }}</dd></div>
       <div class="fact">{% icon 'globe' %}<dt>{% t "Preferred language" %}</dt><dd>{{ m.get_preferred_language_display }}</dd></div>
       <div class="fact">{% icon 'building' %}<dt>{% t "Institution" %}</dt><dd>{{ m.institution_name|default:"—" }}</dd></div>
+      <div class="fact">{% icon 'mail' %}<dt>{% t "Email updates" %}</dt><dd>{% if m.agree_communication %}<span class="status status-success">{% t "Subscribed" %}</span>{% else %}<span class="status status-muted">{% t "Unsubscribed" %}</span>{% endif %}</dd></div>
     </dl>
   </div>
   <div id="pv-activity-{{ m.pk }}" role="tabpanel" aria-labelledby="pv-tab-a-{{ m.pk }}" data-tab-hidden>

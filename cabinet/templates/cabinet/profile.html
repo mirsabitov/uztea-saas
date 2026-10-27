@@ -1,0 +1,72 @@
+{% extends "public/base.html" %}{% load workspace_tags %}
+{% block title %}{% t "Edit profile" %} · UzTEA{% endblock %}
+{% block brand %}UzTEA · {% t "My profile" %}{% endblock %}
+{% block brand_url %}{% url 'cabinet:home' %}{% endblock %}
+{% block header_actions %}
+  <form method="post" action="{% url 'cabinet:logout' %}">{% csrf_token %}<button class="btn btn-sm btn-ghost" type="submit">{% icon 'log-out' %}<span class="ws-hide-sm">{% t "Sign out" %}</span></button></form>
+{% endblock %}
+{% block content %}
+<div class="pub-wrap">
+  <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="{% url 'cabinet:home' %}">{% t "My profile" %}</a>{% icon 'chevron-right' %}<span aria-current="page">{% t "Edit profile" %}</span></nav>
+
+  <div class="profile-layout">
+    <aside class="stack">
+      <section class="card photo-card" aria-labelledby="photo-title">
+        <h2 class="sr-only" id="photo-title">{% t "Photo" %}</h2>
+        {% if photo %}<img class="profile-photo" src="{{ photo }}" alt="{{ member.full_name }}">
+        {% else %}<span class="avatar profile-photo profile-photo-empty" aria-hidden="true">{{ member.full_name|slice:":1"|upper }}</span>{% endif %}
+        <strong>{{ member.full_name }}</strong>
+        <span class="mono muted">{{ membership_id }}</span>
+        <span class="status status-{{ status.tone }}">{{ status.label|tr:lang }}</span>
+        <form method="post" enctype="multipart/form-data" class="photo-form">
+          {% csrf_token %}
+          <label class="btn btn-sm btn-outline">{% icon 'upload' %}{% if photo %}{% t "Change photo" %}{% else %}{% t "Add photo" %}{% endif %}
+            <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" class="sr-only" data-autosubmit-file>
+          </label>
+          <input type="hidden" name="save_photo" value="1">
+          {% for e in photo_form.photo.errors %}<p class="field-error">{% t e %}</p>{% endfor %}
+          <noscript><button class="btn btn-sm btn-primary" type="submit">{% t "Save" %}</button></noscript>
+        </form>
+        {% if photo %}<form method="post">{% csrf_token %}<button class="btn btn-sm btn-ghost btn-danger" type="submit" name="remove_photo" value="1">{% icon 'trash' %}{% t "Remove photo" %}</button></form>{% endif %}
+        <p class="muted small">JPG / PNG, {% t "up to 3 MB" %}</p>
+      </section>
+      <section class="card">
+        <h2 class="card-title">{% icon 'lock' %}{% t "Cannot be changed here" %}</h2>
+        <p class="muted small">{% t "Email (your login), membership type and ID, payments and the consents you gave. To change them, write to" %} <a href="mailto:{{ org.email }}">{{ org.email }}</a>.</p>
+      </section>
+    </aside>
+
+    <form method="post" class="stack profile-form" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="save_profile" value="1">
+      {% if form.errors %}<div class="alert alert-error" role="alert">{% t "Please check the highlighted fields." %}</div>{% endif %}
+      {% for s in sections %}
+      <section class="card" aria-labelledby="sec-{{ forloop.counter }}">
+        <h2 class="card-title" id="sec-{{ forloop.counter }}"><span class="step-no">{{ forloop.counter }}</span>{% t s.title %}</h2>
+        <div class="profile-grid">
+          {% for row in s.rows %}
+            {% if row.fixed %}
+            <div class="form-field is-fixed"><span class="label">{{ row.fixed.label }}</span><div class="fixed-value">{% icon 'lock' %}{{ row.fixed.value|default:"—" }}</div></div>
+            {% else %}{% with f=row.field %}
+            <div class="form-field{% if f.field.widget.input_type == 'checkbox' %} wide{% endif %}{% if f.name in 'address interests sig_areas contribution participation_details' %} wide{% endif %}{% if f.errors %} has-error{% endif %}">
+              {% if f.field.widget.input_type == 'checkbox' %}
+                <label class="check subscribe-check">{{ f }} {% t f.label %}</label>
+              {% else %}
+                <label for="{{ f.id_for_label }}">{% t f.label %}{% if f.field.required %} <span class="req">*</span>{% endif %}</label>
+                {{ f }}
+              {% endif %}
+              {% for e in f.errors %}<p class="field-error">{% t e %}</p>{% endfor %}
+            </div>
+            {% endwith %}{% endif %}
+          {% endfor %}
+        </div>
+      </section>
+      {% endfor %}
+      <div class="profile-actions">
+        <a class="btn btn-ghost" href="{% url 'cabinet:home' %}">{% t "Cancel" %}</a>
+        <button class="btn btn-primary" type="submit">{% icon 'check' %}{% t "Save changes" %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

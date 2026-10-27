@@ -36,7 +36,7 @@ Open decisions:
   to give them a start date (e.g. import a paid-on date column).
 - Eskiz: production credentials, approved SMS templates, sender name.
 
-## Phase 2b — SaaS Settings, languages, Brevo, certificates, member cabinet · in review
+## Phase 2b — SaaS Settings, languages, Brevo, certificates, My profile · ready to deploy
 Done:
 - SaaS Settings button in the header: organisation details, default language; every
   person can switch English / O'zbekcha / Русский (workspace, cabinet, certificate portal).
@@ -52,9 +52,11 @@ Done:
   invitations (one or many), dashboard with membership, card, payments, events,
   certificates, bonuses, upcoming events, profile; courses "Coming soon".
 
-Open decisions:
-- Which address serves the cabinet (e.g. `uztea.uz/account/` or a subdomain).
-- Whether members may edit their own profile details.
+- My profile: members edit their application answers and photo; email opt-in switch
+  (shown in admin and workspace); staff see every change. SaaS Settings: upload / remove logos.
+
+Decided: the member area is called "My profile"; members may edit their own details
+except payment data, membership type/ID, email and consents.
 
 ## Combined go-live step (after Phase 2b is approved)
 See `docs/DEPLOY.md`: open a PR (no merge without approval), back up, test on staging

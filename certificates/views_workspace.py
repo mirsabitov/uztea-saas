@@ -7,7 +7,6 @@ from django.contrib import messages
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.templatetags.static import static
 from django.urls import reverse
 
 from workspace.access import can, render_ws, workspace_view
@@ -106,7 +105,8 @@ def designer(request, pk):
             obj.save()
             messages.success(request, f'Saved "{obj}".')
             return redirect('workspace:cert_designer', pk=obj.pk)
-    images = {'uztea_logo': static('workspace/img/logo-navy.png')}
+    from workspace.models import OrganizationSettings
+    images = {'uztea_logo': OrganizationSettings.get().logo_urls()['light']}
     for field in IMAGE_FIELDS:
         f = getattr(template, field)
         images[field] = f.url if f else ''

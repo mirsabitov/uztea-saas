@@ -8,7 +8,7 @@
   <div class="settings-grid">
     <section class="card" aria-labelledby="s-org">
       <h2 class="card-title" id="s-org">{% icon 'building' %}{% t "Organisation" %}</h2>
-      <form method="post" class="form-stack">
+      <form method="post" class="form-stack" id="org-form" enctype="multipart/form-data">
         {% csrf_token %}
         {% for field in form %}
           <div class="form-field">
@@ -43,12 +43,24 @@
       </section>
 
       <section class="card" aria-labelledby="s-brand">
-        <h2 class="card-title" id="s-brand">{% icon 'tag' %}Branding</h2>
-        <div class="logo-row" aria-label="Logo variants">
-          <figure><div class="logo-swatch"><img src="{% static 'workspace/img/logo-navy.png' %}" alt="UzTEA logo, navy" width="480" height="331"></div><figcaption>Light</figcaption></figure>
-          <figure><div class="logo-swatch logo-swatch-dark"><img src="{% static 'workspace/img/logo-white.png' %}" alt="UzTEA logo, white" width="480" height="331"></div><figcaption>Dark</figcaption></figure>
-          <figure><div class="logo-swatch"><img src="{% static 'workspace/img/logo-blue.png' %}" alt="UzTEA logo, blue" width="480" height="331"></div><figcaption>Accent</figcaption></figure>
+        <h2 class="card-title" id="s-brand">{% icon 'image' %}Branding</h2>
+        <p class="muted">Upload your own logo versions or go back to the original UzTEA logos. PNG / SVG with a transparent background, up to 2 MB.</p>
+        {% for e in logo_errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        <div class="logo-slots">
+          {% for field, title, where, url, custom, dark in logo_slots %}
+          <div class="logo-slot">
+            <div class="logo-swatch{% if dark %} logo-swatch-dark{% endif %}"><img src="{{ url }}" alt="{{ title }} logo"></div>
+            <div class="logo-slot-text"><strong>{{ title }}</strong><small class="muted">{{ where }}{% if not custom %} · original UzTEA logo{% endif %}</small></div>
+            {% if can_edit %}
+            <label class="btn btn-sm btn-outline logo-upload">{% icon 'upload' %}{% if custom %}Replace{% else %}Upload{% endif %}
+              <input type="file" name="{{ field }}" accept="image/png,image/jpeg,image/webp,image/svg+xml" form="org-form" class="sr-only" data-logo-input>
+            </label>
+            {% if custom %}<label class="check small"><input type="checkbox" name="clear_{{ field }}" form="org-form"> Remove (use original)</label>{% endif %}
+            {% endif %}
+          </div>
+          {% endfor %}
         </div>
+        {% if can_edit %}<p class="muted small">Choose files, then press Save in the Organisation card.</p>{% endif %}
       </section>
 
       {% if integrations %}

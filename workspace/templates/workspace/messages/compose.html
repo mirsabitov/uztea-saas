@@ -48,6 +48,7 @@
 
         <section class="card" data-channel-panel="email" aria-label="Email">
           <h2 class="card-title">Email</h2>
+          {% if unsubscribed %}<p class="note">{% icon 'alert' %}{{ unsubscribed }} of the selected members unsubscribed from UzTEA emails in My profile; they will be skipped.</p>{% endif %}
           {% if email_console %}<p class="note">{% icon 'alert' %}This server prints emails to its console instead of sending them (local setup).</p>{% endif %}
           <div class="form-row-2">
             <div><label for="id_sender">From</label>
@@ -88,7 +89,7 @@
             {% for p in shown_people %}
             <li><span class="person-name">{{ p.name }}</span>
               <span class="muted small" data-channel-panel="sms">{% if p.phone %}+{{ p.phone }}{% else %}<span class="field-error">no valid number — skipped</span>{% endif %}</span>
-              <span class="muted small" data-channel-panel="email">{% if p.email %}{{ p.email }}{% else %}<span class="field-error">no email — skipped</span>{% endif %}</span></li>
+              <span class="muted small" data-channel-panel="email">{% if p.unsubscribed %}<span class="field-error">unsubscribed — skipped</span>{% elif p.email %}{{ p.email }}{% else %}<span class="field-error">no email — skipped</span>{% endif %}</span></li>
             {% endfor %}
           </ul>
           {% if total > shown_people|length %}<p class="muted small">and {{ total|add:"-50" }} more</p>{% endif %}

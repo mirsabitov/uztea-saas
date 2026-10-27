@@ -93,13 +93,14 @@ def compose(request):
                 return redirect(reverse('workspace:messages') + f'?batch={batch}')
 
     with_phone = sum(1 for p in people if p['phone'])
-    with_email = sum(1 for p in people if p['email'])
+    with_email = sum(1 for p in people if p['email'] and not p.get('unsubscribed'))
+    unsubscribed = sum(1 for p in people if p.get('unsubscribed'))
     label = messaging.SOURCES[source][0]
     return render_ws(request, 'workspace/messages/compose.html', {
         'page_title': 'Send message',
         'form': form, 'channel': form.data.get('channel', channel) if sending else channel,
         'source': source, 'source_label': label, 'people': people, 'shown_people': people[:50],
-        'total': len(people), 'with_phone': with_phone, 'with_email': with_email,
+        'total': len(people), 'with_phone': with_phone, 'with_email': with_email, 'unsubscribed': unsubscribed,
         'max_recipients': messaging.MAX_RECIPIENTS, 'truncated': len(ids) > messaging.MAX_RECIPIENTS,
         'sms_mode': sms_mode, 'sms_sender': sms.config()['sender'],
         'email_console': messaging.email_is_console(),

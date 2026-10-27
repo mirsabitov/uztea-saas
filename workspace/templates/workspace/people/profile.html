@@ -7,7 +7,7 @@
   </nav>
 
   <div class="profile-head card">
-    <span class="avatar avatar-xxl" aria-hidden="true">{{ initials }}</span>
+    {% if photo_url %}<img class="avatar avatar-xxl avatar-photo" src="{{ photo_url }}" alt="">{% else %}<span class="avatar avatar-xxl" aria-hidden="true">{{ initials }}</span>{% endif %}
     <div class="profile-id">
       <h1 id="page-title">{{ m.full_name }}</h1>
       <div class="muted">{{ m.email }}</div>

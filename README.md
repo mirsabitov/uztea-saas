@@ -32,8 +32,19 @@ make static     # collectstatic
 python manage.py runserver
 ```
 
+## Apps added with the UzTEA Workspace
+| App | Purpose |
+|---|---|
+| `workspace` | Staff workspace at `/workspace/` (dashboard, people, payments, partners, messages, settings, languages) |
+| `certificates` | Certificate designer, numbering and PDFs; public portal at `certificates.uztea.uz` |
+| `cabinet` | Members' "My profile" at `/account/` |
+
+Local demo data: `python manage.py workspace_demo_data` (DEBUG + SQLite only).
+Deploy notes: `docs/DEPLOY.md`. Roadmap: `docs/ROADMAP.md`.
+
 ## URLs
 - `/admin/` — admin panel
+- `/workspace/` — staff workspace · `/account/` — members' My profile · `/certificates/` — certificate portal
 - `/payments/click/`, `/payments/payme/`, `/payments/atmos/` — payment callbacks
 - other public routes: see `app/urls.py`
 

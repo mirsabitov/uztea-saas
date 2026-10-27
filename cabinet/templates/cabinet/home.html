@@ -1,6 +1,6 @@
 {% extends "public/base.html" %}{% load workspace_tags %}
-{% block title %}{% t "Member cabinet" %} · UzTEA{% endblock %}
-{% block brand %}UzTEA {% t "Member cabinet" %}{% endblock %}
+{% block title %}{% t "My profile" %} · UzTEA{% endblock %}
+{% block brand %}UzTEA · {% t "My profile" %}{% endblock %}
 {% block brand_url %}{% url 'cabinet:home' %}{% endblock %}
 {% block header_actions %}
   <form method="post" action="{% url 'cabinet:logout' %}">{% csrf_token %}<button class="btn btn-sm btn-ghost" type="submit">{% icon 'log-out' %}<span class="ws-hide-sm">{% t "Sign out" %}</span></button></form>
@@ -8,11 +8,12 @@
 {% block content %}
 <div class="pub-wrap">
   <div class="cab-head">
-    <span class="avatar avatar-xl" aria-hidden="true">{{ member.full_name|default:request.user.email|slice:":1"|upper }}</span>
+    {% if photo %}<img class="profile-photo profile-photo-sm" src="{{ photo }}" alt="">{% else %}<span class="avatar avatar-xl" aria-hidden="true">{{ member.full_name|default:request.user.email|slice:":1"|upper }}</span>{% endif %}
     <div>
       <h1>{% t "Welcome" %}, {{ member.full_name|default:request.user.get_full_name|default:request.user.email }}</h1>
       <p class="muted">{{ request.user.email }}</p>
     </div>
+    {% if member %}<a class="btn btn-outline cab-edit" href="{% url 'cabinet:profile' %}">{% icon 'pencil' %}{% t "Edit profile" %}</a>{% endif %}
   </div>
 
   {% if not member %}
@@ -22,7 +23,7 @@
       <a class="btn btn-primary" href="{{ renew_url }}">{% t "Apply for membership" %}</a></section>
   {% else %}
 
-  <nav class="cab-nav tabs" aria-label="{% t "Member cabinet" %}">
+  <nav class="cab-nav tabs" aria-label="{% t "My profile" %}">
     <a class="tab is-active" href="#membership">{% t "My membership" %}</a>
     <a class="tab" href="#events">{% t "Upcoming events" %}</a>
     <a class="tab" href="#certificates">{% t "My certificates" %}</a>
@@ -111,7 +112,14 @@
         <div><dt>{% t "Preferred language" %}</dt><dd>{{ member.get_preferred_language_display }}</dd></div>
         <div><dt>{% t "Joined" %}</dt><dd>{{ member.created_at|date:"d.m.Y" }}</dd></div>
       </dl>
-      <p class="muted small" style="margin-top:12px">{% t "To change your details, write to" %} <a href="mailto:{{ org.email }}">{{ org.email }}</a>.</p>
+      <div class="profile-foot">
+        <a class="btn btn-sm btn-outline" href="{% url 'cabinet:profile' %}">{% icon 'pencil' %}{% t "Edit profile" %}</a>
+        <form method="post" action="{% url 'cabinet:subscription' %}" class="subscribe-mini">
+          {% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}">
+          <label class="check small"><input type="checkbox" name="subscribed" {% if member.agree_communication %}checked{% endif %} data-autosubmit> {% t "Send me UzTEA news and updates by email" %}</label>
+          <noscript><button class="btn btn-sm btn-ghost" type="submit">{% t "Save" %}</button></noscript>
+        </form>
+      </div>
     </section>
   </div>
   {% endif %}

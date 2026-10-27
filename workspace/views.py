@@ -172,7 +172,7 @@ def people_members(request):
 
     countries = (Membership.objects.filter(is_pending_payment=pending).exclude(country='')
                  .order_by('country').values_list('country', flat=True).distinct())
-    active_filters = [k for k in ('type', 'position', 'language', 'institution_type', 'country', 'status') if request.GET.get(k)]
+    active_filters = [k for k in ('type', 'position', 'language', 'institution_type', 'country', 'status', 'subscribed') if request.GET.get(k)]
 
     return render_ws(request, 'workspace/people/members.html', {
         'page_title': 'People',
@@ -245,6 +245,7 @@ def _preview_context(request, member):
         'edit_url': admin_url(f'{opt}_change', member.pk)
         if can(user, 'app.change_membership', 'app.change_pendingpayment') else None,
         'card_url': reverse('membership_card', args=[member.pk]) + '?download=1',
+        'photo_url': people.member_photo_url(member.email),
         'invite_url': reverse('workspace:cabinet_invite') if can(user, 'app.change_membership') else None,
         'message_url': (_message_url(user, 'member') + f'&ids={member.pk}') if _message_url(user, 'member') else None,
     }
@@ -618,6 +619,9 @@ def integration_status():
     ]
 
 
+LOGO_FIELDS = ('logo_light', 'logo_dark', 'logo_accent')
+
+
 @workspace_view('saas')
 def saas_settings(request):
     from django.contrib import messages as flash
@@ -627,14 +631,32 @@ def saas_settings(request):
     org = OrganizationSettings.get()
     can_edit = request.user.has_perm('workspace.change_organizationsettings')
     form = OrganizationForm(request.POST or None, instance=org)
-    if request.method == 'POST' and can_edit and form.is_valid():
-        form.save()
+    logo_errors = []
+    if request.method == 'POST' and can_edit:
+        for field in LOGO_FIELDS:
+            upload = request.FILES.get(field)
+            if upload and (upload.size > 2 * 1024 * 1024 or not (upload.content_type or '').startswith('image/')):
+                logo_errors.append(f'{upload.name}: use a PNG, JPG, WEBP or SVG image up to 2 MB.')
+    if request.method == 'POST' and can_edit and form.is_valid() and not logo_errors:
+        obj = form.save(commit=False)
+        for field in LOGO_FIELDS:
+            if request.POST.get(f'clear_{field}') and getattr(obj, field):
+                getattr(obj, field).delete(save=False)
+                setattr(obj, field, '')
+            if field in request.FILES:
+                setattr(obj, field, request.FILES[field])
+        obj.save()
         flash.success(request, translate(request.session.get('uztea_lang') or form.cleaned_data['default_language'],
                                          'Settings saved.'))
         return redirect('workspace:saas')
     return render_ws(request, 'workspace/saas.html', {
         'page_title': 'SaaS Settings',
-        'form': form, 'can_edit': can_edit, 'org': org,
+        'form': form, 'can_edit': can_edit, 'org': org, 'logo_errors': logo_errors,
+        'logo_slots': [
+            ('logo_light', 'Light backgrounds', 'Pages, cabinet, certificates', org.logo_urls()['light'], bool(org.logo_light), False),
+            ('logo_dark', 'Dark backgrounds', 'Sidebar, dark mode', org.logo_urls()['dark'], bool(org.logo_dark), True),
+            ('logo_accent', 'Accent', 'Highlights', org.logo_urls()['accent'], bool(org.logo_accent), False),
+        ],
         'integrations': integration_status() if request.user.is_superuser else None,
     }, 'saas')
 

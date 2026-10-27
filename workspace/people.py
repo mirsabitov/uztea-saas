@@ -87,6 +87,16 @@ PROFILE_SECTIONS = [
 PROFILE_SPECIAL_FIELDS = {'id', 'payment_proof', 'is_pending_payment', 'created_at'}
 
 
+def member_photo_url(email):
+    """Photo the member uploaded in My profile, if any."""
+    if not email:
+        return ''
+    from cabinet.models import MemberProfile
+    profile = (MemberProfile.objects.filter(user__email__iexact=email).exclude(photo='')
+               .select_related('user').first())
+    return profile.photo.url if profile else ''
+
+
 def membership_id(pk):
     return f'UZ{pk:06d}' if pk else '—'
 
@@ -146,6 +156,9 @@ def filter_members(params, pending):
         value = params.get(key)
         if value:
             qs = qs.filter(**{field: value})
+    subscribed = params.get('subscribed')
+    if subscribed in ('yes', 'no'):
+        qs = qs.filter(agree_communication=subscribed == 'yes')
     status = params.get('status')
     if status in STATUS_FILTERS:
         qs = qs.filter(pk__in=lifecycle.ids_with_status(qs, STATUS_FILTERS[status]))
@@ -240,6 +253,11 @@ def membership_activity(membership):
                            'tone': 'green' if txn.status == 'SUCCESS' else 'muted',
                            'title': f'Atmos transaction · {txn.get_status_display()}',
                            'text': f'Order #{txn.account} · {txn.amount_uzs:,.0f} UZS'.replace(',', ' ')})
+    from cabinet.models import ProfileChange
+    for change in ProfileChange.objects.filter(membership=membership)[:20]:
+        events.append({'when': change.created_at, 'icon': 'pencil', 'tone': 'blue',
+                       'title': 'Profile updated by the member',
+                       'text': '; '.join(f'{k}: {v[0] or "—"} → {v[1] or "—"}' for k, v in change.changes.items())[:300]})
     from .models import MessageLog
     for msg in MessageLog.objects.filter(source='member', recipient_id=membership.pk).exclude(status=MessageLog.SKIPPED)[:20]:
         events.append({'when': msg.created_at, 'icon': 'mail' if msg.channel == MessageLog.CHANNEL_EMAIL else 'message-square',

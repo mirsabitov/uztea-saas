@@ -456,3 +456,18 @@ document.addEventListener('click', function (e) {
   var b = e.target.closest('[data-confirm]');
   if (b && !window.confirm(b.getAttribute('data-confirm'))) e.preventDefault();
 });
+
+/* SaaS Settings: show the chosen logo right away (saved with the Save button). */
+document.querySelectorAll('[data-logo-input]').forEach(function (input) {
+  input.addEventListener('change', function () {
+    var slot = input.closest('.logo-slot');
+    if (!slot || !input.files || !input.files[0]) return;
+    slot.querySelector('.logo-swatch img').src = URL.createObjectURL(input.files[0]);
+    input.closest('label').classList.add('has-file');
+  });
+});
+
+/* Photo pickers that save straight away. */
+document.querySelectorAll('[data-autosubmit-file]').forEach(function (input) {
+  input.addEventListener('change', function () { if (input.files && input.files.length && input.form) input.form.submit(); });
+});

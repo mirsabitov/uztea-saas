@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% if page_title %}{{ page_title|tr:lang }} · {% endif %}UzTEA Workspace</title>
-  <link rel="icon" href="{% static 'workspace/img/logo-navy.png' %}">
+  <link rel="icon" href="{{ brand.light }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <script>try{var t=localStorage.getItem('ws-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
@@ -18,12 +18,12 @@
   <aside class="ws-sidebar" id="ws-sidebar" aria-label="Main navigation">
     <div class="ws-brand">
       <a href="{% url 'workspace:home' %}" class="ws-brand-link" aria-label="UzTEA Workspace home">
-        <img src="{% static 'workspace/img/logo-white.png' %}" alt="UzTEA" class="ws-logo" width="480" height="331">
+        <img src="{{ brand.dark }}" alt="{{ org.short_name|default:'UzTEA' }}" class="ws-logo">
       </a>
       <button type="button" class="ws-icon-btn ws-sidebar-close" data-sidebar-close aria-label="{% t "Close menu" %}">{% icon 'x' %}</button>
     </div>
     <div class="ws-org" title="Organisation">
-      <span class="ws-org-name">UzTEA</span>
+      <span class="ws-org-name">{{ org.short_name|default:'UzTEA' }}</span>
       <span class="ws-org-note">Workspace</span>
     </div>
 
@@ -70,8 +70,8 @@
       <button type="button" class="ws-icon-btn ws-menu-btn" data-sidebar-open aria-label="{% t "Open menu" %}" aria-controls="ws-sidebar">{% icon 'menu' %}</button>
       <div class="ws-topbar-title">
         <span class="ws-topbar-logo">
-          <img src="{% static 'workspace/img/logo-navy.png' %}" alt="" class="logo-on-light" width="480" height="331">
-          <img src="{% static 'workspace/img/logo-white.png' %}" alt="" class="logo-on-dark" width="480" height="331">
+          <img src="{{ brand.light }}" alt="" class="logo-on-light">
+          <img src="{{ brand.dark }}" alt="" class="logo-on-dark">
         </span>
         <div>
           <span class="ws-product">UzTEA Workspace{% if page_title and section != 'home' %}<span class="ws-product-sep" aria-hidden="true">|</span><span class="ws-product-page">{{ page_title|tr:lang }}</span>{% endif %}</span>

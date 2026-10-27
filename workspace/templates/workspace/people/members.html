@@ -54,13 +54,19 @@
         <option value="">{% t "Language" %}</option>
         {% for code, name in language_options %}<option value="{{ code }}"{% if filters.language == code %} selected{% endif %}>{{ name }}</option>{% endfor %}
       </select>
-      <details class="popover"{% if filters.institution_type or filters.country %} open{% endif %}>
+      <details class="popover"{% if filters.institution_type or filters.country or filters.subscribed %} open{% endif %}>
         <summary class="btn btn-outline">{% icon 'sliders' %}{% t "More filters" %}</summary>
         <div class="popover-body">
           <label for="f-inst">Institution type</label>
           <select id="f-inst" name="institution_type" class="select">
             <option value="">{% t "Any" %}</option>
             {% for code, name in institution_type_options %}<option value="{{ code }}"{% if filters.institution_type == code %} selected{% endif %}>{{ name }}</option>{% endfor %}
+          </select>
+          <label for="f-subscribed">{% t "Email updates" %}</label>
+          <select id="f-subscribed" name="subscribed" class="select">
+            <option value="">{% t "Any" %}</option>
+            <option value="yes"{% if filters.subscribed == 'yes' %} selected{% endif %}>{% t "Subscribed" %}</option>
+            <option value="no"{% if filters.subscribed == 'no' %} selected{% endif %}>{% t "Unsubscribed" %}</option>
           </select>
           <label for="f-country">Country</label>
           <select id="f-country" name="country" class="select">
@@ -90,6 +96,7 @@
             <label class="check"><input type="checkbox" data-col-toggle="position"> Position</label>
             <label class="check"><input type="checkbox" data-col-toggle="language"> Language</label>
             <label class="check"><input type="checkbox" data-col-toggle="joined"> Joined</label>
+            <label class="check"><input type="checkbox" data-col-toggle="subscribed"> {% t "Email updates" %}</label>
           </div>
         </details>
         <div class="view-toggle" role="group" aria-label="Layout">
@@ -114,6 +121,7 @@
               <th scope="col" data-col="position" hidden>{% t "Position" %}</th>
               <th scope="col" data-col="language" hidden>{% t "Language" %}</th>
               <th scope="col" data-col="joined" hidden><a class="sort{% if sort == 'joined' or sort == '-joined' %} is-sorted{% endif %}" href="?{{ sort_query }}{% if sort_query %}&{% endif %}sort={% if sort == '-joined' %}joined{% else %}-joined{% endif %}">{% t "Joined" %} {% icon 'sort' %}</a></th>
+              <th scope="col" data-col="subscribed" hidden>{% t "Email updates" %}</th>
               <th scope="col" class="col-actions">{% t "Actions" %}</th>
             </tr>
           </thead>
@@ -138,6 +146,7 @@
               <td data-col="position" hidden>{{ row.obj.get_position_display }}</td>
               <td data-col="language" hidden>{{ row.obj.get_preferred_language_display }}</td>
               <td data-col="joined" class="nowrap" hidden>{{ row.obj.created_at|date:"d M Y" }}</td>
+              <td data-col="subscribed" hidden>{% if row.obj.agree_communication %}<span class="status status-success">{% t "Subscribed" %}</span>{% else %}<span class="status status-muted">{% t "Unsubscribed" %}</span>{% endif %}</td>
               <td class="col-actions" data-no-preview>
                 <details class="menu">
                   <summary class="ws-icon-btn" aria-label="Actions for {{ row.obj.full_name }}">{% icon 'more' %}</summary>

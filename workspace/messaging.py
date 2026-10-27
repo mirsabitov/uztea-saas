@@ -79,6 +79,7 @@ def recipients(source, ids):
             'email': (obj.email or '').strip(), 'values': {},
         }
         if model is Membership:
+            person['unsubscribed'] = not obj.agree_communication
             valid_until = statuses[obj.pk]['valid_until']
             person['values'] = {'{membership_id}': f'UZ{obj.pk:06d}',
                                 '{valid_until}': timezone.localtime(valid_until).strftime('%d.%m.%Y') if valid_until else ''}
@@ -161,6 +162,10 @@ def send_email_batch(user, source, people, *, subject, body, is_html, sender, te
             if not person['email']:
                 _log(batch, MessageLog.CHANNEL_EMAIL, source, person, user, MessageLog.SKIPPED,
                      subject=personal_subject, body=personal_body, error='No email address')
+                continue
+            if person.get('unsubscribed'):
+                _log(batch, MessageLog.CHANNEL_EMAIL, source, person, user, MessageLog.SKIPPED,
+                     subject=personal_subject, body=personal_body, error='Unsubscribed from UzTEA emails')
                 continue
             try:
                 content = MembershipAdmin._absolute_email_urls(body_to_html(personal_body, is_html))

@@ -41,9 +41,17 @@ def _field_uri(field):
         return ''
 
 
+def _organisation_logo():
+    try:
+        from workspace.models import OrganizationSettings
+        return _field_uri(OrganizationSettings.get().logo_light)
+    except Exception:
+        return ''
+
+
 def image_sources(template):
     return {
-        'uztea_logo': _data_uri_from_path(finders.find('workspace/img/logo-navy.png')),
+        'uztea_logo': _organisation_logo() or _data_uri_from_path(finders.find('workspace/img/logo-navy.png')),
         'partner_logo': _field_uri(template.partner_logo),
         'extra_logo': _field_uri(template.extra_logo),
         'signature': _field_uri(template.signature),
