@@ -2,7 +2,7 @@
 {% block content %}
 <section class="page" aria-labelledby="page-title">
   <div class="page-head">
-    <div><h1 id="page-title">{% t "Certificates" %}</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div><h1 id="page-title">{% t "Certificates" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
     {% if batch %}<div class="page-actions"><a class="btn btn-outline" href="{% url 'workspace:cert_batch_zip' %}?batch={{ batch }}">{% icon 'download' %}Download this batch (ZIP)</a></div>{% endif %}
   </div>
   {% include "certificates/workspace/_tabs.html" %}

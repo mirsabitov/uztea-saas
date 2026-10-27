@@ -2,7 +2,7 @@
 {% block content %}
 <section class="page" aria-labelledby="page-title">
   <div class="page-head">
-    <div><h1 id="page-title">{% t "Forms & Events" %}</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div><h1 id="page-title">{% t "Forms & Events" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
     <div class="page-actions">{% if add_url %}<a class="btn btn-primary" href="{{ add_url }}">{% icon 'plus' %}{% t "Create event" %}</a>{% endif %}</div>
   </div>
   {% with forms_tab='events' %}{% include "workspace/partials/forms_tabs.html" %}{% endwith %}

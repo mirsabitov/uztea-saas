@@ -2,7 +2,7 @@
 {% block content %}
 <section class="page" aria-labelledby="page-title">
   <div class="page-head">
-    <div><h1 id="page-title">{% t "Partners" %}</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div><h1 id="page-title">{% t "Partners" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
     <div class="page-actions">{% if add_url %}<a class="btn btn-primary" href="{{ add_url }}">{% icon 'plus' %}New benefit</a>{% endif %}</div>
   </div>
   {% with partners_tab='benefits' %}{% include "workspace/partials/partners_tabs.html" %}{% endwith %}

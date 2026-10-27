@@ -103,6 +103,28 @@ Phases and status live in `docs/ROADMAP.md`.
   OS setting.
 - Public membership form keeps its markup, fields and JS; the modern look is the extra
   stylesheet `static/forms/membership-modern.css` (remove the <link> to roll back).
+- Languages (approved 2026-10-27): workspace, member cabinet and certificate portal in
+  English / Uzbek / Russian. Translations live in `workspace/i18n.py` (English text is the
+  key; `{% t "…" %}` and `|tr:lang`); missing lines fall back to English. No gettext.
+  Order: person's choice (session) > SaaS Settings default > English.
+- SaaS Settings (header button, `/workspace/saas/`): organisation details + default
+  language, stored in `workspace.OrganizationSettings` (single row).
+- Brevo: all email goes through Brevo's SMTP relay when `BREVO_SMTP_LOGIN` /
+  `BREVO_SMTP_KEY` are set (root/settings.py); otherwise the old EMAIL_* settings apply.
+- Certificates (`certificates` app): templates designed in the workspace (positions in %
+  of the page, same rules in the designer JS and `certificates/render.py`), PDFs by
+  Playwright/Chromium, numbers `UZTEA-YYYY-NNNNNN` from `CertificateSequence` (never
+  reused). Issued to selected members or an Excel/CSV/pasted list; emailed as a link.
+  Public portal `certificates.uztea.uz` (= `/certificates/` via
+  `CertificatesHostMiddleware`): lookup by email or membership ID only emails the links
+  to the address on file (nothing shown on screen); verification by number is public.
+- Member cabinet (`cabinet` app, `/account/`): Django users with username = email, never
+  staff. Accounts are created, invited and reset with the same emailed set-password link
+  (Django token, 3 days). Shows membership status, card, payments, event registrations,
+  certificates, benefits (active members, by type) and published upcoming events.
+  Courses: "Coming soon".
+- Events (`workspace.Event`, Forms & Events → Events) and member benefits
+  (`workspace.Benefit`, Partners → Bonuses & offers) are managed in the workspace.
 - Records from different tables are never merged. The same email in several lists is
   only pointed out ("Also in").
 - Unbuilt features are labelled "Preview" / "Next phase" and their buttons are disabled.

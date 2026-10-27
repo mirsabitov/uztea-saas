@@ -30,7 +30,7 @@
         <div class="lib-list">
           {% for key, label, ic in field_library %}<button type="button" class="lib-item" data-add-field="{{ key }}">{% icon ic %}{{ label }}</button>{% endfor %}
         </div>
-        <h2 class="card-title">Smart blocks <span class="chip chip-next">Next phase</span></h2>
+        <h2 class="card-title">Smart blocks <span class="chip chip-next">{% t "Next phase" %}</span></h2>
         <div class="lib-list">
           {% for key, label, ic in smart_blocks %}<button type="button" class="lib-item" disabled title="Needs membership and payment integration — later phase">{% icon ic %}{{ label }}</button>{% endfor %}
         </div>
@@ -67,7 +67,7 @@
           <label class="switch-row" for="fs-required"><span>Required</span>
             <input id="fs-required" type="checkbox" class="switch" data-fs-required>
           </label>
-          <span class="label">Logic <span class="chip chip-next">Next phase</span></span>
+          <span class="label">Logic <span class="chip chip-next">{% t "Next phase" %}</span></span>
           <div class="logic-box" data-fs-logic>{% icon 'git-branch' %}<span>No rules</span></div>
           <div class="tip">{% icon 'lightbulb' %}<div><strong>No coding needed</strong><span>Simple show / hide rules based on answers come with the Form Studio phase.</span></div></div>
         </div>

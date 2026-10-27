@@ -2,10 +2,10 @@
 {% block content %}
 <section class="page" aria-labelledby="page-title">
   <div class="page-head">
-    <div><h1 id="page-title">Forms &amp; Events</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div><h1 id="page-title">{% t "Forms & Events" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
     <div class="page-actions">
       <a class="link-arrow" href="#templates">Start from template {% icon 'arrow-right' %}</a>
-      <a class="btn btn-primary" href="{% url 'workspace:form_studio' %}?template=blank">{% icon 'plus' %}Create</a>
+      <a class="btn btn-primary" href="{% url 'workspace:form_studio' %}?template=blank">{% icon 'plus' %}{% t "Create" %}</a>
     </div>
   </div>
 
@@ -14,12 +14,12 @@
     <input type="hidden" name="tab" value="{{ tab }}">
     <div class="search-field">{% icon 'search' %}<label for="q" class="sr-only">Find a form or event</label>
       <input id="q" type="search" name="q" value="{{ q }}" placeholder="Find a form or event"></div>
-    <button class="btn btn-primary" type="submit">Search</button>
+    <button class="btn btn-primary" type="submit">{% t "Search" %}</button>
   </form>
 
   <div class="tabs-row">
     <nav class="tabs" aria-label="Form status">
-      <a class="tab{% if tab == 'all' %} is-active{% endif %}" href="?tab=all"{% if tab == 'all' %} aria-current="page"{% endif %}>All</a>
+      <a class="tab{% if tab == 'all' %} is-active{% endif %}" href="?tab=all"{% if tab == 'all' %} aria-current="page"{% endif %}>{% t "All" %}</a>
       <a class="tab{% if tab == 'published' %} is-active{% endif %}" href="?tab=published"{% if tab == 'published' %} aria-current="page"{% endif %}>Published</a>
       <a class="tab{% if tab == 'drafts' %} is-active{% endif %}" href="?tab=drafts"{% if tab == 'drafts' %} aria-current="page"{% endif %}>Drafts</a>
       <a class="tab{% if tab == 'archived' %} is-active{% endif %}" href="?tab=archived"{% if tab == 'archived' %} aria-current="page"{% endif %}>Archived</a>

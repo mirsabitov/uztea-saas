@@ -2,7 +2,7 @@
 {% block content %}
 <section class="page" aria-labelledby="page-title">
   <div class="page-head">
-    <div><h1 id="page-title">People</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div><h1 id="page-title">{% t "People" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
   </div>
   {% include "workspace/partials/people_tabs.html" %}
   <p class="note">{% icon 'alert' %}One row per record from every list you can see. Records are never merged — "Also in" only points out the same email elsewhere.</p>
@@ -15,8 +15,8 @@
       <option value="">All sources</option>
       {% for key, label in sources %}<option value="{{ key }}"{% if key == source %} selected{% endif %}>{{ label }}</option>{% endfor %}
     </select>
-    <button class="btn btn-primary" type="submit">Search</button>
-    {% if q or source %}<a class="btn btn-ghost" href="{% url 'workspace:contacts' %}">Clear</a>{% endif %}
+    <button class="btn btn-primary" type="submit">{% t "Search" %}</button>
+    {% if q or source %}<a class="btn btn-ghost" href="{% url 'workspace:contacts' %}">{% t "Clear" %}</a>{% endif %}
   </form>
 
   <div class="toolbar"><strong class="count">{{ total }} record{{ total|pluralize }}</strong></div>
@@ -25,19 +25,19 @@
     {% if page.object_list %}
     <div class="table-scroll">
       <table class="table">
-        <thead><tr><th scope="col">Name</th><th scope="col">Phone</th><th scope="col">Source</th><th scope="col">Also in</th><th scope="col" class="col-actions">Actions</th></tr></thead>
+        <thead><tr><th scope="col">{% t "Name" %}</th><th scope="col">{% t "Phone" %}</th><th scope="col">{% t "Source" %}</th><th scope="col">Also in</th><th scope="col" class="col-actions">{% t "Actions" %}</th></tr></thead>
         <tbody>
           {% for r in page.object_list %}
           <tr>
             <td><div class="person"><span class="avatar avatar-md" aria-hidden="true">{{ r.initials }}</span><div>
-              <span class="person-name">{{ r.name }}</span>{% if r.is_demo %} <span class="chip chip-demo">Demo data</span>{% endif %}
+              <span class="person-name">{{ r.name }}</span>{% if r.is_demo %} <span class="chip chip-demo">{% t "Demo data" %}</span>{% endif %}
               <div class="muted">{{ r.email }}</div>{% if r.institution %}<div class="muted small">Member of {{ r.institution }}</div>{% endif %}</div></div></td>
             <td>{{ r.phone|default:"—" }}</td>
             <td><span class="chip chip-src-{{ r.source_key }}">{{ r.source }}</span></td>
             <td>{% for s in r.also_in %}<span class="chip chip-soft">{{ s }}</span> {% empty %}<span class="muted">—</span>{% endfor %}</td>
             <td class="col-actions">
               {% if r.is_member_record %}<a class="btn btn-sm btn-ghost" href="{% url 'workspace:member_profile' r.pk %}">Profile</a>
-              {% elif r.admin_url %}<a class="btn btn-sm btn-ghost" href="{{ r.admin_url }}">Open</a>{% endif %}
+              {% elif r.admin_url %}<a class="btn btn-sm btn-ghost" href="{{ r.admin_url }}">{% t "Open" %}</a>{% endif %}
             </td>
           </tr>
           {% endfor %}

@@ -2,7 +2,7 @@
 {% block content %}
 <section class="page" aria-labelledby="page-title">
   <div class="page-head">
-    <div><h1 id="page-title">Settings</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div><h1 id="page-title">{% t "Settings" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
   </div>
 
   <div class="settings-grid">
@@ -28,11 +28,11 @@
       {% if membership_types %}
       <div class="table-scroll">
         <table class="table">
-          <thead><tr><th scope="col">Name</th><th scope="col">Code</th><th scope="col">Price</th><th scope="col">Status</th><th scope="col" class="col-actions"><span class="sr-only">Edit</span></th></tr></thead>
+          <thead><tr><th scope="col">{% t "Name" %}</th><th scope="col">Code</th><th scope="col">Price</th><th scope="col">{% t "Status" %}</th><th scope="col" class="col-actions"><span class="sr-only">Edit</span></th></tr></thead>
           <tbody>{% for t in membership_types %}
             <tr><td>{{ t.name }}</td><td class="mono">{{ t.membership_type }}</td><td>{{ t.price|uzs }}</td>
               <td><span class="status status-{% if t.is_active %}success{% else %}muted{% endif %}">{% if t.is_active %}Active{% else %}Inactive{% endif %}</span></td>
-              <td class="col-actions">{% if can_change_types %}<a class="btn btn-sm btn-ghost" href="{% url 'admin:app_membershiptypeconfig_change' t.pk %}">{% icon 'pencil' %}Edit</a>{% endif %}</td></tr>
+              <td class="col-actions">{% if can_change_types %}<a class="btn btn-sm btn-ghost" href="{% url 'admin:app_membershiptypeconfig_change' t.pk %}">{% icon 'pencil' %}{% t "Edit" %}</a>{% endif %}</td></tr>
           {% endfor %}</tbody>
         </table>
       </div>
@@ -52,7 +52,7 @@
     {% endif %}
 
     <section class="card" aria-labelledby="s-lang">
-      <h2 class="card-title" id="s-lang">{% icon 'globe' %}Languages <span class="chip chip-next">Next phase</span></h2>
+      <h2 class="card-title" id="s-lang">{% icon 'globe' %}Languages <span class="chip chip-next">{% t "Next phase" %}</span></h2>
       <p class="muted">The workspace is in English. Members choose a preferred language for communication:</p>
       <div class="chips">{% for code, name in languages %}<span class="chip">{{ name }}</span>{% endfor %}</div>
     </section>

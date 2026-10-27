@@ -4,7 +4,7 @@
   {% if page_sizes %}
   <form method="get" class="pager-size">
     {% for key, value in request.GET.items %}{% if key != 'per_page' and key != 'page' and key != 'preview' %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
-    <label for="per-page">Rows</label>
+    <label for="per-page">{% t "Rows" %}</label>
     <select id="per-page" name="per_page" data-autosubmit>
       {% for size in page_sizes %}<option value="{{ size }}"{% if size == per_page %} selected{% endif %}>{{ size }}</option>{% endfor %}
     </select>

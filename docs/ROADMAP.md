@@ -17,7 +17,7 @@ Branch: `feature/uztea-workspace-ui` (not pushed, not merged, not deployed).
 - Home dashboard (live from the database) with time ranges, tiles, charts, tooltips and
   table views; every month labelled on 12-month charts.
 
-## Phase 2 — People and the membership lifecycle · in review
+## Phase 2 — People and the membership lifecycle · approved (2026-10-27)
 Done:
 - Membership status from payments (Active / Renewal due / Expired / Pending payment /
   No payment record), "Valid until", quick views, status filter and renewal sort.
@@ -36,7 +36,28 @@ Open decisions:
   to give them a start date (e.g. import a paid-on date column).
 - Eskiz: production credentials, approved SMS templates, sender name.
 
-## Combined go-live step (after Phase 2 is approved)
+## Phase 2b — SaaS Settings, languages, Brevo, certificates, member cabinet · in review
+Done:
+- SaaS Settings button in the header: organisation details, default language; every
+  person can switch English / O'zbekcha / Русский (workspace, cabinet, certificate portal).
+- Brevo: all email goes through Brevo when its SMTP key is set.
+- Events (Forms & Events → Events) and member benefits (Partners → Bonuses & offers).
+- Certificates: template designer (drag text and images; signature, stamp, UzTEA and
+  partner logos, background; fonts, colours, frame), PDF preview, numbering
+  UZTEA-YYYY-NNNNNN, issue to selected members or from Excel/CSV/pasted list, email
+  links, revoke / re-send, ZIP per batch.
+- certificates.uztea.uz: find by email or membership ID (links emailed to the address
+  on file), verify by number, download.
+- Member cabinet `/account/`: create account / reset password by emailed link, admin
+  invitations (one or many), dashboard with membership, card, payments, events,
+  certificates, bonuses, upcoming events, profile; courses "Coming soon".
+
+Open decisions:
+- Which address serves the cabinet (e.g. `uztea.uz/account/` or a subdomain).
+- Whether members may edit their own profile details.
+
+## Combined go-live step (after Phase 2b is approved)
+See `docs/DEPLOY.md`.
 Push the branch, open a PR (no merge without approval), find out how production is
 deployed, test on staging with real data, run `migrate` (adds the `workspace_messagelog`
 table only) and `collectstatic`, add `ESKIZ_*` to the server's .env.

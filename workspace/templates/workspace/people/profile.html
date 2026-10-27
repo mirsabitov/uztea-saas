@@ -12,24 +12,24 @@
       <h1 id="page-title">{{ m.full_name }}</h1>
       <div class="muted">{{ m.email }}</div>
       <div class="mono">Membership ID: {{ membership_id }}</div>
-      {% if is_demo %}<span class="chip chip-demo">Demo data</span>{% endif %}
+      {% if is_demo %}<span class="chip chip-demo">{% t "Demo data" %}</span>{% endif %}
     </div>
     <div class="page-actions">
       {% if message_url %}<a class="btn btn-soft" href="{{ message_url }}&amp;channel=sms">{% icon 'message-square' %}SMS</a>
       <a class="btn btn-soft" href="{{ message_url }}&amp;channel=email">{% icon 'mail' %}Email</a>{% endif %}
-      {% if edit_url %}<a class="btn btn-outline" href="{{ edit_url }}">{% icon 'pencil' %}Edit profile</a>{% endif %}
-      <a class="btn btn-primary" href="{{ card_url }}">{% icon 'credit-card' %}Download card</a>
+      {% if edit_url %}<a class="btn btn-outline" href="{{ edit_url }}">{% icon 'pencil' %}{% t "Edit profile" %}</a>{% endif %}
+      <a class="btn btn-primary" href="{{ card_url }}">{% icon 'credit-card' %}{% t "Download card" %}</a>
     </div>
   </div>
 
   <div class="tabs" role="tablist" data-tabs data-tabs-hash>
-    <button type="button" role="tab" class="tab is-active" aria-selected="true" aria-controls="tab-overview" id="t-overview">Overview</button>
-    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="tab-personal" id="t-personal" tabindex="-1">Personal &amp; Contacts</button>
-    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="tab-membership" id="t-membership" tabindex="-1">Membership</button>
-    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="tab-forms" id="t-forms" tabindex="-1">Forms &amp; Events</button>
-    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="tab-payments" id="t-payments" tabindex="-1">Payments</button>
-    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="tab-documents" id="t-documents" tabindex="-1">Documents</button>
-    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="tab-activity" id="t-activity" tabindex="-1">Activity</button>
+    <button type="button" role="tab" class="tab is-active" aria-selected="true" aria-controls="tab-overview" id="t-overview">{% t "Overview" %}</button>
+    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="tab-personal" id="t-personal" tabindex="-1">{% t "Personal & Contacts" %}</button>
+    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="tab-membership" id="t-membership" tabindex="-1">{% t "Membership" %}</button>
+    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="tab-forms" id="t-forms" tabindex="-1">{% t "Forms & Events" %}</button>
+    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="tab-payments" id="t-payments" tabindex="-1">{% t "Payments" %}</button>
+    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="tab-documents" id="t-documents" tabindex="-1">{% t "Documents" %}</button>
+    <button type="button" role="tab" class="tab" aria-selected="false" aria-controls="tab-activity" id="t-activity" tabindex="-1">{% t "Activity" %}</button>
   </div>
 
   {# Overview #}
@@ -38,33 +38,33 @@
       <div class="stat-card card">
         <span class="stat-icon tone-muted">{% icon 'id-card' %}</span>
         <div>
-          <div class="stat-label">Membership</div>
-          <div class="stat-value"><span class="status status-{{ status.tone }}">{{ status.label }}</span></div>
+          <div class="stat-label">{% t "Membership" %}</div>
+          <div class="stat-value"><span class="status status-{{ status.tone }}">{{ status.label|tr:lang }}</span></div>
           <div class="muted">{{ m.get_membership_type_display }}{% if status.valid_until %} · until {{ status.valid_until|date:"d M Y" }}{% if status.key == 'renewal_due' %} ({{ status.days_left }} days left){% endif %}{% endif %}</div>
         </div>
       </div>
       <div class="stat-card card">
         <span class="stat-icon tone-{{ payment.tone }}">{% icon 'credit-card' %}</span>
         <div>
-          <div class="stat-label">Payment status</div>
-          <div class="stat-value"><span class="status status-{{ payment.tone }}">{{ payment.label }}</span></div>
+          <div class="stat-label">{% t "Payment status" %}</div>
+          <div class="stat-value"><span class="status status-{{ payment.tone }}">{{ payment.label|tr:lang }}</span></div>
           <div class="muted">From the latest Atmos transaction or order</div>
         </div>
       </div>
     </div>
     <div class="grid-2">
       <section class="card">
-        <h2 class="card-title">Member details</h2>
+        <h2 class="card-title">{% t "Member details" %}</h2>
         <dl class="facts">
-          <div class="fact">{% icon 'globe' %}<dt>Preferred language</dt><dd>{{ m.get_preferred_language_display }}</dd></div>
-          <div class="fact">{% icon 'user' %}<dt>Position</dt><dd>{{ m.get_position_display }}</dd></div>
-          <div class="fact">{% icon 'building' %}<dt>Institution</dt><dd>{{ m.institution_name|default:"—" }}</dd></div>
-          <div class="fact">{% icon 'phone' %}<dt>Phone</dt><dd>{{ m.phone_number|default:"—" }}</dd></div>
-          <div class="fact">{% icon 'calendar' %}<dt>Joined</dt><dd>{{ m.created_at|date:"d M Y, H:i" }}</dd></div>
+          <div class="fact">{% icon 'globe' %}<dt>{% t "Preferred language" %}</dt><dd>{{ m.get_preferred_language_display }}</dd></div>
+          <div class="fact">{% icon 'user' %}<dt>{% t "Position" %}</dt><dd>{{ m.get_position_display }}</dd></div>
+          <div class="fact">{% icon 'building' %}<dt>{% t "Institution" %}</dt><dd>{{ m.institution_name|default:"—" }}</dd></div>
+          <div class="fact">{% icon 'phone' %}<dt>{% t "Phone" %}</dt><dd>{{ m.phone_number|default:"—" }}</dd></div>
+          <div class="fact">{% icon 'calendar' %}<dt>{% t "Joined" %}</dt><dd>{{ m.created_at|date:"d M Y, H:i" }}</dd></div>
         </dl>
       </section>
       <section class="card">
-        <h2 class="card-title">Engagement</h2>
+        <h2 class="card-title">{% t "Engagement" %}</h2>
         {% include "workspace/people/_activity.html" with events=all_activity|slice:":4" %}
       </section>
     </div>
@@ -82,17 +82,17 @@
       <dl class="kv">
         <div><dt>Membership ID</dt><dd class="mono">{{ membership_id }}</dd></div>
         <div><dt>Admin list</dt><dd>{{ list_name }}</dd></div>
-        <div><dt>Joined</dt><dd>{{ m.created_at|date:"d M Y, H:i" }}</dd></div>
-        <div><dt>Membership status</dt><dd><span class="status status-{{ status.tone }}">{{ status.label }}</span></dd></div>
+        <div><dt>{% t "Joined" %}</dt><dd>{{ m.created_at|date:"d M Y, H:i" }}</dd></div>
+        <div><dt>{% t "Membership status" %}</dt><dd><span class="status status-{{ status.tone }}">{{ status.label|tr:lang }}</span></dd></div>
         <div><dt>Last successful payment</dt><dd>{{ status.paid_at|date:"d M Y, H:i"|default:"—" }}</dd></div>
-        <div><dt>Valid until</dt><dd>{{ status.valid_until|date:"d M Y"|default:"—" }}</dd></div>
+        <div><dt>{% t "Valid until" %}</dt><dd>{{ status.valid_until|date:"d M Y"|default:"—" }}</dd></div>
         <div><dt>Rule</dt><dd class="muted">Active for 12 months from the latest successful payment; renewal due in the last 30 days.</dd></div>
       </dl>
     </section>
     {% if institution_members %}
     <section class="card">
       <h2 class="card-title">Institution members</h2>
-      <p class="muted">People named in this institutional membership. They share its status: <span class="status status-{{ status.tone }}">{{ status.label }}</span>{% if status.valid_until %} until {{ status.valid_until|date:"d M Y" }}{% endif %}.</p>
+      <p class="muted">People named in this institutional membership. They share its status: <span class="status status-{{ status.tone }}">{{ status.label|tr:lang }}</span>{% if status.valid_until %} until {{ status.valid_until|date:"d M Y" }}{% endif %}.</p>
       <ul class="doc-list">
         {% for p in institution_members %}<li><span class="avatar avatar-sm" aria-hidden="true">{{ p.initials }}</span><span><strong>{{ p.name }}</strong><br><span class="muted">{{ p.email|default:"No email" }}</span></span><span class="chip chip-soft">Member {{ p.slot }}</span></li>{% endfor %}
       </ul>
@@ -111,11 +111,11 @@
       {% if related %}
       <div class="table-scroll">
         <table class="table">
-          <thead><tr><th scope="col">Source</th><th scope="col">Name</th><th scope="col">Details</th><th scope="col">Date</th><th scope="col" class="col-actions"><span class="sr-only">Open</span></th></tr></thead>
+          <thead><tr><th scope="col">{% t "Source" %}</th><th scope="col">{% t "Name" %}</th><th scope="col">Details</th><th scope="col">Date</th><th scope="col" class="col-actions"><span class="sr-only">Open</span></th></tr></thead>
           <tbody>
             {% for r in related %}
             <tr><td><span class="chip">{{ r.source }}</span></td><td>{{ r.name }}</td><td class="muted">{{ r.detail|default:"—" }}</td><td>{{ r.when|date:"d M Y"|default:"—" }}</td>
-              <td class="col-actions">{% if r.url %}<a class="btn btn-sm btn-ghost" href="{{ r.url }}">Open</a>{% endif %}</td></tr>
+              <td class="col-actions">{% if r.url %}<a class="btn btn-sm btn-ghost" href="{{ r.url }}">{% t "Open" %}</a>{% endif %}</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -133,7 +133,7 @@
       {% elif orders %}
       <div class="table-scroll">
         <table class="table">
-          <thead><tr><th scope="col">Order</th><th scope="col">Amount</th><th scope="col">Order status</th><th scope="col">Provider records</th><th scope="col">Promo</th><th scope="col">Created</th><th scope="col" class="col-actions"><span class="sr-only">Open</span></th></tr></thead>
+          <thead><tr><th scope="col">Order</th><th scope="col">{% t "Amount" %}</th><th scope="col">Order status</th><th scope="col">Provider records</th><th scope="col">Promo</th><th scope="col">Created</th><th scope="col" class="col-actions"><span class="sr-only">Open</span></th></tr></thead>
           <tbody>
             {% for row in orders %}{% with o=row.order %}
             <tr>
@@ -148,7 +148,7 @@
               </td>
               <td>{{ o.promocode.code|default:"—" }}</td>
               <td>{{ o.created_at|date:"d M Y" }}</td>
-              <td class="col-actions">{% if row.url %}<a class="btn btn-sm btn-ghost" href="{{ row.url }}">Open</a>{% endif %}</td>
+              <td class="col-actions">{% if row.url %}<a class="btn btn-sm btn-ghost" href="{{ row.url }}">{% t "Open" %}</a>{% endif %}</td>
             </tr>
             {% endwith %}{% endfor %}
           </tbody>
@@ -164,9 +164,9 @@
       <h2 class="card-title">Documents</h2>
       <ul class="doc-list">
         <li>{% icon 'credit-card' %}<span>Membership card (PNG)</span><a class="btn btn-sm btn-outline" href="{{ card_url }}">{% icon 'download' %}Download</a></li>
-        <li>{% icon 'file' %}<span>Payment proof</span>{% if payment_proof_url %}<a class="btn btn-sm btn-outline" href="{{ payment_proof_url }}" target="_blank" rel="noopener">Open</a>{% else %}<span class="muted">Not uploaded</span>{% endif %}</li>
-        <li>{% icon 'file-text' %}<span>Membership terms (PDF)</span><a class="btn btn-sm btn-ghost" href="{% url 'membership_terms' %}" target="_blank" rel="noopener">Open</a></li>
-        <li>{% icon 'shield' %}<span>Privacy policy (PDF)</span><a class="btn btn-sm btn-ghost" href="{% url 'privacy_policy' %}" target="_blank" rel="noopener">Open</a></li>
+        <li>{% icon 'file' %}<span>Payment proof</span>{% if payment_proof_url %}<a class="btn btn-sm btn-outline" href="{{ payment_proof_url }}" target="_blank" rel="noopener">{% t "Open" %}</a>{% else %}<span class="muted">Not uploaded</span>{% endif %}</li>
+        <li>{% icon 'file-text' %}<span>Membership terms (PDF)</span><a class="btn btn-sm btn-ghost" href="{% url 'membership_terms' %}" target="_blank" rel="noopener">{% t "Open" %}</a></li>
+        <li>{% icon 'shield' %}<span>Privacy policy (PDF)</span><a class="btn btn-sm btn-ghost" href="{% url 'privacy_policy' %}" target="_blank" rel="noopener">{% t "Open" %}</a></li>
       </ul>
     </section>
   </div>

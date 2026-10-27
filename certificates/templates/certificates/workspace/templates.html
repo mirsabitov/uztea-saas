@@ -2,7 +2,7 @@
 {% block content %}
 <section class="page" aria-labelledby="page-title">
   <div class="page-head">
-    <div><h1 id="page-title">{% t "Certificates" %}</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div><h1 id="page-title">{% t "Certificates" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
     <div class="page-actions">
       {% if can_add %}<form method="post" action="{% url 'workspace:cert_template_new' %}">{% csrf_token %}<button class="btn btn-primary" type="submit">{% icon 'plus' %}{% t "New template" %}</button></form>{% endif %}
     </div>

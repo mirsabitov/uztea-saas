@@ -2,10 +2,10 @@
 {% block content %}
 <section class="page" aria-labelledby="page-title">
   <div class="page-head">
-    <div><h1 id="page-title">People</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div><h1 id="page-title">{% t "People" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
     <div class="page-actions">
-      {% if import_url %}<a class="btn btn-outline" href="{{ import_url }}">{% icon 'upload' %}Import</a>{% endif %}
-      {% if export_url %}<a class="btn btn-outline" href="{{ export_url }}">{% icon 'download' %}Export</a>{% endif %}
+      {% if import_url %}<a class="btn btn-outline" href="{{ import_url }}">{% icon 'upload' %}{% t "Import" %}</a>{% endif %}
+      {% if export_url %}<a class="btn btn-outline" href="{{ export_url }}">{% icon 'download' %}{% t "Export" %}</a>{% endif %}
       {% if add_url %}<a class="btn btn-primary" href="{{ add_url }}">{% icon 'plus' %}Add teacher</a>{% endif %}
     </div>
   </div>
@@ -17,11 +17,11 @@
       <input id="q" type="search" name="q" value="{{ q }}" placeholder="Search name, email, phone or source…"></div>
     <label class="sr-only" for="f-source">Source</label>
     <select id="f-source" name="source" class="select" data-autosubmit>
-      <option value="">Source</option>
+      <option value="">{% t "Source" %}</option>
       {% for s in sources %}<option value="{{ s }}"{% if s == source %} selected{% endif %}>{{ s }}</option>{% endfor %}
     </select>
-    <button class="btn btn-primary" type="submit">Search</button>
-    {% if q or source %}<a class="btn btn-ghost" href="{% url 'workspace:teachers_bank' %}">Clear</a>{% endif %}
+    <button class="btn btn-primary" type="submit">{% t "Search" %}</button>
+    {% if q or source %}<a class="btn btn-ghost" href="{% url 'workspace:teachers_bank' %}">{% t "Clear" %}</a>{% endif %}
   </form>
 
   <div class="toolbar"><div class="toolbar-left"><strong class="count">{{ total }} contact{{ total|pluralize }}</strong>{% include "workspace/partials/bulk_bar.html" %}</div></div>
@@ -32,18 +32,18 @@
       <table class="table">
         <thead><tr>
           <th class="col-select" scope="col">{% if bulk or message_url %}<input type="checkbox" aria-label="Select all on this page" data-select-all>{% endif %}</th>
-          <th scope="col">Name</th><th scope="col">Phone</th><th scope="col">Source</th><th scope="col" class="col-actions">Actions</th>
+          <th scope="col">{% t "Name" %}</th><th scope="col">{% t "Phone" %}</th><th scope="col">{% t "Source" %}</th><th scope="col" class="col-actions">{% t "Actions" %}</th>
         </tr></thead>
         <tbody>
           {% for row in rows %}
           <tr>
             <td class="col-select">{% if bulk or message_url %}<input type="checkbox" name="_selected_action" value="{{ row.obj.pk }}" form="bulk-form" aria-label="Select {{ row.obj }}" data-row-check>{% endif %}</td>
             <td><div class="person"><span class="avatar avatar-md" aria-hidden="true">{{ row.initials }}</span><div>
-              <span class="person-name">{{ row.obj.full_name|default:"—" }}</span>{% if row.is_demo %} <span class="chip chip-demo">Demo data</span>{% endif %}
+              <span class="person-name">{{ row.obj.full_name|default:"—" }}</span>{% if row.is_demo %} <span class="chip chip-demo">{% t "Demo data" %}</span>{% endif %}
               <div class="muted">{{ row.obj.email|default:"" }}</div></div></div></td>
             <td>{{ row.obj.phone_number|default:"—" }}</td>
             <td>{% if row.obj.source %}<span class="chip">{{ row.obj.source }}</span>{% else %}—{% endif %}</td>
-            <td class="col-actions">{% if row.url %}<a class="btn btn-sm btn-ghost" href="{{ row.url }}">{% icon 'pencil' %}Edit</a>{% endif %}</td>
+            <td class="col-actions">{% if row.url %}<a class="btn btn-sm btn-ghost" href="{{ row.url }}">{% icon 'pencil' %}{% t "Edit" %}</a>{% endif %}</td>
           </tr>
           {% endfor %}
         </tbody>

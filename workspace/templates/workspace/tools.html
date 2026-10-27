@@ -2,7 +2,7 @@
 {% block content %}
 <section class="page" aria-labelledby="page-title">
   <div class="page-head">
-    <div><h1 id="page-title">More tools</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div><h1 id="page-title">{% t "More tools" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
     {% if admin_index_url %}<div class="page-actions"><a class="btn btn-outline" href="{{ admin_index_url }}">Open classic admin {% icon 'external-link' %}</a></div>{% endif %}
   </div>
 

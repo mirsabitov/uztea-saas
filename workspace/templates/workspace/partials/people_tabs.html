@@ -1,7 +1,7 @@
 {% load workspace_tags %}
 <nav class="tabs" aria-label="People">
-  {% if can_all or can_pending %}<a href="{% url 'workspace:people' %}" class="tab{% if people_tab == 'members' %} is-active{% endif %}"{% if people_tab == 'members' %} aria-current="page"{% endif %}>Members</a>{% endif %}
-  {% if can_teachers_bank %}<a href="{% url 'workspace:teachers_bank' %}" class="tab{% if people_tab == 'teachers_bank' %} is-active{% endif %}"{% if people_tab == 'teachers_bank' %} aria-current="page"{% endif %}>Teachers Bank</a>{% endif %}
-  <a href="{% url 'workspace:contacts' %}" class="tab{% if people_tab == 'contacts' %} is-active{% endif %}"{% if people_tab == 'contacts' %} aria-current="page"{% endif %}>All contacts</a>
-  {% if perms.workspace.view_messagelog %}<a href="{% url 'workspace:messages' %}" class="tab{% if people_tab == 'messages' %} is-active{% endif %}"{% if people_tab == 'messages' %} aria-current="page"{% endif %}>Messages</a>{% endif %}
+  {% if can_all or can_pending %}<a href="{% url 'workspace:people' %}" class="tab{% if people_tab == 'members' %} is-active{% endif %}"{% if people_tab == 'members' %} aria-current="page"{% endif %}>{% t "Members" %}</a>{% endif %}
+  {% if can_teachers_bank %}<a href="{% url 'workspace:teachers_bank' %}" class="tab{% if people_tab == 'teachers_bank' %} is-active{% endif %}"{% if people_tab == 'teachers_bank' %} aria-current="page"{% endif %}>{% t "Teachers Bank" %}</a>{% endif %}
+  <a href="{% url 'workspace:contacts' %}" class="tab{% if people_tab == 'contacts' %} is-active{% endif %}"{% if people_tab == 'contacts' %} aria-current="page"{% endif %}>{% t "All contacts" %}</a>
+  {% if perms.workspace.view_messagelog %}<a href="{% url 'workspace:messages' %}" class="tab{% if people_tab == 'messages' %} is-active{% endif %}"{% if people_tab == 'messages' %} aria-current="page"{% endif %}>{% t "Messages" %}</a>{% endif %}
 </nav>

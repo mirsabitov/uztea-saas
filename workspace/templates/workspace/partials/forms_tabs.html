@@ -1,5 +1,5 @@
 {% load workspace_tags %}
 <nav class="segmented" aria-label="Forms and events">
-  <a class="seg{% if forms_tab == 'forms' %} is-active{% endif %}" href="{% url 'workspace:forms' %}"{% if forms_tab == 'forms' %} aria-current="page"{% endif %}>{% icon 'file-text' %}Forms</a>
-  {% if perms.workspace.view_event %}<a class="seg{% if forms_tab == 'events' %} is-active{% endif %}" href="{% url 'workspace:events' %}"{% if forms_tab == 'events' %} aria-current="page"{% endif %}>{% icon 'calendar' %}Events</a>{% endif %}
+  <a class="seg{% if forms_tab == 'forms' %} is-active{% endif %}" href="{% url 'workspace:forms' %}"{% if forms_tab == 'forms' %} aria-current="page"{% endif %}>{% icon 'file-text' %}{% t "Forms" %}</a>
+  {% if perms.workspace.view_event %}<a class="seg{% if forms_tab == 'events' %} is-active{% endif %}" href="{% url 'workspace:events' %}"{% if forms_tab == 'events' %} aria-current="page"{% endif %}>{% icon 'calendar' %}{% t "Events" %}</a>{% endif %}
 </nav>

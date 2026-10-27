@@ -2,7 +2,7 @@
 {% block content %}
 <section class="page" aria-labelledby="page-title">
   <div class="page-head">
-    <div><h1 id="page-title">People</h1><p class="page-sub">{{ page_subtitle }}</p></div>
+    <div><h1 id="page-title">{% t "People" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
   </div>
   {% include "workspace/partials/people_tabs.html" %}
 
@@ -21,17 +21,17 @@
     <label class="sr-only" for="f-channel">Channel</label>
     <select id="f-channel" name="channel" class="select" data-autosubmit><option value="">Channel</option>{% for v, l in channel_options %}<option value="{{ v }}"{% if filters.channel == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
     <label class="sr-only" for="f-status">Status</label>
-    <select id="f-status" name="status" class="select" data-autosubmit><option value="">Status</option>{% for v, l in status_options %}<option value="{{ v }}"{% if filters.status == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+    <select id="f-status" name="status" class="select" data-autosubmit><option value="">{% t "Status" %}</option>{% for v, l in status_options %}<option value="{{ v }}"{% if filters.status == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
     <label class="sr-only" for="f-source">List</label>
     <select id="f-source" name="source" class="select" data-autosubmit><option value="">List</option>{% for v, l in source_options %}<option value="{{ v }}"{% if filters.source == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
-    <button class="btn btn-primary" type="submit">Search</button>
+    <button class="btn btn-primary" type="submit">{% t "Search" %}</button>
   </form>
 
   <div class="card table-card">
     {% if page.object_list %}
     <div class="table-scroll">
       <table class="table">
-        <thead><tr><th scope="col">Sent</th><th scope="col">To</th><th scope="col">Channel</th><th scope="col">Message</th><th scope="col">Status</th><th scope="col">By</th></tr></thead>
+        <thead><tr><th scope="col">Sent</th><th scope="col">To</th><th scope="col">Channel</th><th scope="col">Message</th><th scope="col">{% t "Status" %}</th><th scope="col">By</th></tr></thead>
         <tbody>
           {% for m in page.object_list %}
           <tr>

@@ -4,19 +4,19 @@
 <section class="page dashboard" aria-labelledby="page-title">
   <div class="page-head">
     <div>
-      <h1 id="page-title">Welcome, {{ request.user.first_name|default:request.user.get_username }}</h1>
-      <p class="page-sub">How UzTEA is doing · live from the database</p>
+      <h1 id="page-title">{% t "Welcome" %}, {{ request.user.first_name|default:request.user.get_username }}</h1>
+      <p class="page-sub">{% t "How UzTEA is doing · live from the database" %}</p>
     </div>
     <div class="page-actions">
-      {% if add_person_url %}<a class="btn btn-outline" href="{{ add_person_url }}">{% icon 'plus' %}Add person</a>{% endif %}
-      <a class="btn btn-outline" href="{% url 'workspace:form_studio' %}?template=blank">{% icon 'file-text' %}Create form <span class="chip chip-next">Preview</span></a>
-      <a class="btn btn-outline" href="{% url 'workspace:form_studio' %}?template=event">{% icon 'calendar' %}Create event <span class="chip chip-next">Preview</span></a>
+      {% if add_person_url %}<a class="btn btn-outline" href="{{ add_person_url }}">{% icon 'plus' %}{% t "Add person" %}</a>{% endif %}
+      <a class="btn btn-outline" href="{% url 'workspace:form_studio' %}?template=blank">{% icon 'file-text' %}{% t "Create form" %} <span class="chip chip-next">{% t "Preview" %}</span></a>
+      <a class="btn btn-outline" href="{% url 'workspace:form_studio' %}?template=event">{% icon 'calendar' %}{% t "Create event" %} <span class="chip chip-next">{% t "Preview" %}</span></a>
     </div>
   </div>
 
   <nav class="segmented" aria-label="Time range">
     {% for key, label in dash.periods %}
-      <a class="seg{% if p.key == key %} is-active{% endif %}" href="?period={{ key }}"{% if p.key == key %} aria-current="true"{% endif %}>{{ label }}</a>
+      <a class="seg{% if p.key == key %} is-active{% endif %}" href="?period={{ key }}"{% if p.key == key %} aria-current="true"{% endif %}>{{ label|tr:lang }}</a>
     {% endfor %}
     <span class="hint period-hint">{{ p.start_day|date:"d M Y" }} – {{ p.today|date:"d M Y" }}</span>
   </nav>
@@ -25,7 +25,7 @@
   <div class="tiles">
     {% for t in dash.tiles %}
     <div class="card tile">
-      <div class="tile-label">{% icon t.icon %}{{ t.label }}</div>
+      <div class="tile-label">{% icon t.icon %}{{ t.label|tr:lang }}</div>
       <div class="tile-value"{% if t.title %} title="{{ t.title }}"{% endif %}>{{ t.value }}</div>
       <div class="tile-foot">
         {% if t.delta %}
@@ -72,7 +72,7 @@
 
   <div class="grid-main-side">
     <section class="card" aria-labelledby="activity-title">
-      <h2 class="card-title" id="activity-title">Recent activity</h2>
+      <h2 class="card-title" id="activity-title">{% t "Recent activity" %}</h2>
       {% if activity %}
       <ol class="timeline">
         {% for e in activity %}
@@ -90,16 +90,16 @@
 
     <div class="stack">
       <section class="card" aria-labelledby="attention-title">
-        <h2 class="card-title" id="attention-title">Needs attention</h2>
+        <h2 class="card-title" id="attention-title">{% t "Needs attention" %}</h2>
         {% if attention %}
         <ul class="link-list">
           {% for a in attention %}<li><a href="{{ a.url }}"><span class="count-badge">{{ a.count }}</span><span>{{ a.label }}</span>{% icon 'chevron-right' %}</a></li>{% endfor %}
         </ul>
-        {% else %}<p class="empty-inline muted">{% icon 'check-circle' %} Nothing waiting right now.</p>{% endif %}
+        {% else %}<p class="empty-inline muted">{% icon 'check-circle' %} {% t "Nothing waiting right now." %}</p>{% endif %}
       </section>
 
       <section class="card" aria-labelledby="events-title">
-        <h2 class="card-title" id="events-title">Upcoming events</h2>
+        <h2 class="card-title" id="events-title">{% t "Upcoming events" %}</h2>
         <p class="muted">Event dates are not stored yet — the Events module comes in a later phase. Current event registrations:</p>
         <ul class="link-list">
           {% for f in legacy_events %}<li><a href="{{ f.responses_url|default:f.public_url }}"><span class="count-badge">{{ f.responses }}</span><span>{{ f.title }}</span>{% icon 'chevron-right' %}</a></li>
