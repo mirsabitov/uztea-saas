@@ -25,6 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('workspace/', include('workspace.urls')),
     path('set-language/', workspace_public.change_language, name='set_language'),
+    path('certificates/', include('certificates.urls_public')),
     path('ckeditor/', include('ckeditor_uploader.urls')),
     path('', include('app.urls')),
     path('payments/click/', include('click.urls')),

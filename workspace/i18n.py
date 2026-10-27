@@ -12,6 +12,16 @@ LANGUAGE_CODES = {code for code, _ in LANGUAGES}
 SESSION_KEY = 'uztea_lang'
 
 UZ = {
+    'Certificates from UzTEA events, conferences and courses. Every certificate has a unique number you can verify.': "UzTEA tadbirlari, konferensiyalari va kurslari sertifikatlari. Har bir sertifikatning tekshirsa bo'ladigan noyob raqami bor.",
+    'If we have certificates for this email or membership ID, we have sent download links to the email address on file. Check your inbox (and spam folder).': "Agar bu email yoki a'zolik ID uchun sertifikatlar bo'lsa, yuklab olish havolalarini bazadagi email manzilga yubordik. Pochtangizni (va spam papkasini) tekshiring.",
+    'Search again': 'Qayta qidirish',
+    'Enter the email you registered with or your membership ID. We will email you the links.': "Ro'yxatdan o'tgan emailingizni yoki a'zolik ID'ingizni kiriting. Havolalarni emailga yuboramiz.",
+    'Enter the number printed on the certificate to check that it is genuine.': 'Haqiqiyligini tekshirish uchun sertifikatdagi raqamni kiriting.',
+    'This certificate has been revoked': 'Bu sertifikat bekor qilingan',
+    'It is no longer valid. Contact UzTEA if you think this is a mistake.': "U endi haqiqiy emas. Xato deb o'ylasangiz, UzTEA bilan bog'laning.",
+    'Check the number and try again': "Raqamni tekshirib, qayta urinib ko'ring",
+    'Too many requests. Please try again in an hour.': "So'rovlar juda ko'p. Bir soatdan keyin urinib ko'ring.",
+    'Enter your email or membership ID.': "Email yoki a'zolik ID'ni kiriting.",
     # Navigation & shell
     'Home': 'Bosh sahifa', 'People': 'Odamlar', 'Forms & Events': 'Formalar va tadbirlar',
     'Payments': "To'lovlar", 'Partners': 'Hamkorlar', 'Settings': 'Sozlamalar', 'Website': 'Veb-sayt',
@@ -80,6 +90,16 @@ UZ = {
 }
 
 RU = {
+    'Certificates from UzTEA events, conferences and courses. Every certificate has a unique number you can verify.': 'Сертификаты мероприятий, конференций и курсов UzTEA. У каждого сертификата есть уникальный номер для проверки.',
+    'If we have certificates for this email or membership ID, we have sent download links to the email address on file. Check your inbox (and spam folder).': 'Если для этого email или ID членства есть сертификаты, мы отправили ссылки на email из нашей базы. Проверьте почту (и папку «Спам»).',
+    'Search again': 'Искать снова',
+    'Enter the email you registered with or your membership ID. We will email you the links.': 'Введите email, указанный при регистрации, или ID членства. Мы отправим ссылки на почту.',
+    'Enter the number printed on the certificate to check that it is genuine.': 'Введите номер с сертификата, чтобы проверить его подлинность.',
+    'This certificate has been revoked': 'Сертификат отозван',
+    'It is no longer valid. Contact UzTEA if you think this is a mistake.': 'Он больше недействителен. Свяжитесь с UzTEA, если считаете это ошибкой.',
+    'Check the number and try again': 'Проверьте номер и попробуйте снова',
+    'Too many requests. Please try again in an hour.': 'Слишком много запросов. Попробуйте через час.',
+    'Enter your email or membership ID.': 'Введите email или ID членства.',
     'Home': 'Главная', 'People': 'Люди', 'Forms & Events': 'Формы и события', 'Payments': 'Платежи',
     'Partners': 'Партнёры', 'Settings': 'Настройки', 'Website': 'Сайт', 'Certificates': 'Сертификаты',
     'More tools': 'Другие инструменты', 'SaaS Settings': 'Настройки SaaS', 'Search people…': 'Поиск людей…',

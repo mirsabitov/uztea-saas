@@ -1,0 +1,29 @@
+{% extends "public/base.html" %}{% load workspace_tags %}
+{% block title %}{{ number }} · UzTEA {% t "Certificates" %}{% endblock %}
+{% block brand %}UzTEA {% t "Certificates" %}{% endblock %}
+{% block brand_url %}{% url 'certs:home' %}{% endblock %}
+{% block content %}
+<div class="pub-wrap">
+  <section class="card verify-result" aria-live="polite">
+    {% if cert and cert.is_valid %}
+      <span class="verify-badge tone-success">{% icon 'check' %}</span>
+      <h1>{% t "Valid certificate" %}</h1>
+      <dl>
+        <dt>{% t "Certificate number" %}</dt><dd class="mono">{{ cert.number }}</dd>
+        <dt>{% t "Issued to" %}</dt><dd>{{ cert.recipient_name }}</dd>
+        <dt>{% t "Event" %}</dt><dd>{{ cert.event_name }}{% if cert.date_text %} · {{ cert.date_text }}{% endif %}</dd>
+        <dt>{% t "Issued on" %}</dt><dd>{{ cert.created_at|date:"d.m.Y" }}</dd>
+      </dl>
+    {% elif cert %}
+      <span class="verify-badge tone-danger">{% icon 'x' %}</span>
+      <h1>{% t "This certificate has been revoked" %}</h1>
+      <p class="muted">{{ cert.number }} · {% t "It is no longer valid. Contact UzTEA if you think this is a mistake." %}</p>
+    {% else %}
+      <span class="verify-badge tone-muted">{% icon 'alert' %}</span>
+      <h1>{% t "Certificate not found" %}</h1>
+      <p class="muted">{% t "Check the number and try again" %}: <span class="mono">{{ number|default:"—" }}</span></p>
+    {% endif %}
+    <a class="btn btn-outline" href="{% url 'certs:home' %}">{% t "Verify a certificate" %}</a>
+  </section>
+</div>
+{% endblock %}
