@@ -2,45 +2,48 @@
 
 One section at a time. A phase starts only after the previous one is reviewed and approved.
 Decisions that are approved go into `CLAUDE.md`.
+Branch: `feature/uztea-workspace-ui` (not pushed, not merged, not deployed).
 
-## Phase 1 — Interface and navigation · in review
-Branch: `feature/uztea-workspace-ui` (not merged, not deployed).
-
-Done:
+## Phase 1 — Interface and navigation · approved (2026-10-27)
 - Staff-only `/workspace/` app with sidebar, header, the original logos and a shared style.
-- People → Members: search (name, email, institution, membership ID), filters (type,
-  position, language, institution type, country), sort, pagination, All members /
-  Pending payment lists, column toggles, bulk actions (run by the admin), row → Member
-  preview, full profile with 7 tabs that show every existing field.
+- People → Members: search (name, email, institution, membership ID), filters, sort,
+  pagination, column toggles, bulk actions (run by the admin), row → Member preview,
+  full profile with 7 tabs that show every existing field.
 - People → Teachers Bank and All contacts (every list, one row per record, "Also in" hints).
 - Forms & Events: the three existing forms with real response counts, share link, export,
   templates; Form Studio as a sandbox (add, edit, duplicate, reorder, delete fields; preview).
 - Payments: Orders, Pending Payments, ATMOS, Payme, Promo Codes, Click Tools (read-only).
-- Partners list with search, filters, import/export, email action.
-- Settings: branding, membership types and prices, users & groups, languages,
-  integrations (configured / not configured only).
-- More tools: every admin section the user may open, plus public pages.
-- Payment status logic moved to `app/payment_status.py` (same rules as before) with tests.
-- Demo data command for local checks.
-- Home dashboard (live from the database): time range 30 days / 90 days / 12 months /
-  all time; tiles (members list, new applications, revenue, paid share) with change vs
-  the previous period; charts for applications over time, revenue by month
-  (membership vs TESOL, same paid rule as the admin), payment status, membership types,
-  event registrations, regions, positions, languages. Hover tooltips and a table view.
-  Revenue is shown only to users who can view orders.
+- Partners, Settings, More tools.
+- Home dashboard (live from the database) with time ranges, tiles, charts, tooltips and
+  table views; every month labelled on 12-month charts.
 
-Marked "Next phase" (not built): membership status and validity, Active / Renewal due,
-card view, smart blocks, logic rules, saving / publishing forms, form settings, language
-switch, editing organisation details.
+## Phase 2 — People and the membership lifecycle · in review
+Done:
+- Membership status from payments (Active / Renewal due / Expired / Pending payment /
+  No payment record), "Valid until", quick views, status filter and renewal sort.
+- Dashboard: Active members tile, "renewal due" in Needs attention.
+- Institutional members 2–5 shown as people (All contacts, profile).
+- SMS (Eskiz) and email to one or many people from Members, Teachers Bank and Partners;
+  message history (People → Messages) and in each member's activity.
+- Dark / light mode, Website menu item (placeholder), modern look for the public
+  membership form (same questions and logic).
 
-## Phase 2 — People and the membership lifecycle · proposed next
-Decide with the owner: what makes a membership active, how long it is valid (the welcome
-email currently says 12 months from sending), renewal window, how payment results move a
-member between states, and whether a separate Person record is needed.
+Open decisions:
+- Separate "Person" record (one person across membership, events, Teachers Bank,
+  partners) — not decided. Institutional members are shown, not stored separately.
+- "Cancelled" membership status has no data source yet (no cancel action exists).
+- Members imported from the old site with no orders show "No payment record". Decide how
+  to give them a start date (e.g. import a paid-on date column).
+- Eskiz: production credentials, approved SMS templates, sender name.
+
+## Combined go-live step (after Phase 2 is approved)
+Push the branch, open a PR (no merge without approval), find out how production is
+deployed, test on staging with real data, run `migrate` (adds the `workspace_messagelog`
+table only) and `collectstatic`, add `ESKIZ_*` to the server's .env.
 
 ## Phase 3 — Form Studio: build forms and collect responses
-Form / Field / Submission models, draft → preview → publish → responses → archive,
-versioning so edits don't break earlier answers.
+Form / Field / Submission models, draft → preview → publish → responses → close (stop
+accepting answers) → archive, versioning so edits don't break earlier answers.
 
 ## Phase 4 — Events: registration, capacity, attendees
 Event model (date, place, capacity, deadline), link to forms, move TESOL / 30th
@@ -51,14 +54,16 @@ Connect forms and events to the existing Click / Payme / Atmos flows without cha
 their verification and callbacks.
 
 ## Phase 6 — Partners
+Partner database with benefits, discounts and offers, links to events, SMS / email.
 
-## Phase 7 — Home and remaining Settings
+## Phase 7 — Settings
+Edit organisation details; workspace language Uzbek / Russian / English.
 
-## Found during Phase 1 (not changed)
-- Payment status follows the admin rule "latest Atmos transaction, else the most recently
-  updated order", so a member who paid and later had a failed order shows as Failed.
-  Worth revisiting in Phase 2.
-- `/membership/<pk>/card/` is public and keyed by a sequential id, so anyone can open any
-  member's card (name, contact details). Needs a token or login — to be decided.
-- Items from the CLAUDE.md backlog (CSRF middleware off, `ALLOWED_HOSTS`, JWT lifetime,
-  Redis URL, unused CSS versions, CKEditor 4) are still open.
+## Phase 8 — Website (uztea.uz content)
+News, events and pages of uztea.uz managed from the workspace.
+
+## Last — security and technical debt (agreed to do at the end)
+- `/membership/<pk>/card/` is public and keyed by a sequential id.
+- CSRF middleware off (workspace views are protected individually), `ALLOWED_HOSTS`,
+  CORS open, JWT lifetime, password validators.
+- Redis URL to env, log directory, unused CSS versions, requirements cleanup, CKEditor 4.

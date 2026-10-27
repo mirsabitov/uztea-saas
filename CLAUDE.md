@@ -80,11 +80,29 @@ Phases and status live in `docs/ROADMAP.md`.
 - The workspace reads data. Every change (edit, add, import/export, bulk actions,
   payment tools) goes through the existing admin views, so admin permissions stay the
   single source of truth. Bulk actions POST to the admin changelist.
-- Navigation: Home, People (Members / Teachers Bank / All contacts), Forms & Events,
-  Payments, Partners, Settings, plus More tools (every admin section) and the user menu.
+- Navigation: Home (live dashboard), People (Members / Teachers Bank / All contacts /
+  Messages), Forms & Events, Payments, Partners, Settings, then a separate Website item
+  (uztea.uz content — placeholder for its own phase), plus More tools and the user menu.
 - Payment status is computed by `app/payment_status.py` (shared with the admin column) and
-  is never merged with membership status. `Membership` has no status or validity date
-  yet, so "Active" / "Renewal due" / "valid until" are marked "Next phase" — don't fake them.
+  is never merged with membership status. Approved: it follows the latest order, so a
+  member who paid and later had a failed order shows "Failed".
+- Membership status (approved 2026-10-27), computed in `app/membership_lifecycle.py`, not
+  stored: Active from a successful payment for 12 months (365 days, as in the welcome
+  email) after the latest successful payment; "Renewal due" in the last 30 days;
+  "Expired" after; "Pending payment" (orders, none paid) / "No payment record" (no orders,
+  e.g. imported members).
+- Institutional members 2–5 are shown as separate people (All contacts, profile) with the
+  institution's status. They are not separate records yet (see ROADMAP "Person").
+- Messaging: SMS via Eskiz (`workspace/sms.py`, `ESKIZ_*` in .env) and email using the
+  admin composer's templates/senders. Every attempt is logged in `workspace.MessageLog`.
+  Permissions: `workspace.add_messagelog` to send, `workspace.view_messagelog` for history,
+  plus view permission on the recipient list. Without Eskiz credentials SMS runs in test
+  mode on DEBUG servers and is disabled elsewhere. Sending always needs a confirmation tick.
+- All workspace views are `csrf_protect`ed (the project's CSRF middleware is off).
+- Dark / light mode: CSS tokens in `workspace.css`; choice stored in localStorage, else the
+  OS setting.
+- Public membership form keeps its markup, fields and JS; the modern look is the extra
+  stylesheet `static/forms/membership-modern.css` (remove the <link> to roll back).
 - Records from different tables are never merged. The same email in several lists is
   only pointed out ("Also in").
 - Unbuilt features are labelled "Preview" / "Next phase" and their buttons are disabled.
