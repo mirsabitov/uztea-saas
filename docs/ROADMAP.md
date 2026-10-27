@@ -57,10 +57,9 @@ Open decisions:
 - Whether members may edit their own profile details.
 
 ## Combined go-live step (after Phase 2b is approved)
-See `docs/DEPLOY.md`.
-Push the branch, open a PR (no merge without approval), find out how production is
-deployed, test on staging with real data, run `migrate` (adds the `workspace_messagelog`
-table only) and `collectstatic`, add `ESKIZ_*` to the server's .env.
+See `docs/DEPLOY.md`: open a PR (no merge without approval), back up, test on staging
+with real data, `migrate` (new tables only), `collectstatic`, Chromium for PDFs, Brevo /
+Eskiz keys and the certificates.uztea.uz domain.
 
 ## Phase 3 — Form Studio: build forms and collect responses
 Form / Field / Submission models, draft → preview → publish → responses → close (stop
