@@ -1,0 +1,42 @@
+{% extends "public/base.html" %}{% load workspace_tags %}
+{% block title %}{% t "Certificates" %} · UzTEA{% endblock %}
+{% block brand %}UzTEA {% t "Certificates" %}{% endblock %}
+{% block brand_url %}{% url 'certs:home' %}{% endblock %}
+{% block content %}
+<div class="pub-wrap">
+  <section class="pub-hero">
+    <span class="pub-eyebrow">{% icon 'award' %}certificates.uztea.uz</span>
+    <h1>{% t "Find your certificates" %}</h1>
+    <p>{% t "Certificates from UzTEA events, conferences and courses. Every certificate has a unique number you can verify." %}</p>
+  </section>
+
+  <div class="pub-cards">
+    <section class="card pub-card" aria-labelledby="find-title">
+      <h2 id="find-title">{% icon 'mail' %}{% t "Find your certificates" %}</h2>
+      {% if sent %}
+        <div class="alert alert-success" role="status">{% t "If we have certificates for this email or membership ID, we have sent download links to the email address on file. Check your inbox (and spam folder)." %}</div>
+        <a class="btn btn-outline" href="{% url 'certs:home' %}">{% t "Search again" %}</a>
+      {% else %}
+        <p>{% t "Enter the email you registered with or your membership ID. We will email you the links." %}</p>
+        {% if error %}<div class="alert alert-error" role="alert">{% t error %}</div>{% endif %}
+        <form method="post" class="form-stack">
+          {% csrf_token %}
+          <label for="query" class="sr-only">{% t "Email or membership ID" %}</label>
+          <input id="query" name="query" class="input" required autocomplete="email" placeholder="{% t "Email or membership ID" %} (UZ000123)">
+          <button class="btn btn-primary" type="submit">{% icon 'send' %}{% t "Send me the link" %}</button>
+        </form>
+      {% endif %}
+    </section>
+
+    <section class="card pub-card" aria-labelledby="verify-title">
+      <h2 id="verify-title">{% icon 'shield' %}{% t "Verify a certificate" %}</h2>
+      <p>{% t "Enter the number printed on the certificate to check that it is genuine." %}</p>
+      <form method="get" class="form-stack">
+        <label for="number" class="sr-only">{% t "Certificate number" %}</label>
+        <input id="number" name="number" class="input mono" required placeholder="UZTEA-2026-000123" autocapitalize="characters">
+        <button class="btn btn-outline" type="submit">{% icon 'check-circle' %}{% t "Check" %}</button>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<div class="with-preview{% if preview %} has-preview{% endif %}" data-preview-layout>
+  <section class="page" aria-labelledby="page-title">
+    <div class="page-head">
+      <div>
+        <h1 id="page-title">{% t "People" %}</h1>
+        <p class="page-sub">{{ page_subtitle|tr:lang }}</p>
+      </div>
+      <div class="page-actions">
+        {% if import_url %}<a class="btn btn-outline" href="{{ import_url }}">{% icon 'upload' %}{% t "Import" %}</a>{% endif %}
+        {% if export_url %}<a class="btn btn-outline" href="{{ export_url }}">{% icon 'download' %}{% t "Export" %}</a>{% endif %}
+        {% if add_url %}<a class="btn btn-primary" href="{{ add_url }}">{% icon 'plus' %}{% t "Add person" %}</a>{% endif %}
+      </div>
+    </div>
+
+    {% include "workspace/partials/people_tabs.html" %}
+
+    <div class="segmented" role="group" aria-label="Member lists">
+      {% if can_all %}
+      <a class="seg{% if view == 'all' and not status %} is-active{% endif %}" href="{% url 'workspace:people' %}"{% if view == 'all' and not status %} aria-current="true"{% endif %}>{% t "All members" %}</a>
+      <a class="seg{% if view == 'all' and status == 'active' %} is-active{% endif %}" href="{% url 'workspace:people' %}?status=active"{% if status == 'active' %} aria-current="true"{% endif %}>{% t "Active" %}</a>
+      <a class="seg{% if view == 'all' and status == 'renewal_due' %} is-active{% endif %}" href="{% url 'workspace:people' %}?status=renewal_due&amp;sort=renewal"{% if status == 'renewal_due' %} aria-current="true"{% endif %} title="Valid, 30 days or less left">{% t "Renewal due" %}</a>
+      <a class="seg{% if view == 'all' and status == 'expired' %} is-active{% endif %}" href="{% url 'workspace:people' %}?status=expired"{% if status == 'expired' %} aria-current="true"{% endif %}>{% t "Expired" %}</a>
+      {% endif %}
+      {% if can_pending %}<a class="seg{% if view == 'pending' %} is-active{% endif %}" href="{% url 'workspace:people' %}?view=pending"{% if view == 'pending' %} aria-current="true"{% endif %} title="The admin's Pending Payment list">{% t "Pending Payment list" %}</a>{% endif %}
+    </div>
+
+    <form class="filters card" method="get" role="search" aria-label="Filter members">
+      {% if view == 'pending' %}<input type="hidden" name="view" value="pending">{% endif %}
+      {% if sort != '-joined' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+      <div class="search-field">
+        {% icon 'search' %}
+        <label for="q" class="sr-only">Search members</label>
+        <input id="q" type="search" name="q" value="{{ q }}" placeholder="{% t "Search name, email or membership ID…" %}">
+      </div>
+      <label class="sr-only" for="f-type">Membership type</label>
+      <select id="f-type" name="type" class="select" data-autosubmit>
+        <option value="">{% t "Type" %}</option>
+        {% for code, name in type_options %}<option value="{{ code }}"{% if filters.type == code %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+      <label class="sr-only" for="f-position">Position</label>
+      <select id="f-position" name="position" class="select" data-autosubmit>
+        <option value="">{% t "Position" %}</option>
+        {% for code, name in position_options %}<option value="{{ code }}"{% if filters.position == code %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+      <label class="sr-only" for="f-status">Membership status</label>
+      <select id="f-status" name="status" class="select" data-autosubmit>
+        <option value="">{% t "Status" %}</option>
+        {% for code, name in status_options %}<option value="{{ code }}"{% if status == code %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+      <label class="sr-only" for="f-language">Language</label>
+      <select id="f-language" name="language" class="select" data-autosubmit>
+        <option value="">{% t "Language" %}</option>
+        {% for code, name in language_options %}<option value="{{ code }}"{% if filters.language == code %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+      <details class="popover"{% if filters.institution_type or filters.country or filters.subscribed %} open{% endif %}>
+        <summary class="btn btn-outline">{% icon 'sliders' %}{% t "More filters" %}</summary>
+        <div class="popover-body">
+          <label for="f-inst">Institution type</label>
+          <select id="f-inst" name="institution_type" class="select">
+            <option value="">{% t "Any" %}</option>
+            {% for code, name in institution_type_options %}<option value="{{ code }}"{% if filters.institution_type == code %} selected{% endif %}>{{ name }}</option>{% endfor %}
+          </select>
+          <label for="f-subscribed">{% t "Email updates" %}</label>
+          <select id="f-subscribed" name="subscribed" class="select">
+            <option value="">{% t "Any" %}</option>
+            <option value="yes"{% if filters.subscribed == 'yes' %} selected{% endif %}>{% t "Subscribed" %}</option>
+            <option value="no"{% if filters.subscribed == 'no' %} selected{% endif %}>{% t "Unsubscribed" %}</option>
+          </select>
+          <label for="f-country">Country</label>
+          <select id="f-country" name="country" class="select">
+            <option value="">{% t "Any" %}</option>
+            {% for c in country_options %}<option value="{{ c }}"{% if filters.country == c %} selected{% endif %}>{{ c }}</option>{% endfor %}
+          </select>
+          <button class="btn btn-primary btn-sm" type="submit">{% t "Apply" %}</button>
+        </div>
+      </details>
+      <button class="btn btn-primary" type="submit">{% t "Search" %}</button>
+      {% if q or active_filter_count %}<a class="btn btn-ghost" href="{% url 'workspace:people' %}{% if view == 'pending' %}?view=pending{% endif %}">{% t "Clear" %}</a>{% endif %}
+    </form>
+
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <strong class="count">{% if view == 'pending' %}{% t "Pending Payment list" %}{% else %}{% t "Members" %}{% endif %}: {{ total }}</strong>
+        {% include "workspace/partials/bulk_bar.html" %}
+      </div>
+      <div class="toolbar-right">
+        <details class="popover popover-right" data-columns>
+          <summary class="btn btn-outline">{% icon 'columns' %}{% t "Columns" %}</summary>
+          <div class="popover-body" role="group" aria-label="Visible columns">
+            <label class="check"><input type="checkbox" data-col-toggle="membership" checked> Membership</label>
+            <label class="check"><input type="checkbox" data-col-toggle="status" checked> Status</label>
+            <label class="check"><input type="checkbox" data-col-toggle="renewal" checked> Valid until</label>
+            <label class="check"><input type="checkbox" data-col-toggle="payment"> Payment</label>
+            <label class="check"><input type="checkbox" data-col-toggle="position"> Position</label>
+            <label class="check"><input type="checkbox" data-col-toggle="language"> Language</label>
+            <label class="check"><input type="checkbox" data-col-toggle="joined"> Joined</label>
+            <label class="check"><input type="checkbox" data-col-toggle="subscribed"> {% t "Email updates" %}</label>
+          </div>
+        </details>
+        <div class="view-toggle" role="group" aria-label="Layout">
+          <span class="ws-icon-btn is-active" title="List view" aria-label="List view">{% icon 'list' %}</span>
+          <span class="ws-icon-btn is-disabled" title="Card view — next phase" aria-disabled="true">{% icon 'grid' %}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card table-card">
+      {% if rows %}
+      <div class="table-scroll">
+        <table class="table" data-columns-table="members">
+          <thead>
+            <tr>
+              <th class="col-select" scope="col">{% if bulk or message_url or cert_issue_url or invite_url %}<input type="checkbox" aria-label="Select all on this page" data-select-all>{% endif %}</th>
+              <th scope="col"><a class="sort{% if sort == 'name' or sort == '-name' %} is-sorted{% endif %}" href="?{{ sort_query }}{% if sort_query %}&{% endif %}sort={% if sort == 'name' %}-name{% else %}name{% endif %}">{% t "Member" %} {% icon 'sort' %}</a></th>
+              <th scope="col" data-col="membership"><a class="sort{% if sort == 'type' or sort == '-type' %} is-sorted{% endif %}" href="?{{ sort_query }}{% if sort_query %}&{% endif %}sort={% if sort == 'type' %}-type{% else %}type{% endif %}">{% t "Membership" %} {% icon 'sort' %}</a></th>
+              <th scope="col" data-col="status">{% t "Status" %}</th>
+              <th scope="col" data-col="renewal"><a class="sort{% if sort == 'renewal' or sort == '-renewal' %} is-sorted{% endif %}" href="?{{ sort_query }}{% if sort_query %}&{% endif %}sort={% if sort == 'renewal' %}-renewal{% else %}renewal{% endif %}">{% t "Valid until" %} {% icon 'sort' %}</a></th>
+              <th scope="col" data-col="payment" hidden>{% t "Payment" %}</th>
+              <th scope="col" data-col="position" hidden>{% t "Position" %}</th>
+              <th scope="col" data-col="language" hidden>{% t "Language" %}</th>
+              <th scope="col" data-col="joined" hidden><a class="sort{% if sort == 'joined' or sort == '-joined' %} is-sorted{% endif %}" href="?{{ sort_query }}{% if sort_query %}&{% endif %}sort={% if sort == '-joined' %}joined{% else %}-joined{% endif %}">{% t "Joined" %} {% icon 'sort' %}</a></th>
+              <th scope="col" data-col="subscribed" hidden>{% t "Email updates" %}</th>
+              <th scope="col" class="col-actions">{% t "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+            <tr class="row-clickable{% if preview and preview.member.pk == row.pk %} is-selected{% endif %}" data-preview-url="{% url 'workspace:member_preview' row.pk %}" data-pk="{{ row.pk }}">
+              <td class="col-select" data-no-preview>{% if bulk or message_url or cert_issue_url or invite_url %}<input type="checkbox" name="_selected_action" value="{{ row.pk }}" form="bulk-form" aria-label="Select {{ row.obj.full_name }}" data-row-check>{% endif %}</td>
+              <td>
+                <div class="person">
+                  <span class="avatar avatar-md" aria-hidden="true">{{ row.initials }}</span>
+                  <div>
+                    <a class="person-name" href="?{{ base_query }}{% if base_query %}&{% endif %}preview={{ row.pk }}" data-preview-link>{{ row.obj.full_name }}</a>
+                    {% if row.is_demo %}<span class="chip chip-demo">{% t "Demo data" %}</span>{% endif %}
+                    <div class="muted">{{ row.obj.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td data-col="membership"><div>{{ row.type_name }}</div><div class="muted mono">{{ row.membership_id }}</div></td>
+              <td data-col="status"><span class="status status-{{ row.status.tone }}">{{ row.status.label|tr:lang }}</span></td>
+              <td data-col="renewal" class="nowrap">{% if row.status.valid_until %}{{ row.status.valid_until|date:"d M Y" }}{% if row.status.key == 'renewal_due' %}<div class="muted small">{{ row.status.days_left }} day{{ row.status.days_left|pluralize }} left</div>{% endif %}{% else %}<span class="muted">—</span>{% endif %}</td>
+              <td data-col="payment" hidden><span class="status status-{{ row.payment.tone }}">{{ row.payment.label|tr:lang }}</span></td>
+              <td data-col="position" hidden>{{ row.obj.get_position_display }}</td>
+              <td data-col="language" hidden>{{ row.obj.get_preferred_language_display }}</td>
+              <td data-col="joined" class="nowrap" hidden>{{ row.obj.created_at|date:"d M Y" }}</td>
+              <td data-col="subscribed" hidden>{% if row.obj.agree_communication %}<span class="status status-success">{% t "Subscribed" %}</span>{% else %}<span class="status status-muted">{% t "Unsubscribed" %}</span>{% endif %}</td>
+              <td class="col-actions" data-no-preview>
+                <details class="menu">
+                  <summary class="ws-icon-btn" aria-label="Actions for {{ row.obj.full_name }}">{% icon 'more' %}</summary>
+                  <div class="menu-body">
+                    <a href="{% url 'workspace:member_profile' row.pk %}">{% icon 'user' %}Open full profile</a>
+                    <a href="{% url 'membership_card' row.pk %}?download=1">{% icon 'download' %}Download card</a>
+                  </div>
+                </details>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% include "workspace/partials/pagination.html" %}
+      {% else %}
+        <div class="empty">
+          <span class="empty-icon">{% icon 'users' %}</span>
+          {% if q or active_filter_count %}
+            <h2>No members match these filters</h2>
+            <p>Try another name, email or membership ID, or clear the filters.</p>
+            <a class="btn btn-outline" href="{% url 'workspace:people' %}{% if view == 'pending' %}?view=pending{% endif %}">Clear filters</a>
+          {% else %}
+            <h2>{% if view == 'pending' %}Nothing in Pending Payment{% else %}No members yet{% endif %}</h2>
+            <p>New applications from the public membership form appear here.</p>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <aside class="preview" id="member-preview" aria-label="Member preview" data-preview-panel{% if not preview %} hidden{% endif %}>
+    {% if preview %}{% include "workspace/people/_preview_body.html" %}{% endif %}
+  </aside>
+</div>
+{% endblock %}

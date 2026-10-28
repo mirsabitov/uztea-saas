@@ -1,0 +1,14 @@
+{% load workspace_tags %}
+{% if form.non_field_errors %}<div class="alert alert-error" role="alert">{% for e in form.non_field_errors %}{{ e }} {% endfor %}</div>{% endif %}
+{% for field in form %}
+  <div class="form-field{% if field.field.widget.input_type == 'checkbox' %} form-field-check{% endif %}">
+    {% if field.field.widget.input_type == 'checkbox' %}
+      <label class="check">{{ field }} {% t field.label %}</label>
+    {% else %}
+      <label for="{{ field.id_for_label }}">{% t field.label %}{% if field.field.required %} <span class="req">*</span>{% endif %}</label>
+      {{ field }}
+    {% endif %}
+    {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+    {% for e in field.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+  </div>
+{% endfor %}

@@ -1,0 +1,26 @@
+{% extends "public/base.html" %}{% load workspace_tags %}
+{% block title %}{% t "My profile" %} · UzTEA{% endblock %}
+{% block brand %}UzTEA · {% t "My profile" %}{% endblock %}
+{% block brand_url %}{% url 'cabinet:login' %}{% endblock %}
+{% block content %}
+<div class="pub-wrap">
+  <section class="card auth-card" aria-labelledby="login-title">
+    <h1 id="login-title">{% t "Sign in" %}</h1>
+    <p class="muted">{% t "Use the email from your membership application." %}</p>
+    {% if error %}<div class="alert alert-error" role="alert">{{ error }}</div>{% endif %}
+    <form method="post" class="form-stack" novalidate>
+      {% csrf_token %}
+      <div class="form-field"><label for="id_email">{% t "Email" %}</label>
+        <input id="id_email" name="email" type="email" class="input" autocomplete="email" required value="{{ form.email.value|default:'' }}"></div>
+      <div class="form-field"><label for="id_password">{% t "Password" %}</label>
+        <input id="id_password" name="password" type="password" class="input" autocomplete="current-password" required></div>
+      <button class="btn btn-primary" type="submit">{% icon 'log-out' %}{% t "Sign in" %}</button>
+    </form>
+    <div class="auth-links">
+      <a href="{% url 'cabinet:request_link' %}?mode=register">{% t "Create your account" %}</a>
+      <a href="{% url 'cabinet:request_link' %}?mode=reset">{% t "Forgot password?" %}</a>
+    </div>
+    <p class="muted small">{% t "Not a member yet?" %} <a href="{% url 'membership_form' %}">{% t "Apply for membership" %}</a></p>
+  </section>
+</div>
+{% endblock %}

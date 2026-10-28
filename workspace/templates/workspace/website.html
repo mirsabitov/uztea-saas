@@ -1,0 +1,15 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">{% t "Website" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
+    <div class="page-actions"><a class="btn btn-outline" href="https://www.uztea.uz/" target="_blank" rel="noopener">Open uztea.uz {% icon 'external-link' %}</a></div>
+  </div>
+  <p class="note">{% icon 'alert' %}This section is reserved for managing uztea.uz. It will be built in its own phase; nothing here edits the live site yet.</p>
+  <div class="quick-actions">
+    <div class="quick card is-disabled" aria-disabled="true"><span class="quick-icon tone-blue">{% icon 'file-text' %}</span><span><strong>News</strong><small>Articles and announcements</small></span><span class="chip chip-next">{% t "Next phase" %}</span></div>
+    <div class="quick card is-disabled" aria-disabled="true"><span class="quick-icon tone-orange">{% icon 'calendar' %}</span><span><strong>Events</strong><small>Event pages and calendars</small></span><span class="chip chip-next">{% t "Next phase" %}</span></div>
+    <div class="quick card is-disabled" aria-disabled="true"><span class="quick-icon tone-purple">{% icon 'globe' %}</span><span><strong>Pages</strong><small>About, membership, contacts</small></span><span class="chip chip-next">{% t "Next phase" %}</span></div>
+  </div>
+</section>
+{% endblock %}

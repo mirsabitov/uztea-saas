@@ -1,0 +1,68 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">{% t "Issue certificates" %}</h1>
+      <p class="page-sub">Each certificate gets the next number (UZTEA-YYYY-000123). People download it from the link in the email or from certificates.uztea.uz.</p></div>
+  </div>
+  {% include "certificates/workspace/_tabs.html" %}
+
+  <div class="compose-grid">
+    <div class="stack">
+      <section class="card">
+        <h2 class="card-title">1. Who receives it</h2>
+        {% if rows %}
+          <p><strong>{{ rows|length }}</strong> {% if rows|length == 1 %}person{% else %}people{% endif %} · {{ with_email }} with email · {{ linked }} linked to a membership</p>
+          {% if problems %}<div class="alert alert-warning" role="alert"><strong>Check these rows:</strong><ul class="problem-list">{% for p in problems %}<li>{{ p }}</li>{% endfor %}</ul></div>{% endif %}
+          <div class="table-scroll recipients-table">
+            <table class="table">
+              <thead><tr><th scope="col">{% t "Name" %}</th><th scope="col">{% t "Email" %}</th><th scope="col">{% t "Membership" %}</th></tr></thead>
+              <tbody>{% for r in rows|slice:":200" %}<tr><td>{{ r.name }}</td><td>{{ r.email|default:"—" }}</td><td class="mono">{% if r.membership_id %}UZ{{ r.membership_id|stringformat:"06d" }}{% else %}—{% endif %}</td></tr>{% endfor %}</tbody>
+            </table>
+          </div>
+          {% if rows|length > 200 %}<p class="muted small">and {{ rows|length|add:"-200" }} more</p>{% endif %}
+          <a class="btn btn-sm btn-ghost" href="{% url 'workspace:cert_issue' %}{% if template %}?template={{ template.pk }}{% endif %}">Start over</a>
+        {% else %}
+          <p class="muted">Select members in <a href="{% url 'workspace:people' %}">People</a> and press "Certificate", or load a list here.</p>
+          <form method="post" enctype="multipart/form-data" class="form-stack">
+            {% csrf_token %}
+            <input type="hidden" name="step" value="load">
+            {% if template %}<input type="hidden" name="template" value="{{ template.pk }}">{% endif %}
+            <div class="form-field">
+              <label for="cert-file">Excel or CSV file</label>
+              <input id="cert-file" type="file" name="file" accept=".xlsx,.xlsm,.csv" class="input file-input">
+              <small class="muted">Columns: <code>name</code>, <code>email</code>, optional <code>membership_id</code>. Without a header row the order is name, email, membership ID. Up to {{ max_rows }} rows.</small>
+            </div>
+            <div class="form-field">
+              <label for="cert-paste">…or paste names</label>
+              <textarea id="cert-paste" name="paste" rows="6" class="input textarea" placeholder="Aziza Karimova, aziza@example.org&#10;Diyor Tashmetov, diyor@example.org"></textarea>
+            </div>
+            <div class="page-actions"><button class="btn btn-outline" type="submit">{% icon 'upload' %}Load list</button></div>
+          </form>
+        {% endif %}
+      </section>
+    </div>
+
+    <aside class="stack">
+      <form method="post" class="card form-stack">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="issue">
+        <input type="hidden" name="source" value="{{ source|default:'manual' }}">
+        <input type="hidden" name="rows" value="{{ rows_json }}">
+        <h2 class="card-title">2. Template &amp; delivery</h2>
+        <div class="form-field">
+          <label for="cert-template">Template</label>
+          <select id="cert-template" name="template" class="select" required>
+            <option value="">Choose…</option>
+            {% for tpl in templates %}<option value="{{ tpl.pk }}"{% if template.pk == tpl.pk %} selected{% endif %}>{{ tpl.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <label class="check"><input type="checkbox" name="send_email" checked> Email each person a download link</label>
+        <label class="check"><input type="checkbox" name="skip_existing" checked> Skip people who already have this certificate</label>
+        <button class="btn btn-primary" type="submit"{% if not rows %} disabled{% endif %}>{% icon 'award' %}Issue {{ rows|length }} certificate{{ rows|length|pluralize }}</button>
+        {% if not templates %}<p class="field-error">Create a template first.</p>{% endif %}
+      </form>
+    </aside>
+  </div>
+</section>
+{% endblock %}

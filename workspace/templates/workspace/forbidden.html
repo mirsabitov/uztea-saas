@@ -1,0 +1,9 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<div class="empty empty-page">
+  <span class="empty-icon">{% icon 'lock' %}</span>
+  <h1>No access to this section</h1>
+  <p>Your account does not have permission to view it. Ask an administrator to update your group permissions.</p>
+  <a class="btn btn-primary" href="{% url 'workspace:home' %}">Back to Home</a>
+</div>
+{% endblock %}

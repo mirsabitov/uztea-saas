@@ -1,0 +1,32 @@
+{% load workspace_tags %}
+{% comment %}
+Selection toolbar. Admin bulk actions run in the existing admin changelist (same
+permission checks and confirmations); SMS / Email open the workspace composer with
+the same selection (formaction).
+{% endcomment %}
+{% if bulk or message_url or cert_issue_url or invite_url %}
+<form method="post" action="{% if bulk %}{{ bulk.url }}{% elif message_url %}{{ message_url }}{% else %}{{ cert_issue_url }}{% endif %}" class="bulk" id="bulk-form" data-bulk-form>
+  {% csrf_token %}
+  {% if message_url %}
+    <button type="submit" class="btn btn-sm btn-outline" formaction="{{ message_url }}&amp;channel=sms" disabled data-bulk-msg>{% icon 'message-square' %}SMS</button>
+    <button type="submit" class="btn btn-sm btn-outline" formaction="{{ message_url }}&amp;channel=email" disabled data-bulk-msg>{% icon 'mail' %}Email</button>
+  {% endif %}
+  {% if invite_url %}
+    <button type="submit" class="btn btn-sm btn-outline" formaction="{{ invite_url }}" disabled data-bulk-msg data-confirm="Email a cabinet invitation to the selected members?">{% icon 'key' %}{% t "Invite" %}</button>
+  {% endif %}
+  {% if cert_issue_url %}
+    <button type="submit" class="btn btn-sm btn-outline" formaction="{{ cert_issue_url }}" disabled data-bulk-msg>{% icon 'award' %}{% t "Certificate" %}</button>
+  {% endif %}
+  {% if bulk %}
+    <input type="hidden" name="index" value="0">
+    <input type="hidden" name="select_across" value="0">
+    <label class="sr-only" for="bulk-action">Bulk action</label>
+    <select id="bulk-action" name="action" class="select select-sm" disabled data-bulk-select>
+      <option value="">{% t "More actions" %}</option>
+      {% for key, label in bulk.actions %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-primary" disabled data-bulk-apply>{% t "Apply" %}</button>
+  {% endif %}
+  <span class="bulk-count" data-bulk-count aria-live="polite"></span>
+</form>
+{% endif %}

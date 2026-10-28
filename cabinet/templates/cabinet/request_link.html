@@ -1,0 +1,25 @@
+{% extends "public/base.html" %}{% load workspace_tags %}
+{% block title %}{% t "My profile" %} · UzTEA{% endblock %}
+{% block brand %}UzTEA · {% t "My profile" %}{% endblock %}
+{% block brand_url %}{% url 'cabinet:login' %}{% endblock %}
+{% block content %}
+<div class="pub-wrap">
+  <section class="card auth-card" aria-labelledby="link-title">
+    <h1 id="link-title">{% if mode == 'reset' %}{% t "Forgot password?" %}{% else %}{% t "Create your account" %}{% endif %}</h1>
+    {% if sent %}
+      <div class="alert alert-success" role="status">{% t "If this email belongs to an UzTEA membership, we have sent a link to set your password. It works for 3 days." %}</div>
+      <a class="btn btn-outline" href="{% url 'cabinet:login' %}">{% t "Sign in" %}</a>
+    {% else %}
+      <p class="muted">{% t "Enter the email you used on the membership form. We will send you a link to set your password." %}</p>
+      {% if error %}<div class="alert alert-error" role="alert">{{ error }}</div>{% endif %}
+      <form method="post" class="form-stack">
+        {% csrf_token %}
+        <div class="form-field"><label for="id_email">{% t "Email" %}</label>
+          <input id="id_email" name="email" type="email" class="input" autocomplete="email" required></div>
+        <button class="btn btn-primary" type="submit">{% icon 'send' %}{% t "Send me the link" %}</button>
+      </form>
+      <div class="auth-links"><a href="{% url 'cabinet:login' %}">{% t "Sign in" %}</a></div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

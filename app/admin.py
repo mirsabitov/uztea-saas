@@ -329,11 +329,12 @@ class MembershipAdmin(ImportExportModelAdmin):
     actions = ('move_to_pending_payment', 'resend_welcome_email', 'compose_custom_email')
 
     list_display = ('card_id', 'full_name', 'email', 'membership_type', 'position',
-                    'payment_status', 'created_at', 'card_link')
+                    'payment_status', 'email_updates', 'created_at', 'card_link')
 
     list_editable = ('membership_type',)
 
-    list_filter = ('membership_type', 'position', 'preferred_language')
+    # agree_communication = "receives UzTEA emails"; members can switch it in My profile.
+    list_filter = ('membership_type', 'position', 'preferred_language', 'agree_communication')
 
     search_fields = ('full_name', 'email', 'institution_name')
 
@@ -848,13 +849,18 @@ class MembershipAdmin(ImportExportModelAdmin):
                 level=messages.WARNING,
             )
 
+    @admin.display(boolean=True, description='Email updates', ordering='agree_communication')
+    def email_updates(self, obj):
+        # Members switch this in My profile (the application's "agree to receive communications").
+        return obj.agree_communication
+
     def card_id(self, obj):
         return f'UZ{obj.id:06d}' if obj.id else '—'
     card_id.short_description = 'Membership ID'
 
     def payment_status(self, obj):
         from django.utils.html import format_html
-        from atmos.models import AtmosTransaction
+        from .payment_status import membership_payment_status, payment_status_style
 
         if not obj.id:
             return format_html(
@@ -862,38 +868,8 @@ class MembershipAdmin(ImportExportModelAdmin):
                 'background:#f1f5f9;color:#64748b;font-size:11px;font-weight:700;">—</span>'
             )
 
-        # Find the latest Atmos transaction for any of this membership's orders
-        order_ids = [str(oid) for oid in obj.orders.values_list('id', flat=True)]
-        txn = None
-        if order_ids:
-            txn = (AtmosTransaction.objects
-                   .filter(account__in=order_ids)
-                   .order_by('-created_at')
-                   .first())
-
-        # Atmos transaction statuses (Success / OTP Sent / Failed / ...)
-        styles = {
-            'SUCCESS':    ('#dcfce7', '#15803d', 'Success'),
-            'OTP_SENT':   ('#dbeafe', '#1d4ed8', 'OTP Sent'),
-            'CARD_BOUND': ('#e0e7ff', '#4338ca', 'Card Bound'),
-            'PENDING':    ('#fff7ed', '#c2410c', 'Pending'),
-            'FAILED':     ('#fee2e2', '#b91c1c', 'Failed'),
-            'CANCELLED':  ('#f1f5f9', '#64748b', 'Cancelled'),
-        }
-
-        if txn is not None:
-            bg, fg, label = styles.get(txn.status, ('#f1f5f9', '#64748b', txn.status))
-        else:
-            # Fall back to the Click order status if no Atmos transaction
-            order = obj.orders.order_by('-updated_at').first()
-            if order is None:
-                bg, fg, label = '#f1f5f9', '#64748b', 'No payment'
-            elif order.status == 'paid':
-                bg, fg, label = '#dcfce7', '#15803d', 'Success'
-            elif order.status == 'failed':
-                bg, fg, label = '#fee2e2', '#b91c1c', 'Failed'
-            else:
-                bg, fg, label = '#fff7ed', '#c2410c', 'Pending'
+        # Latest Atmos transaction wins, otherwise the latest order status
+        bg, fg, label = payment_status_style(membership_payment_status(obj))
 
         return format_html(
             '<span style="display:inline-block;padding:3px 10px;border-radius:20px;'

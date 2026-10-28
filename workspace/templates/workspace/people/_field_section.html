@@ -1,0 +1,6 @@
+{% load workspace_tags %}<section class="card">
+  <h2 class="card-title">{{ s.title|tr:lang }}</h2>
+  <dl class="kv">
+    {% for item in s.items %}<div><dt>{{ item.label }}</dt><dd>{% if item.value is None %}<span class="muted">—</span>{% else %}{{ item.value|linebreaksbr }}{% endif %}</dd></div>{% endfor %}
+  </dl>
+</section>

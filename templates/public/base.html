@@ -1,0 +1,46 @@
+{% load static workspace_tags %}<!doctype html>
+<html lang="{{ lang|default:'en' }}">
+<head>
+  {% include 'partials/google_analytics.html' %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}UzTEA{% endblock %}</title>
+  <link rel="icon" href="{{ org.logo_urls.light }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <script>try{var t=localStorage.getItem('ws-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+  <link rel="stylesheet" href="{% static 'workspace/workspace.css' %}">
+  <link rel="stylesheet" href="{% static 'public/public.css' %}">
+</head>
+<body class="ws pub">
+{% include "workspace/partials/icons.html" %}
+<a class="skip-link" href="#main">{% t "Skip to content" %}</a>
+<header class="pub-header">
+  <div class="pub-header-inner">
+    <a class="pub-brand" href="{% block brand_url %}/{% endblock %}">
+      {% with logos=org.logo_urls %}<span class="pub-logo"><img src="{{ logos.light }}" alt="{{ org.short_name|default:'UzTEA' }}" class="logo-on-light"><img src="{{ logos.dark }}" alt="{{ org.short_name|default:'UzTEA' }}" class="logo-on-dark"></span>{% endwith %}
+      <span class="pub-brand-text"><strong>{% block brand %}UzTEA{% endblock %}</strong><small>{{ org.name|default:"Uzbekistan Teachers of English Association" }}</small></span>
+    </a>
+    <div class="pub-header-actions">
+      {% block header_actions %}{% endblock %}
+      <details class="menu ws-lang">
+        <summary class="ws-icon-btn" aria-label="{% t "Language" %}" title="{% t "Language" %}"><span class="ws-lang-code">{{ lang|upper }}</span></summary>
+        <form class="menu-body" method="post" action="{% url 'set_language' %}">
+          {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+          {% for code, name in languages %}<button type="submit" name="language" value="{{ code }}"{% if lang == code %} aria-current="true"{% endif %}>{% if lang == code %}{% icon 'check' %}{% else %}<span class="ic"></span>{% endif %}{{ name }}</button>{% endfor %}
+        </form>
+      </details>
+      <button type="button" class="ws-icon-btn theme-toggle" data-theme-toggle aria-label="{% t "Switch dark / light mode" %}">{% icon 'moon' 'ic-moon' %}{% icon 'sun' 'ic-sun' %}</button>
+    </div>
+  </div>
+</header>
+{% if messages %}<div class="pub-wrap ws-messages">{% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }}" role="status">{{ message }}</div>{% endfor %}</div>{% endif %}
+<main id="main" class="pub-main" tabindex="-1">
+  {% block content %}{% endblock %}
+</main>
+<footer class="pub-footer">
+  <div class="pub-wrap">© {% now "Y" %} {{ org.name|default:"UzTEA" }} · <a href="{{ org.website|default:'https://www.uztea.uz' }}" target="_blank" rel="noopener">{{ org.website|default:"uztea.uz"|cut:"https://"|cut:"http://" }}</a></div>
+</footer>
+<script src="{% static 'workspace/workspace.js' %}" defer></script>
+</body>
+</html>

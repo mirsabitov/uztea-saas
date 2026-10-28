@@ -1,0 +1,35 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">{% t "Partners" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
+    <div class="page-actions">{% if add_url %}<a class="btn btn-primary" href="{{ add_url }}">{% icon 'plus' %}New benefit</a>{% endif %}</div>
+  </div>
+  {% with partners_tab='benefits' %}{% include "workspace/partials/partners_tabs.html" %}{% endwith %}
+  <div class="card table-card">
+    {% if rows %}
+    <div class="table-scroll">
+      <table class="table">
+        <thead><tr><th scope="col">Benefit</th><th scope="col">{% t "Partners" %}</th><th scope="col">For</th><th scope="col">{% t "Valid until" %}</th><th scope="col">{% t "Status" %}</th><th scope="col" class="col-actions"><span class="sr-only">{% t "Edit" %}</span></th></tr></thead>
+        <tbody>
+          {% for r in rows %}{% with b=r.b %}
+          <tr>
+            <td><strong>{{ b.title }}</strong>{% if b.discount %} <span class="chip chip-blue">{{ b.discount }}</span>{% endif %}{% if b.code %}<div class="muted mono">{{ b.code }}</div>{% endif %}</td>
+            <td>{{ b.partner|default:"UzTEA" }}</td>
+            <td>{% for name in r.types %}<span class="chip chip-soft">{{ name }}</span> {% empty %}All active members{% endfor %}</td>
+            <td>{{ b.valid_until|date:"d M Y"|default:"—" }}</td>
+            <td>{% if b.is_active and not b.valid_until or b.is_active and b.valid_until >= today %}<span class="status status-success">{% t "Active" %}</span>{% else %}<span class="status status-muted">Inactive</span>{% endif %}</td>
+            <td class="col-actions">{% if can_edit %}<a class="btn btn-sm btn-ghost" href="{% url 'workspace:benefit_edit' b.pk %}">{% icon 'pencil' %}{% t "Edit" %}</a>{% endif %}</td>
+          </tr>
+          {% endwith %}{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "workspace/partials/pagination.html" %}
+    {% else %}
+    <div class="empty"><span class="empty-icon">{% icon 'tag' %}</span><h2>No benefits yet</h2><p>Add discounts and offers from partners. Active members see them in their cabinet.</p>
+      {% if add_url %}<a class="btn btn-primary" href="{{ add_url }}">{% icon 'plus' %}New benefit</a>{% endif %}</div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

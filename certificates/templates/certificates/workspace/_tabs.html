@@ -1,0 +1,6 @@
+{% load workspace_tags %}
+<nav class="segmented" aria-label="Certificates">
+  {% if perms.certificates.view_certificatetemplate %}<a class="seg{% if cert_tab == 'templates' %} is-active{% endif %}" href="{% url 'workspace:cert_templates' %}"{% if cert_tab == 'templates' %} aria-current="page"{% endif %}>{% icon 'image' %}{% t "Certificate templates" %}</a>{% endif %}
+  {% if perms.certificates.add_certificate %}<a class="seg{% if cert_tab == 'issue' %} is-active{% endif %}" href="{% url 'workspace:cert_issue' %}"{% if cert_tab == 'issue' %} aria-current="page"{% endif %}>{% icon 'send' %}{% t "Issue certificates" %}</a>{% endif %}
+  {% if perms.certificates.view_certificate %}<a class="seg{% if cert_tab == 'issued' %} is-active{% endif %}" href="{% url 'workspace:cert_issued' %}"{% if cert_tab == 'issued' %} aria-current="page"{% endif %}>{% icon 'award' %}{% t "Issued certificates" %}</a>{% endif %}
+</nav>

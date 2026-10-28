@@ -1,0 +1,238 @@
+/* Membership form — modern UzTEA Workspace look.
+   Loaded after the form's own <style>, so it only restyles: same markup, same fields,
+   same JavaScript. Remove this <link> to get the previous look back. */
+
+:root {
+  --primary-dark: #222e50;
+  --primary-light: #1f6feb;
+  --primary-light-hover: #185fd0;
+  --bg-color: #f3f6fb;
+  --card-bg: #ffffff;
+  --text-main: #12213f;
+  --text-muted: #66758f;
+  --border-color: #e2e8f1;
+  --focus-ring: rgba(31, 111, 235, .25);
+  --danger-color: #b42318;
+  --mf-navy: #0c2247;
+  --mf-blue-50: #edf4ff;
+  --mf-radius: 12px;
+}
+
+h1, h2, h3, h4, h5, h6,
+p, span, label, input, textarea, select, button, body {
+  font-family: Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+}
+
+body {
+  background:
+    radial-gradient(1200px 500px at 50% -120px, #dbe8ff 0%, rgba(219, 232, 255, 0) 70%),
+    var(--bg-color);
+  align-items: flex-start;
+  padding: 32px 16px 48px;
+  color: var(--text-main);
+}
+
+.container {
+  max-width: 880px;
+  padding: 0 0 8px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 6px rgba(16, 34, 71, .04), 0 18px 48px rgba(16, 34, 71, .08);
+  overflow: hidden;
+}
+
+/* Brand band */
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-align: left;
+  margin: 0 0 28px;
+  padding: 26px 40px;
+  background: linear-gradient(135deg, var(--mf-navy) 0%, #13305e 100%);
+  color: #fff;
+}
+.header-logo img {
+  width: 92px;
+  max-width: none;
+  height: auto;
+  margin: 0;
+  flex: none;
+}
+.mf-eyebrow {
+  display: block;
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #9fb8e6;
+  font-weight: 600;
+}
+.header-title {
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  margin: 4px 0 2px;
+  letter-spacing: -.01em;
+}
+.mf-sub { margin: 0; color: #c9d6ee; font-size: 14px; }
+
+.wizard-header, #wizard-form { padding: 0 40px; }
+
+/* Progress */
+.wizard-header { margin-bottom: 28px; }
+.progress-steps { margin-bottom: 14px; }
+.progress-steps::before { background-color: var(--border-color); }
+.progress-line { background-color: var(--primary-light); }
+.step-icon {
+  width: 42px; height: 42px;
+  border: 1.5px solid var(--border-color);
+  color: #8a97ad;
+  background: #fff;
+}
+.step-label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.step-item.active .step-icon {
+  background: var(--primary-light);
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 5px rgba(31, 111, 235, .15);
+}
+.step-item.active .step-label { color: var(--primary-dark); font-weight: 700; }
+.step-item.done .step-icon { background: var(--mf-blue-50); border-color: var(--primary-light); color: var(--primary-light); }
+.step-item.done .step-label { color: var(--primary-light); }
+.step-indicator {
+  display: inline-block;
+  margin: 0 auto;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--mf-blue-50);
+  color: var(--primary-light);
+  font-weight: 600;
+  font-size: 12.5px;
+}
+.wizard-header { text-align: center; }
+
+/* Steps */
+.wizard-step h3 {
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+.form-grid { gap: 18px 20px; }
+.form-grid p { gap: 6px; }
+
+label { font-size: 13.5px; font-weight: 600; color: #2b3a57; }
+.required-asterisk { color: var(--danger-color); }
+
+input[type="text"], input[type="email"], input[type="date"],
+input[type="number"], input[type="password"], input[type="tel"],
+input[type="url"], select, textarea {
+  padding: 11px 14px;
+  font-family: Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  font-size: 15px;
+  border-radius: 10px;
+  border: 1px solid #d5deeb;
+  background-color: #fff;
+  color: var(--text-main);
+  transition: border-color .12s, box-shadow .12s;
+}
+input:hover, select:hover, textarea:hover { border-color: #b9c8de; }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  outline: none;
+}
+input::placeholder, textarea::placeholder { color: #9aa6b8; }
+.helptext { font-size: 12.5px; color: var(--text-muted); }
+.inline-error, .errorlist { font-size: 12.5px; color: var(--danger-color); }
+
+.field-item { border-radius: var(--mf-radius); }
+.field-item:hover { background: transparent; }
+
+/* Choice cards (membership type, payment, consents) */
+.membership-type-card,
+.pm-card,
+.consent-card,
+.payment-card {
+  border-radius: var(--mf-radius) !important;
+  border: 1px solid var(--border-color) !important;
+  background: #fff;
+  transition: border-color .12s, box-shadow .12s, transform .12s;
+}
+.membership-type-card:hover, .pm-card:hover, .consent-card:hover { border-color: #9dbcf0 !important; transform: translateY(-1px); }
+.membership-type-card:has(input:checked),
+.consent-card:has(input:checked) {
+  border-color: var(--primary-light) !important;
+  background: var(--mf-blue-50);
+  box-shadow: 0 0 0 1px var(--primary-light);
+}
+.pm-card.active { box-shadow: 0 0 0 1px var(--primary-light); border-color: var(--primary-light) !important; }
+.membership-type-name { color: var(--primary-dark); }
+.membership-type-price { color: var(--primary-light); }
+.consent-toggle input:checked + .consent-toggle-slider { background: var(--primary-light); }
+.pay-note { background: var(--mf-blue-50); border-color: #cddfff; border-radius: var(--mf-radius); }
+.pay-note svg { color: var(--primary-light); }
+.error-summary { border-radius: var(--mf-radius); }
+.members-modal { border-radius: 16px; }
+.members-summary { border-radius: var(--mf-radius); }
+
+/* Footer buttons */
+.wizard-footer {
+  margin-top: 28px;
+  padding: 18px 0 22px;
+  border-top: 1px solid var(--border-color);
+}
+.btn {
+  height: 46px;
+  padding: 0 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  background: var(--primary-light);
+  box-shadow: 0 6px 16px rgba(31, 111, 235, .25);
+}
+.btn:hover { background: var(--primary-light-hover); }
+.btn-outline {
+  background: #fff;
+  color: var(--primary-light);
+  border: 1px solid #c9d6ea;
+  box-shadow: none;
+}
+.btn-outline:hover { background: var(--mf-blue-50); border-color: var(--primary-light); }
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+
+.mf-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 40px 18px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.mf-trust a { color: var(--text-muted); text-decoration: underline; }
+
+@media (max-width: 768px) {
+  body { padding: 0; background: var(--bg-color); }
+  .container { border-radius: 0; border: 0; box-shadow: none; min-height: 100vh; }
+  .header-logo { padding: 20px 18px; gap: 14px; margin-bottom: 20px; }
+  .header-logo img { width: 64px; }
+  .header-title { font-size: 21px; }
+  .wizard-header, #wizard-form, .mf-trust { padding-left: 18px; padding-right: 18px; }
+  .wizard-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    margin: 24px -18px 0;
+    padding: 12px 18px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, .94);
+    backdrop-filter: blur(8px);
+  }
+  .btn { height: 48px; }
+}
+@media (max-width: 420px) {
+  .mf-eyebrow { font-size: 10.5px; }
+  .mf-sub { font-size: 13px; }
+}

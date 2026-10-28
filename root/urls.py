@@ -19,8 +19,14 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from workspace import views_public as workspace_public
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('workspace/', include('workspace.urls')),
+    path('set-language/', workspace_public.change_language, name='set_language'),
+    path('certificates/', include('certificates.urls_public')),
+    path('account/', include('cabinet.urls')),
     path('ckeditor/', include('ckeditor_uploader.urls')),
     path('', include('app.urls')),
     path('payments/click/', include('click.urls')),

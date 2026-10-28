@@ -1,0 +1,81 @@
+{% extends "workspace/base.html" %}{% load static workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">{% t "SaaS Settings" %}</h1><p class="page-sub">{{ org.name }}</p></div>
+  </div>
+
+  <div class="settings-grid">
+    <section class="card" aria-labelledby="s-org">
+      <h2 class="card-title" id="s-org">{% icon 'building' %}{% t "Organisation" %}</h2>
+      <form method="post" class="form-stack" id="org-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="form-field">
+            <label for="{{ field.id_for_label }}">{% t field.label %}</label>
+            {% if field.name == 'default_language' %}
+              <select id="{{ field.id_for_label }}" name="{{ field.html_name }}" class="select"{% if not can_edit %} disabled{% endif %}>
+                {% for code, name in languages %}<option value="{{ code }}"{% if field.value == code %} selected{% endif %}>{{ name }}</option>{% endfor %}
+              </select>
+              <small class="muted">Workspace, member cabinet and certificate portal use this unless a person picks another language.</small>
+            {% elif field.name == 'address' %}
+              <textarea id="{{ field.id_for_label }}" name="{{ field.html_name }}" rows="3" class="input textarea"{% if not can_edit %} disabled{% endif %}>{{ field.value|default:"" }}</textarea>
+            {% else %}
+              <input id="{{ field.id_for_label }}" name="{{ field.html_name }}" value="{{ field.value|default:"" }}" class="input"{% if not can_edit %} disabled{% endif %}>
+            {% endif %}
+            {% for e in field.errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+          </div>
+        {% endfor %}
+        {% if can_edit %}<div class="page-actions"><button class="btn btn-primary" type="submit">{% icon 'check' %}{% t "Save" %}</button></div>{% endif %}
+      </form>
+    </section>
+
+    <div class="stack">
+      <section class="card" aria-labelledby="s-lang">
+        <h2 class="card-title" id="s-lang">{% icon 'globe' %}{% t "Your language" %}</h2>
+        <form method="post" action="{% url 'set_language' %}" class="lang-switch">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          {% for code, name in languages %}
+            <button type="submit" name="language" value="{{ code }}" class="seg{% if lang == code %} is-active{% endif %}"{% if lang == code %} aria-current="true"{% endif %}>{{ name }}</button>
+          {% endfor %}
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="s-brand">
+        <h2 class="card-title" id="s-brand">{% icon 'image' %}Branding</h2>
+        <p class="muted">Upload your own logo versions or go back to the original UzTEA logos. PNG / SVG with a transparent background, up to 2 MB.</p>
+        {% for e in logo_errors %}<p class="field-error">{{ e }}</p>{% endfor %}
+        <div class="logo-slots">
+          {% for field, title, where, url, custom, dark in logo_slots %}
+          <div class="logo-slot">
+            <div class="logo-swatch{% if dark %} logo-swatch-dark{% endif %}"><img src="{{ url }}" alt="{{ title }} logo"></div>
+            <div class="logo-slot-text"><strong>{{ title }}</strong><small class="muted">{{ where }}{% if not custom %} · original UzTEA logo{% endif %}</small></div>
+            {% if can_edit %}
+            <label class="btn btn-sm btn-outline logo-upload">{% icon 'upload' %}{% if custom %}Replace{% else %}Upload{% endif %}
+              <input type="file" name="{{ field }}" accept="image/png,image/jpeg,image/webp,image/svg+xml" form="org-form" class="sr-only" data-logo-input>
+            </label>
+            {% if custom %}<label class="check small"><input type="checkbox" name="clear_{{ field }}" form="org-form"> Remove (use original)</label>{% endif %}
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% if can_edit %}<p class="muted small">Choose files, then press Save in the Organisation card.</p>{% endif %}
+      </section>
+
+      {% if integrations %}
+      <section class="card" aria-labelledby="s-int">
+        <h2 class="card-title" id="s-int">{% icon 'link' %}{% t "Integrations" %}</h2>
+        <p class="muted">Keys live in the server's <code>.env</code>; only the status is shown.</p>
+        <ul class="integration-list">
+          {% for i in integrations %}
+          <li>{% icon i.icon %}<span><strong>{{ i.name }}</strong><small class="muted">{{ i.note }}</small></span>
+            <span class="status status-{% if i.ok %}success{% else %}muted{% endif %}">{% if i.ok %}{% t "Configured" %}{% else %}{% t "Not configured" %}{% endif %}</span></li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% load workspace_tags %}
+{% with p=preview m=preview.member %}
+<div class="preview-inner" data-pk="{{ m.pk }}">
+  <div class="preview-head">
+    <h2>{% t "Member preview" %}</h2>
+    <a class="ws-icon-btn" href="?{{ base_query }}" data-preview-close aria-label="Close preview">{% icon 'x' %}</a>
+  </div>
+  <div class="preview-person">
+    {% if p.photo_url %}<img class="avatar avatar-xl avatar-photo" src="{{ p.photo_url }}" alt="">{% else %}<span class="avatar avatar-xl" aria-hidden="true">{{ p.initials }}</span>{% endif %}
+    <div>
+      <h3>{{ m.full_name }}</h3>
+      <div class="muted">{{ m.email }}</div>
+      <div class="mono">Membership ID: {{ p.membership_id }}</div>
+      {% if p.is_demo %}<span class="chip chip-demo">{% t "Demo data" %}</span>{% endif %}
+    </div>
+  </div>
+  <a class="btn btn-outline btn-block" href="{{ p.profile_url }}">{% t "Open full profile" %} {% icon 'external-link' %}</a>
+
+  <div class="tabs tabs-sm" role="tablist" data-tabs>
+    <button type="button" class="tab is-active" role="tab" aria-selected="true" aria-controls="pv-overview-{{ m.pk }}" id="pv-tab-o-{{ m.pk }}">{% t "Overview" %}</button>
+    <button type="button" class="tab" role="tab" aria-selected="false" aria-controls="pv-activity-{{ m.pk }}" id="pv-tab-a-{{ m.pk }}" tabindex="-1">{% t "Activity" %}</button>
+  </div>
+
+  <div id="pv-overview-{{ m.pk }}" role="tabpanel" aria-labelledby="pv-tab-o-{{ m.pk }}">
+    <dl class="facts card">
+      <div class="fact">{% icon 'id-card' %}<dt>{% t "Membership type" %}</dt><dd>{{ m.get_membership_type_display }}</dd></div>
+      <div class="fact">{% icon 'users' %}<dt>{% t "Membership status" %}</dt><dd><span class="status status-{{ p.status.tone }}">{{ p.status.label|tr:lang }}</span></dd></div>
+      <div class="fact">{% icon 'calendar' %}<dt>{% t "Valid until" %}</dt><dd>{% if p.status.valid_until %}{{ p.status.valid_until|date:"d M Y" }}{% if p.status.key == 'renewal_due' %} <span class="muted">({{ p.status.days_left }} days left)</span>{% endif %}{% else %}—{% endif %}</dd></div>
+      <div class="fact">{% icon 'list' %}<dt>Admin list</dt><dd>{% if m.is_pending_payment %}Pending Payment{% else %}Members{% endif %}</dd></div>
+      <div class="fact">{% icon 'credit-card' %}<dt>{% t "Payment status" %}</dt><dd><span class="status status-{{ p.payment.tone }}">{{ p.payment.label|tr:lang }}</span></dd></div>
+      <div class="fact">{% icon 'clock' %}<dt>{% t "Joined" %}</dt><dd>{{ m.created_at|date:"d M Y" }}</dd></div>
+      <div class="fact">{% icon 'user' %}<dt>{% t "Position" %}</dt><dd>{{ m.get_position_display }}</dd></div>
+      <div class="fact">{% icon 'globe' %}<dt>{% t "Preferred language" %}</dt><dd>{{ m.get_preferred_language_display }}</dd></div>
+      <div class="fact">{% icon 'building' %}<dt>{% t "Institution" %}</dt><dd>{{ m.institution_name|default:"—" }}</dd></div>
+      <div class="fact">{% icon 'mail' %}<dt>{% t "Email updates" %}</dt><dd>{% if m.agree_communication %}<span class="status status-success">{% t "Subscribed" %}</span>{% else %}<span class="status status-muted">{% t "Unsubscribed" %}</span>{% endif %}</dd></div>
+    </dl>
+  </div>
+  <div id="pv-activity-{{ m.pk }}" role="tabpanel" aria-labelledby="pv-tab-a-{{ m.pk }}" data-tab-hidden>
+    {% include "workspace/people/_activity.html" with events=p.activity %}
+  </div>
+
+  <div class="preview-actions">
+    {% if p.edit_url %}<a class="btn btn-outline" href="{{ p.edit_url }}">{% icon 'pencil' %}{% t "Edit profile" %}</a>{% endif %}
+    <a class="btn btn-primary" href="{{ p.card_url }}">{% icon 'credit-card' %}{% t "Download card" %}</a>
+  </div>
+  {% if p.invite_url and m.email %}
+  <form method="post" action="{{ p.invite_url }}" class="preview-invite">
+    {% csrf_token %}<input type="hidden" name="ids" value="{{ m.pk }}"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <button type="submit" class="btn btn-ghost btn-block" data-confirm="Email {{ m.full_name }} a link to the member cabinet?">{% icon 'key' %}{% t "Invite to cabinet" %}</button>
+  </form>
+  {% endif %}
+  {% if p.message_url %}
+  <div class="preview-actions">
+    <a class="btn btn-soft" href="{{ p.message_url }}&amp;channel=sms">{% icon 'message-square' %}{% t "Send SMS" %}</a>
+    <a class="btn btn-soft" href="{{ p.message_url }}&amp;channel=email">{% icon 'mail' %}{% t "Send email" %}</a>
+  </div>
+  {% endif %}
+
+  <section class="card preview-activity" aria-label="Recent activity">
+    <h3 class="card-title">{% t "Recent activity" %}</h3>
+    {% include "workspace/people/_activity.html" with events=p.activity|slice:":3" %}
+  </section>
+</div>
+{% endwith %}

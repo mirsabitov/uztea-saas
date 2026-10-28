@@ -33,6 +33,9 @@ MY_APPS = [
     'click',
     'atmos',
     'payme',
+    'workspace',
+    'certificates',
+    'cabinet',
 ]
 
 THIRD_PARTY_APPS = [
@@ -57,6 +60,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # certificates.uztea.uz -> /certificates/ (certificate portal)
+    'certificates.middleware.CertificatesHostMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -249,6 +254,18 @@ EMAIL_USE_TLS = _env_bool('EMAIL_USE_TLS', False)
 EMAIL_USE_SSL = _env_bool('EMAIL_USE_SSL', False)
 EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT') or 15)
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'UzTEA <info@uztea.uz>')
+
+# Brevo (approved 2026-10-27): when BREVO_SMTP_KEY is set, all UzTEA email goes through
+# Brevo's SMTP relay. The sender address must be verified in Brevo.
+BREVO_SMTP_LOGIN = os.getenv('BREVO_SMTP_LOGIN', '')
+BREVO_SMTP_KEY = os.getenv('BREVO_SMTP_KEY', '')
+if BREVO_SMTP_LOGIN and BREVO_SMTP_KEY:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.getenv('BREVO_SMTP_HOST', 'smtp-relay.brevo.com')
+    EMAIL_PORT = int(os.getenv('BREVO_SMTP_PORT') or 587)
+    EMAIL_HOST_USER = BREVO_SMTP_LOGIN
+    EMAIL_HOST_PASSWORD = BREVO_SMTP_KEY
+    EMAIL_USE_TLS, EMAIL_USE_SSL = True, False
 
 # Separate SMTP account used when an admin selects MatchedExpo in the custom
 # membership email composer.

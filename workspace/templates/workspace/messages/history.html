@@ -1,0 +1,55 @@
+{% extends "workspace/base.html" %}{% load workspace_tags %}
+{% block content %}
+<section class="page" aria-labelledby="page-title">
+  <div class="page-head">
+    <div><h1 id="page-title">{% t "People" %}</h1><p class="page-sub">{{ page_subtitle|tr:lang }}</p></div>
+  </div>
+  {% include "workspace/partials/people_tabs.html" %}
+
+  {% if batch %}
+  <div class="card batch-summary">
+    <strong>This send</strong>
+    {% for label, key, n in batch_counts %}<span class="status status-{% if key == 'sent' %}success{% elif key == 'failed' %}danger{% elif key == 'test' %}info{% else %}muted{% endif %}">{{ n }} {{ label|lower }}</span>{% endfor %}
+    <a class="btn btn-sm btn-ghost" href="{% url 'workspace:messages' %}">Show all messages</a>
+  </div>
+  {% endif %}
+
+  <form class="filters card" method="get" role="search" aria-label="Filter messages">
+    {% if batch %}<input type="hidden" name="batch" value="{{ batch }}">{% endif %}
+    <div class="search-field">{% icon 'search' %}<label for="q" class="sr-only">Search messages</label>
+      <input id="q" type="search" name="q" value="{{ q }}" placeholder="Name, phone, email or text…"></div>
+    <label class="sr-only" for="f-channel">Channel</label>
+    <select id="f-channel" name="channel" class="select" data-autosubmit><option value="">Channel</option>{% for v, l in channel_options %}<option value="{{ v }}"{% if filters.channel == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+    <label class="sr-only" for="f-status">Status</label>
+    <select id="f-status" name="status" class="select" data-autosubmit><option value="">{% t "Status" %}</option>{% for v, l in status_options %}<option value="{{ v }}"{% if filters.status == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+    <label class="sr-only" for="f-source">List</label>
+    <select id="f-source" name="source" class="select" data-autosubmit><option value="">List</option>{% for v, l in source_options %}<option value="{{ v }}"{% if filters.source == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+    <button class="btn btn-primary" type="submit">{% t "Search" %}</button>
+  </form>
+
+  <div class="card table-card">
+    {% if page.object_list %}
+    <div class="table-scroll">
+      <table class="table">
+        <thead><tr><th scope="col">Sent</th><th scope="col">To</th><th scope="col">Channel</th><th scope="col">Message</th><th scope="col">{% t "Status" %}</th><th scope="col">By</th></tr></thead>
+        <tbody>
+          {% for m in page.object_list %}
+          <tr>
+            <td class="nowrap">{{ m.created_at|date:"d M Y, H:i" }}</td>
+            <td><span class="person-name">{% if m.source == 'member' and m.recipient_id %}<a href="{% url 'workspace:member_profile' m.recipient_id %}">{{ m.recipient_name }}</a>{% else %}{{ m.recipient_name }}{% endif %}</span><div class="muted small">{{ m.to|default:"—" }}</div></td>
+            <td>{{ m.get_channel_display }}</td>
+            <td class="message-cell">{% if m.subject %}<strong>{{ m.subject }}</strong><br>{% endif %}<span class="muted">{{ m.body|striptags|truncatechars:120 }}</span></td>
+            <td><span class="status status-{% if m.status == 'sent' %}success{% elif m.status == 'failed' %}danger{% elif m.status == 'test' %}info{% else %}muted{% endif %}">{{ m.get_status_display }}</span>{% if m.error %}<div class="muted small">{{ m.error|truncatechars:80 }}</div>{% endif %}</td>
+            <td class="muted">{{ m.sent_by.get_username|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "workspace/partials/pagination.html" %}
+    {% else %}
+      <div class="empty"><span class="empty-icon">{% icon 'send' %}</span><h2>No messages yet</h2><p>Select people in Members, Teachers Bank or Partners and press SMS or Email.</p></div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

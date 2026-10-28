@@ -71,6 +71,82 @@ On Unix use `make PYTHON=python3 PIP=pip3` or `.venv/bin/python`.
 7. `requirements.txt` lists `requests` twice; `makefile` package is unnecessary.
 8. Log file `click_payments.log` is written into the project root — move to a logs dir.
 
+## UzTEA Workspace (`/workspace/`) — approved decisions
+Phases and status live in `docs/ROADMAP.md`.
+- The workspace is a separate staff-only Django app (`workspace/`) at `/workspace/`.
+  The classic `/admin/` stays as it is and is reachable from "More tools".
+- Plain Django templates + one vanilla CSS/JS file (`workspace/static/workspace/`).
+  No frontend framework, no new dependencies.
+- The workspace reads data. Every change (edit, add, import/export, bulk actions,
+  payment tools) goes through the existing admin views, so admin permissions stay the
+  single source of truth. Bulk actions POST to the admin changelist.
+- Navigation: Home (live dashboard), People (Members / Teachers Bank / All contacts /
+  Messages), Forms & Events, Payments, Partners, Settings, then a separate Website item
+  (uztea.uz content — placeholder for its own phase), plus More tools and the user menu.
+- Payment status is computed by `app/payment_status.py` (shared with the admin column) and
+  is never merged with membership status. Approved: it follows the latest order, so a
+  member who paid and later had a failed order shows "Failed".
+- Membership status (approved 2026-10-27), computed in `app/membership_lifecycle.py`, not
+  stored: Active from a successful payment for 12 months (365 days, as in the welcome
+  email) after the latest successful payment; "Renewal due" in the last 30 days;
+  "Expired" after; "Pending payment" (orders, none paid) / "No payment record" (no orders,
+  e.g. imported members).
+- Institutional members 2–5 are shown as separate people (All contacts, profile) with the
+  institution's status. They are not separate records yet (see ROADMAP "Person").
+- Messaging: SMS via Eskiz (`workspace/sms.py`, `ESKIZ_*` in .env) and email using the
+  admin composer's templates/senders. Every attempt is logged in `workspace.MessageLog`.
+  Permissions: `workspace.add_messagelog` to send, `workspace.view_messagelog` for history,
+  plus view permission on the recipient list. Without Eskiz credentials SMS runs in test
+  mode on DEBUG servers and is disabled elsewhere. Sending always needs a confirmation tick.
+- All workspace views are `csrf_protect`ed (the project's CSRF middleware is off).
+- Dark / light mode: CSS tokens in `workspace.css`; choice stored in localStorage, else the
+  OS setting.
+- Public membership form keeps its markup, fields and JS; the modern look is the extra
+  stylesheet `static/forms/membership-modern.css` (remove the <link> to roll back).
+- Languages (approved 2026-10-27): workspace, member cabinet and certificate portal in
+  English / Uzbek / Russian. Translations live in `workspace/i18n.py` (English text is the
+  key; `{% t "…" %}` and `|tr:lang`); missing lines fall back to English. No gettext.
+  Order: person's choice (session) > SaaS Settings default > English.
+- SaaS Settings (header button, `/workspace/saas/`): organisation details + default
+  language, stored in `workspace.OrganizationSettings` (single row).
+- Brevo: all email goes through Brevo's SMTP relay when `BREVO_SMTP_LOGIN` /
+  `BREVO_SMTP_KEY` are set (root/settings.py); otherwise the old EMAIL_* settings apply.
+- Certificates (`certificates` app): templates designed in the workspace (positions in %
+  of the page, same rules in the designer JS and `certificates/render.py`), PDFs by
+  Playwright/Chromium, numbers `UZTEA-YYYY-NNNNNN` from `CertificateSequence` (never
+  reused). Issued to selected members or an Excel/CSV/pasted list; emailed as a link.
+  Public portal `certificates.uztea.uz` (= `/certificates/` via
+  `CertificatesHostMiddleware`): lookup by email or membership ID only emails the links
+  to the address on file (nothing shown on screen); verification by number is public.
+- Member area "My profile" (`cabinet` app, `/account/`; approved name 2026-10-27): Django
+  users with username = email, never staff. Members edit their application answers
+  (`cabinet/profile.py`, same labels as `/apply/`) except email, membership type/ID,
+  payments and the terms/data consents; every edit is logged in `cabinet.ProfileChange`
+  and shown in the workspace activity. Photo in `cabinet.MemberProfile`. Email opt-in is
+  the existing `Membership.agree_communication` (switch in My profile, column + filter in
+  admin and workspace); workspace news emails skip unsubscribed members, transactional
+  mail (certificates, password links, welcome) still goes.
+- Branding: logos uploaded in SaaS Settings (`OrganizationSettings.logo_*`) replace the
+  original files everywhere (workspace, public pages, certificate UzTEA logo); removing
+  them falls back to the originals.
+- My profile accounts are created, invited and reset with the same emailed set-password link
+  (Django token, 3 days). Shows membership status, card, payments, event registrations,
+  certificates, benefits (active members, by type) and published upcoming events.
+  Courses: "Coming soon".
+- Events (`workspace.Event`, Forms & Events → Events) and member benefits
+  (`workspace.Benefit`, Partners → Bonuses & offers) are managed in the workspace.
+- Records from different tables are never merged. The same email in several lists is
+  only pointed out ("Also in").
+- Unbuilt features are labelled "Preview" / "Next phase" and their buttons are disabled.
+  Form Studio is a client-side sandbox that saves nothing.
+- Logos: `workspace/static/workspace/img/logo-{white,navy,blue}.png` (white on dark,
+  navy on light, blue for accents). Never crop or stretch them.
+- Demo data: `manage.py workspace_demo_data` (`--clear` to remove) runs only with
+  DEBUG + SQLite. Demo records use `@demo.uztea.test` emails and show a "Demo data" badge.
+  Optional local login from `DEMO_ADMIN_USERNAME` / `DEMO_ADMIN_PASSWORD` in `.env`.
+- Local dev without PostgreSQL: in `.env` set `DB_ENGINE=django.db.backends.sqlite3`
+  and `POSTGRES_DB=db.sqlite3`.
+
 ## Future
 uztea.uz (currently Tilda) will later be rebuilt in Python as a replica and served
 alongside / integrated with this project.
